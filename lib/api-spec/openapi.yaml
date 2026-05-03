@@ -1,0 +1,1119 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: CareerPath AI Architect API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: profile
+    description: User profile management
+  - name: work-experience
+    description: Work experience entries
+  - name: education
+    description: Education entries
+  - name: skills
+    description: Skills management
+  - name: certifications
+    description: Certifications management
+  - name: career-goal
+    description: Career goal definition
+  - name: analysis
+    description: AI career analysis
+  - name: roadmap
+    description: Career roadmap
+  - name: milestones
+    description: Progress milestones
+  - name: dashboard
+    description: Dashboard summary data
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [profile]
+      summary: Get user profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "404":
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateProfile
+      tags: [profile]
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileBody"
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+
+  /profile/completion:
+    get:
+      operationId: getProfileCompletion
+      tags: [profile]
+      summary: Get profile completion percentage
+      responses:
+        "200":
+          description: Profile completion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileCompletion"
+
+  /work-experiences:
+    get:
+      operationId: listWorkExperiences
+      tags: [work-experience]
+      summary: List work experiences
+      responses:
+        "200":
+          description: List of work experiences
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WorkExperience"
+    post:
+      operationId: createWorkExperience
+      tags: [work-experience]
+      summary: Create a work experience entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkExperienceBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkExperience"
+
+  /work-experiences/{id}:
+    patch:
+      operationId: updateWorkExperience
+      tags: [work-experience]
+      summary: Update a work experience entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWorkExperienceBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkExperience"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteWorkExperience
+      tags: [work-experience]
+      summary: Delete a work experience entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /education:
+    get:
+      operationId: listEducation
+      tags: [education]
+      summary: List education entries
+      responses:
+        "200":
+          description: List of education entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Education"
+    post:
+      operationId: createEducation
+      tags: [education]
+      summary: Create an education entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEducationBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Education"
+
+  /education/{id}:
+    patch:
+      operationId: updateEducation
+      tags: [education]
+      summary: Update an education entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEducationBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Education"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteEducation
+      tags: [education]
+      summary: Delete an education entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /skills:
+    get:
+      operationId: listSkills
+      tags: [skills]
+      summary: List user skills
+      responses:
+        "200":
+          description: List of skills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Skill"
+    post:
+      operationId: createSkill
+      tags: [skills]
+      summary: Add a skill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSkillBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Skill"
+
+  /skills/{id}:
+    delete:
+      operationId: deleteSkill
+      tags: [skills]
+      summary: Remove a skill
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /certifications:
+    get:
+      operationId: listCertifications
+      tags: [certifications]
+      summary: List certifications
+      responses:
+        "200":
+          description: List of certifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Certification"
+    post:
+      operationId: createCertification
+      tags: [certifications]
+      summary: Add a certification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCertificationBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Certification"
+
+  /certifications/{id}:
+    delete:
+      operationId: deleteCertification
+      tags: [certifications]
+      summary: Remove a certification
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /career-goal:
+    get:
+      operationId: getCareerGoal
+      tags: [career-goal]
+      summary: Get career goal
+      responses:
+        "200":
+          description: Career goal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerGoal"
+        "404":
+          description: Not set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: setCareerGoal
+      tags: [career-goal]
+      summary: Set or update career goal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetCareerGoalBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerGoal"
+
+  /analysis:
+    post:
+      operationId: runAnalysis
+      tags: [analysis]
+      summary: Run AI career analysis
+      responses:
+        "201":
+          description: Analysis created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerAnalysis"
+        "400":
+          description: Incomplete profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /analysis/latest:
+    get:
+      operationId: getLatestAnalysis
+      tags: [analysis]
+      summary: Get latest analysis
+      responses:
+        "200":
+          description: Latest analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerAnalysis"
+        "404":
+          description: No analysis yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /analysis/history:
+    get:
+      operationId: listAnalysisHistory
+      tags: [analysis]
+      summary: Get analysis history
+      responses:
+        "200":
+          description: List of past analyses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AnalysisSummary"
+
+  /roadmap:
+    get:
+      operationId: getRoadmap
+      tags: [roadmap]
+      summary: Get current roadmap
+      responses:
+        "200":
+          description: Full roadmap
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Roadmap"
+        "404":
+          description: No roadmap generated yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /milestones:
+    get:
+      operationId: listMilestones
+      tags: [milestones]
+      summary: List milestones
+      responses:
+        "200":
+          description: List of milestones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Milestone"
+
+  /milestones/{id}/complete:
+    patch:
+      operationId: completeMilestone
+      tags: [milestones]
+      summary: Mark milestone as complete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated milestone
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Milestone"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/skill-gaps:
+    get:
+      operationId: getSkillGaps
+      tags: [dashboard]
+      summary: Get top skill gaps
+      responses:
+        "200":
+          description: Skill gap breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SkillGap"
+
+  /dashboard/activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent activity
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+      required: [name, email, password]
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        createdAt:
+          type: string
+      required: [id, name, email, role, createdAt]
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required: [user, token]
+
+    Profile:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        currentRole:
+          type: ["string", "null"]
+        yearsExperience:
+          type: ["integer", "null"]
+        industry:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        linkedinUrl:
+          type: ["string", "null"]
+        professionalSummary:
+          type: ["string", "null"]
+        preferredLearningStyle:
+          type: ["string", "null"]
+        weeklyLearningHours:
+          type: ["integer", "null"]
+        salaryAspiration:
+          type: ["string", "null"]
+        careerLevel:
+          type: ["string", "null"]
+        updatedAt:
+          type: string
+      required: [id, userId, updatedAt]
+
+    UpdateProfileBody:
+      type: object
+      properties:
+        currentRole:
+          type: string
+        yearsExperience:
+          type: integer
+        industry:
+          type: string
+        location:
+          type: string
+        phone:
+          type: string
+        linkedinUrl:
+          type: string
+        professionalSummary:
+          type: string
+        preferredLearningStyle:
+          type: string
+        weeklyLearningHours:
+          type: integer
+        salaryAspiration:
+          type: string
+        careerLevel:
+          type: string
+
+    ProfileCompletion:
+      type: object
+      properties:
+        percentage:
+          type: integer
+        missingFields:
+          type: array
+          items:
+            type: string
+        completedSections:
+          type: array
+          items:
+            type: string
+      required: [percentage, missingFields, completedSections]
+
+    WorkExperience:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        company:
+          type: string
+        title:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: ["string", "null"]
+        isCurrent:
+          type: boolean
+        description:
+          type: ["string", "null"]
+        skills:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, userId, company, title, startDate, isCurrent, createdAt]
+
+    CreateWorkExperienceBody:
+      type: object
+      properties:
+        company:
+          type: string
+        title:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        isCurrent:
+          type: boolean
+        description:
+          type: string
+        skills:
+          type: string
+      required: [company, title, startDate, isCurrent]
+
+    Education:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        institution:
+          type: string
+        degree:
+          type: string
+        fieldOfStudy:
+          type: ["string", "null"]
+        startYear:
+          type: integer
+        endYear:
+          type: ["integer", "null"]
+        isCurrent:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, userId, institution, degree, startYear, isCurrent, createdAt]
+
+    CreateEducationBody:
+      type: object
+      properties:
+        institution:
+          type: string
+        degree:
+          type: string
+        fieldOfStudy:
+          type: string
+        startYear:
+          type: integer
+        endYear:
+          type: integer
+        isCurrent:
+          type: boolean
+      required: [institution, degree, startYear, isCurrent]
+
+    Skill:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        proficiencyLevel:
+          type: string
+        createdAt:
+          type: string
+      required: [id, userId, name, category, proficiencyLevel, createdAt]
+
+    CreateSkillBody:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        proficiencyLevel:
+          type: string
+      required: [name, category, proficiencyLevel]
+
+    Certification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        name:
+          type: string
+        issuingOrganization:
+          type: string
+        issueDate:
+          type: ["string", "null"]
+        expiryDate:
+          type: ["string", "null"]
+        credentialId:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, userId, name, issuingOrganization, createdAt]
+
+    CreateCertificationBody:
+      type: object
+      properties:
+        name:
+          type: string
+        issuingOrganization:
+          type: string
+        issueDate:
+          type: string
+        expiryDate:
+          type: string
+        credentialId:
+          type: string
+      required: [name, issuingOrganization]
+
+    CareerGoal:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        targetRole:
+          type: string
+        targetIndustry:
+          type: ["string", "null"]
+        targetLevel:
+          type: ["string", "null"]
+        leadershipPreference:
+          type: ["string", "null"]
+        geographicPreference:
+          type: ["string", "null"]
+        workModePreference:
+          type: ["string", "null"]
+        strengthsToBuild:
+          type: ["string", "null"]
+        areasToImprove:
+          type: ["string", "null"]
+        targetYears:
+          type: ["integer", "null"]
+        updatedAt:
+          type: string
+      required: [id, userId, targetRole, updatedAt]
+
+    SetCareerGoalBody:
+      type: object
+      properties:
+        targetRole:
+          type: string
+        targetIndustry:
+          type: string
+        targetLevel:
+          type: string
+        leadershipPreference:
+          type: string
+        geographicPreference:
+          type: string
+        workModePreference:
+          type: string
+        strengthsToBuild:
+          type: string
+        areasToImprove:
+          type: string
+        targetYears:
+          type: integer
+          minimum: 1
+          maximum: 10
+      required: [targetRole]
+
+    CareerAnalysis:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        readinessScore:
+          type: integer
+        profileSummary:
+          type: string
+        currentStrengths:
+          type: string
+        skillGaps:
+          type: string
+        experienceGaps:
+          type: string
+        qualificationGaps:
+          type: string
+        certificationRecommendations:
+          type: string
+        suggestedProjects:
+          type: string
+        jobProgressionLadder:
+          type: string
+        immediateActions:
+          type: string
+        year1Priorities:
+          type: string
+        year2To3Plan:
+          type: string
+        year4To5Plan:
+          type: string
+        createdAt:
+          type: string
+      required: [id, userId, readinessScore, profileSummary, currentStrengths, skillGaps, experienceGaps, qualificationGaps, certificationRecommendations, suggestedProjects, jobProgressionLadder, immediateActions, year1Priorities, year2To3Plan, year4To5Plan, createdAt]
+
+    AnalysisSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        readinessScore:
+          type: integer
+        targetRole:
+          type: string
+        createdAt:
+          type: string
+      required: [id, readinessScore, targetRole, createdAt]
+
+    Roadmap:
+      type: object
+      properties:
+        analysisId:
+          type: integer
+        targetRole:
+          type: string
+        readinessScore:
+          type: integer
+        phases:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoadmapPhase"
+      required: [analysisId, targetRole, readinessScore, phases]
+
+    RoadmapPhase:
+      type: object
+      properties:
+        label:
+          type: string
+        timeframe:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string
+        focus:
+          type: string
+      required: [label, timeframe, actions, focus]
+
+    Milestone:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        phase:
+          type: string
+        completed:
+          type: boolean
+        dueDate:
+          type: ["string", "null"]
+        completedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required: [id, userId, title, phase, completed, createdAt]
+
+    DashboardSummary:
+      type: object
+      properties:
+        profileCompletion:
+          type: integer
+        targetRole:
+          type: ["string", "null"]
+        readinessScore:
+          type: ["integer", "null"]
+        totalSkills:
+          type: integer
+        totalCertifications:
+          type: integer
+        totalWorkExperiences:
+          type: integer
+        milestonesCompleted:
+          type: integer
+        milestonesTotal:
+          type: integer
+        analysisCount:
+          type: integer
+        lastAnalysisDate:
+          type: ["string", "null"]
+      required: [profileCompletion, targetRole, readinessScore, totalSkills, totalCertifications, totalWorkExperiences, milestonesCompleted, milestonesTotal, analysisCount, lastAnalysisDate]
+
+    SkillGap:
+      type: object
+      properties:
+        skill:
+          type: string
+        priority:
+          type: string
+        category:
+          type: string
+        currentLevel:
+          type: ["string", "null"]
+        requiredLevel:
+          type: string
+      required: [skill, priority, category, requiredLevel]
+
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        timestamp:
+          type: string
+      required: [id, type, description, timestamp]
