@@ -469,6 +469,13 @@ paths:
       operationId: runAnalysis
       tags: [analysis]
       summary: Run AI career analysis
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Optional key used to deduplicate accidental retries for 24 hours.
       responses:
         "201":
           description: Analysis created
@@ -478,6 +485,12 @@ paths:
                 $ref: "#/components/schemas/CareerAnalysis"
         "400":
           description: Incomplete profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Analysis already in progress
           content:
             application/json:
               schema:
@@ -962,6 +975,84 @@ components:
           maximum: 10
       required: [targetRole]
 
+    ReadinessSubScores:
+      type: object
+      properties:
+        skillsCoverage:
+          type: integer
+          minimum: 0
+          maximum: 100
+        experienceDepth:
+          type: integer
+          minimum: 0
+          maximum: 100
+        qualificationFit:
+          type: integer
+          minimum: 0
+          maximum: 100
+        leadershipReadiness:
+          type: integer
+          minimum: 0
+          maximum: 100
+      required: [skillsCoverage, experienceDepth, qualificationFit, leadershipReadiness]
+
+    StructuredStrength:
+      type: object
+      properties:
+        title:
+          type: string
+        evidence:
+          type: string
+        category:
+          type: string
+      required: [title, evidence, category]
+
+    StructuredSkillGap:
+      type: object
+      properties:
+        skill:
+          type: string
+        priority:
+          type: string
+          enum: [High, Medium, Low]
+        category:
+          type: string
+        currentLevel:
+          type: ["string", "null"]
+        requiredLevel:
+          type: string
+        rationale:
+          type: string
+      required: [skill, priority, category, currentLevel, requiredLevel, rationale]
+
+    StructuredAction:
+      type: object
+      properties:
+        title:
+          type: string
+        timeframe:
+          type: string
+        outcome:
+          type: string
+      required: [title, timeframe, outcome]
+
+    StructuredRoadmapPhase:
+      type: object
+      properties:
+        sequence:
+          type: integer
+        label:
+          type: string
+        timeframeMonths:
+          type: integer
+        focus:
+          type: string
+        actions:
+          type: array
+          items:
+            type: string
+      required: [sequence, label, timeframeMonths, focus, actions]
+
     CareerAnalysis:
       type: object
       properties:
@@ -969,14 +1060,28 @@ components:
           type: integer
         userId:
           type: integer
+        targetRole:
+          type: string
         readinessScore:
           type: integer
+          minimum: 0
+          maximum: 100
+        readinessSubScores:
+          $ref: "#/components/schemas/ReadinessSubScores"
         profileSummary:
           type: string
         currentStrengths:
           type: string
+        currentStrengthsStructured:
+          type: array
+          items:
+            $ref: "#/components/schemas/StructuredStrength"
         skillGaps:
           type: string
+        skillGapsStructured:
+          type: array
+          items:
+            $ref: "#/components/schemas/StructuredSkillGap"
         experienceGaps:
           type: string
         qualificationGaps:
@@ -989,15 +1094,35 @@ components:
           type: string
         immediateActions:
           type: string
+        immediateActionsStructured:
+          type: array
+          items:
+            $ref: "#/components/schemas/StructuredAction"
         year1Priorities:
           type: string
         year2To3Plan:
           type: string
         year4To5Plan:
           type: string
+        roadmapPhases:
+          type: array
+          items:
+            $ref: "#/components/schemas/StructuredRoadmapPhase"
+        modelName:
+          type: string
+        promptVersion:
+          type: string
+        inputTokens:
+          type: integer
+        outputTokens:
+          type: integer
+        latencyMs:
+          type: integer
+        profileSnapshot:
+          type: object
         createdAt:
           type: string
-      required: [id, userId, readinessScore, profileSummary, currentStrengths, skillGaps, experienceGaps, qualificationGaps, certificationRecommendations, suggestedProjects, jobProgressionLadder, immediateActions, year1Priorities, year2To3Plan, year4To5Plan, createdAt]
+      required: [id, userId, targetRole, readinessScore, readinessSubScores, profileSummary, currentStrengths, currentStrengthsStructured, skillGaps, skillGapsStructured, experienceGaps, qualificationGaps, certificationRecommendations, suggestedProjects, jobProgressionLadder, immediateActions, immediateActionsStructured, year1Priorities, year2To3Plan, year4To5Plan, roadmapPhases, modelName, promptVersion, inputTokens, outputTokens, latencyMs, profileSnapshot, createdAt]
 
     AnalysisSummary:
       type: object
@@ -1049,6 +1174,8 @@ components:
           type: integer
         userId:
           type: integer
+        analysisId:
+          type: ["integer", "null"]
         title:
           type: string
         description:
@@ -1103,6 +1230,8 @@ components:
           type: ["string", "null"]
         requiredLevel:
           type: string
+        rationale:
+          type: string
       required: [skill, priority, category, requiredLevel]
 
     ActivityItem:
@@ -1116,4 +1245,10 @@ components:
           type: string
         timestamp:
           type: string
+        entityType:
+          type: ["string", "null"]
+        entityId:
+          type: ["integer", "null"]
+        metadata:
+          type: object
       required: [id, type, description, timestamp]

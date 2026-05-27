@@ -1,6 +1,6 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import { useLocation } from "wouter";
-import { useGetMe, setAuthTokenGetter } from "@workspace/api-client-react";
+import { useGetMe, getGetMeQueryKey, setAuthTokenGetter } from "@workspace/api-client-react";
 
 const TOKEN_KEY = "careerpath_token";
 
@@ -22,6 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const { data: user, isLoading: isUserLoading, isError } = useGetMe({
     query: {
+      queryKey: getGetMeQueryKey(),
       enabled: !!token,
       retry: false,
     },

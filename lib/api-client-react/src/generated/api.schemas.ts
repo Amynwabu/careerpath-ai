@@ -144,6 +144,8 @@ export interface Skill {
   name: string;
   category: string;
   proficiencyLevel: string;
+  /** @nullable */
+  acquiredDate?: string | null;
   createdAt: string;
 }
 
@@ -151,6 +153,7 @@ export interface CreateSkillBody {
   name: string;
   category: string;
   proficiencyLevel: string;
+  acquiredDate?: string;
 }
 
 export interface Certification {
@@ -209,27 +212,76 @@ export interface SetCareerGoalBody {
   areasToImprove?: string;
   /**
    * @minimum 1
-   * @maximum 10
+   * @maximum 120
    */
   targetYears?: number;
+}
+
+export interface ReadinessSubScores {
+  skillsCoverage: number;
+  experienceDepth: number;
+  qualificationFit: number;
+  leadershipReadiness: number;
+}
+
+export interface StructuredStrength {
+  title: string;
+  evidence: string;
+  category: string;
+}
+
+export interface StructuredSkillGap {
+  skill: string;
+  priority: 'High' | 'Medium' | 'Low';
+  category: string;
+  /** @nullable */
+  currentLevel: string | null;
+  requiredLevel: string;
+  rationale: string;
+}
+
+export interface StructuredAction {
+  title: string;
+  timeframe: string;
+  outcome: string;
+}
+
+export interface StructuredRoadmapPhase {
+  sequence: number;
+  label: string;
+  timeframeMonths: number;
+  focus: string;
+  actions: string[];
 }
 
 export interface CareerAnalysis {
   id: number;
   userId: number;
+  targetRole: string;
   readinessScore: number;
+  readinessSubScores: ReadinessSubScores;
   profileSummary: string;
   currentStrengths: string;
+  currentStrengthsStructured: StructuredStrength[];
   skillGaps: string;
+  skillGapsStructured: StructuredSkillGap[];
   experienceGaps: string;
   qualificationGaps: string;
   certificationRecommendations: string;
   suggestedProjects: string;
   jobProgressionLadder: string;
   immediateActions: string;
+  immediateActionsStructured: StructuredAction[];
   year1Priorities: string;
   year2To3Plan: string;
   year4To5Plan: string;
+  roadmapPhases: StructuredRoadmapPhase[];
+  modelName: string;
+  promptVersion: string;
+  inputTokens: number;
+  outputTokens: number;
+  latencyMs: number;
+  profileSnapshot: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -257,6 +309,8 @@ export interface Roadmap {
 export interface Milestone {
   id: number;
   userId: number;
+  /** @nullable */
+  analysisId?: number | null;
   title: string;
   /** @nullable */
   description?: string | null;
@@ -292,6 +346,7 @@ export interface SkillGap {
   /** @nullable */
   currentLevel?: string | null;
   requiredLevel: string;
+  rationale?: string;
 }
 
 export interface ActivityItem {
@@ -299,4 +354,9 @@ export interface ActivityItem {
   type: string;
   description: string;
   timestamp: string;
+  /** @nullable */
+  entityType?: string | null;
+  /** @nullable */
+  entityId?: number | null;
+  metadata?: Record<string, unknown>;
 }

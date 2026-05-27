@@ -53,16 +53,16 @@ export default function Dashboard() {
   const { data: milestones, isLoading: loadingMilestones } = useListMilestones();
   const { data: roadmap, isLoading: loadingRoadmap } = useGetRoadmap();
 
-  const targetYears = (goal as any)?.targetYears ?? 5;
+  const targetMonths = (goal as any)?.targetYears ?? 24;
   const readiness = summary?.readinessScore ?? 0;
   const hasAnalysis = readiness > 0;
 
   // Urgency calculation
   const atCurrentPace = hasAnalysis
-    ? Math.round(targetYears * (1 + ((100 - readiness) / 100) * 1.5) * 10) / 10
+    ? Math.round(targetMonths * (1 + ((100 - readiness) / 100) * 1.5))
     : null;
   const withAI = hasAnalysis
-    ? Math.round(targetYears * 0.56 * 10) / 10
+    ? Math.round(targetMonths * 0.56)
     : null;
   const timeSaved = atCurrentPace && withAI ? Math.round((atCurrentPace - withAI) * 10) / 10 : null;
 
@@ -105,7 +105,7 @@ export default function Dashboard() {
             icon={<Target className="w-4 h-4 text-primary" />}
             label="🎯 Your Target Role"
             value={targetRole ?? null}
-            sub={targetYears ? `${targetYears}-year goal` : undefined}
+            sub={targetMonths ? `${targetMonths}-month goal` : undefined}
             href="/career-goal"
             loading={loadingGoal || loadingSummary}
           />
@@ -185,7 +185,7 @@ export default function Dashboard() {
                         style={{ width: `${Math.min(100, (readiness / 100) * 40 + 20)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-primary">→ Save ~{timeSaved} year{timeSaved !== 1 ? "s" : ""} with AI coaching</p>
+                    <p className="text-xs text-primary">→ Save ~{timeSaved} month{timeSaved !== 1 ? "s" : ""} with AI coaching</p>
                   </div>
                 </div>
               )}

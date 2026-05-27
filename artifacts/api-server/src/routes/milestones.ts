@@ -1,15 +1,22 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
-import { db, milestonesTable, activityLogTable } from "@workspace/db";
+import { eq, and, desc } from "drizzle-orm";
+import { db, milestonesTable, activityLogTable, careerAnalysesTable } from "@workspace/db";
 import { CompleteMilestoneParams } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
 router.get("/milestones", requireAuth, async (req, res): Promise<void> => {
-  const items = await db.select().from(milestonesTable)
-    .where(eq(milestonesTable.userId, req.user!.userId));
-  res.json(items.map(m => ({
+  const userId = req.user!.userId;
+  const [latestAnalysis] = await db.select().from(careerAnalysesTable)
+    .where(eq(careerAnalysesTable.userId, userId))
+    .orderBy(desc(careerAnalysesTable.createdAt))
+    .limit(1);
+
+  const items = await db.select().from(milestonesTable).where(eq(milestonesTable.userId, userId));
+  const scopedItems = latestAnalysis ? items.filter(m => m.analysisId === latestAnalysis.id || m.analysisId == null) : items;
+
+  res.json(scopedItems.map(m => ({
     ...m,
     createdAt: m.createdAt.toISOString(),
     completedAt: m.completedAt?.toISOString() ?? null,
@@ -37,6 +44,9 @@ router.patch("/milestones/:id/complete", requireAuth, async (req, res): Promise<
     userId: req.user!.userId,
     type: "milestone",
     description: `Completed milestone: ${milestone.title}`,
+    entityType: "milestone",
+    entityId: milestone.id,
+    metadata: { analysisId: milestone.analysisId, phase: milestone.phase },
   });
 
   res.json({

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -8,6 +8,9 @@ export const activityLogTable = pgTable("activity_log", {
   userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   type: text("type").notNull(),
   description: text("description").notNull(),
+  entityType: text("entity_type"),
+  entityId: integer("entity_id"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

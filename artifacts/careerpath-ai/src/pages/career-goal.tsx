@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const LEADERSHIP_OPTIONS = ["Individual Contributor", "Team Lead", "Manager", "Senior Manager", "Director", "VP", "C-Suite"];
 const WORK_MODE_OPTIONS = ["Remote", "Hybrid", "On-site", "No preference"];
-const YEAR_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+const MONTH_OPTIONS = [1, 3, 6, 9, 12, 18, 24, 36, 48, 60, 72, 96, 120];
 
 export default function CareerGoal() {
   const qc = useQueryClient();
@@ -22,13 +22,13 @@ export default function CareerGoal() {
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState<Record<string, string>>({});
-  const [targetYears, setTargetYears] = useState<number | null>(null);
+  const [targetMonths, setTargetMonths] = useState<number | null>(null);
   const f = (key: string) => form[key] ?? (goal as any)?.[key] ?? "";
-  const years = targetYears ?? (goal as any)?.targetYears ?? 5;
+  const months = targetMonths ?? (goal as any)?.targetYears ?? 24;
 
   const handleSave = async () => {
     if (!f("targetRole")) {
-      toast({ title: "Target role required", description: `Please enter your desired ${years}-year role.`, variant: "destructive" });
+      toast({ title: "Target role required", description: `Please enter your desired role for the selected month timeline.`, variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -42,11 +42,11 @@ export default function CareerGoal() {
         workModePreference: f("workModePreference") || undefined,
         strengthsToBuild: f("strengthsToBuild") || undefined,
         areasToImprove: f("areasToImprove") || undefined,
-        targetYears: years,
+        targetYears: months,
       } });
       qc.invalidateQueries({ queryKey: getGetCareerGoalQueryKey() });
       setForm({});
-      toast({ title: "Career goal saved", description: `Your ${years}-year target has been updated.` });
+      toast({ title: "Career goal saved", description: `Your ${months}-month target has been updated.` });
     } catch {
       toast({ title: "Error", description: "Failed to save career goal.", variant: "destructive" });
     }
@@ -61,7 +61,7 @@ export default function CareerGoal() {
             <Target className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Your {years}-Year Career Target</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Your {months}-Month Career Target</h1>
             <p className="text-muted-foreground mt-1">Define where you want to be — your AI roadmap will be built around this goal.</p>
           </div>
         </div>
@@ -74,26 +74,26 @@ export default function CareerGoal() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <label className="text-sm font-semibold mb-3 block">Years to achieve this goal</label>
+                <label className="text-sm font-semibold mb-3 block">Months to achieve this goal</label>
                 <div className="flex flex-wrap gap-2">
-                  {YEAR_OPTIONS.map(y => (
+                  {MONTH_OPTIONS.map(m => (
                     <button
-                      key={y}
+                      key={m}
                       type="button"
-                      onClick={() => setTargetYears(y)}
+                      onClick={() => setTargetMonths(m)}
                       className={`w-10 h-10 rounded-lg text-sm font-semibold border transition-all ${
-                        years === y
+                        months === m
                           ? "bg-primary text-primary-foreground border-primary"
                           : "border-border text-muted-foreground hover:border-primary hover:text-foreground bg-background"
                       }`}
                     >
-                      {y}
+                      {m}
                     </button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="text-sm font-semibold mb-2 block">Desired Role in {years} Years <span className="text-primary">*</span></label>
+                <label className="text-sm font-semibold mb-2 block">Desired Role in {months} Months <span className="text-primary">*</span></label>
                 <Input
                   placeholder="e.g. Head of AI Engineering, Senior Product Manager, Director of Digital Transformation"
                   value={f("targetRole")}

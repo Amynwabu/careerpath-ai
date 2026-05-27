@@ -264,6 +264,7 @@ export const ListSkillsResponseItem = zod.object({
   name: zod.string(),
   category: zod.string(),
   proficiencyLevel: zod.string(),
+  acquiredDate: zod.string().nullish(),
   createdAt: zod.string(),
 });
 export const ListSkillsResponse = zod.array(ListSkillsResponseItem);
@@ -275,6 +276,7 @@ export const CreateSkillBody = zod.object({
   name: zod.string(),
   category: zod.string(),
   proficiencyLevel: zod.string(),
+  acquiredDate: zod.string().optional(),
 });
 
 /**
@@ -340,7 +342,7 @@ export const GetCareerGoalResponse = zod.object({
 /**
  * @summary Set or update career goal
  */
-export const setCareerGoalBodyTargetYearsMax = 10;
+export const setCareerGoalBodyTargetYearsMax = 120;
 
 export const SetCareerGoalBody = zod.object({
   targetRole: zod.string(),

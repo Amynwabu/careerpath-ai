@@ -38,7 +38,7 @@ export default function Onboarding() {
   const [work, setWork] = useState({ company: "", title: "", startDate: "", description: "" });
   const [edu, setEdu] = useState({ institution: "", degree: "", fieldOfStudy: "", startYear: "", endYear: "" });
   const [skills, setSkills] = useState<string[]>([]);
-  const [goal, setGoalState] = useState({ targetRole: "", targetIndustry: "", targetLevel: "", workModePreference: "", targetYears: 5 });
+  const [goal, setGoalState] = useState({ targetRole: "", targetIndustry: "", targetLevel: "", workModePreference: "", targetYears: 24 });
 
   const handleNext = async () => {
     setLoading(true);
@@ -247,14 +247,14 @@ export default function Onboarding() {
           {step === 5 && (
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="text-2xl">Your {goal.targetYears}-Year Career Target</CardTitle>
+                <CardTitle className="text-2xl">Your {goal.targetYears}-Month Career Target</CardTitle>
                 <CardDescription>Where do you want to be? This powers your entire roadmap.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Years to achieve this goal</label>
+                  <label className="text-sm font-medium mb-2 block">Months to achieve this goal</label>
                   <div className="flex flex-wrap gap-2">
-                    {[1,2,3,4,5,6,7,8,9,10].map(y => (
+                    {[1,3,6,9,12,18,24,36,48,60].map(y => (
                       <button
                         key={y}
                         type="button"
@@ -271,7 +271,7 @@ export default function Onboarding() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1.5 block">Desired Role in {goal.targetYears} Years <span className="text-primary">*</span></label>
+                  <label className="text-sm font-medium mb-1.5 block">Desired Role in {goal.targetYears} Months <span className="text-primary">*</span></label>
                   <Input placeholder="e.g. Head of AI Engineering, Senior Product Manager, Director of Technology" value={goal.targetRole} onChange={e => setGoalState(p => ({ ...p, targetRole: e.target.value }))} className="bg-background border-border text-base" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">

@@ -32,7 +32,7 @@ export default function Analysis() {
   const { data: goal } = useGetCareerGoal();
   const runAnalysis = useRunAnalysis();
   const [running, setRunning] = useState(false);
-  const targetYears = (goal as any)?.targetYears ?? 5;
+  const targetMonths = (goal as any)?.targetYears ?? 24;
 
   const noAnalysis = !isLoading && (!analysis || (error as any)?.status === 404);
 
@@ -96,7 +96,7 @@ export default function Analysis() {
               <div>
                 <h2 className="text-2xl font-bold">No Analysis Yet</h2>
                 <p className="text-muted-foreground mt-2 max-w-md">
-                  Complete your profile and set your {targetYears}-year career target, then run your first analysis to get a personalised readiness score, gap report, and roadmap.
+                  Complete your profile and set your {targetMonths}-month career target, then run your first analysis to get a personalised readiness score, gap report, and roadmap.
                 </p>
               </div>
               <Button onClick={handleRun} size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
