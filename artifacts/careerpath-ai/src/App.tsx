@@ -19,6 +19,7 @@ import Roadmap from "@/pages/roadmap";
 import Milestones from "@/pages/milestones";
 import AnalysisHistory from "@/pages/history";
 import Onboarding from "@/pages/onboarding";
+import Webinar from "@/pages/webinar";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/intelligence" component={Intelligence} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/webinar" component={Webinar} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
 

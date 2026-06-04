@@ -154,6 +154,7 @@ export default function Landing() {
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="/intelligence" className="hover:text-primary transition-colors">Intelligence</Link>
+            <Link href="/webinar" className="hover:text-primary transition-colors">AI Webinar</Link>
             <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
             <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
           </div>
@@ -214,7 +215,7 @@ export default function Landing() {
                   <Link href="/register">Start Your Career Path <ArrowRight className="w-5 h-5 ml-2" /></Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="text-base h-14 px-8 border-white/10 hover:bg-white/5">
-                  <Link href="/pricing">View Plans</Link>
+                  <Link href="/webinar">View AI Webinar</Link>
                 </Button>
               </div>
 
