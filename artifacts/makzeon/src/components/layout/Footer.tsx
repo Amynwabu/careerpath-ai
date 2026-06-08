@@ -8,17 +8,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 relative">
-                <div className="absolute inset-0 border-2 border-[#0ea5e9] rotate-45" />
-                <div className="absolute inset-[4px] bg-[#0ea5e9] rotate-45" />
-              </div>
+            <Link href="/" className="flex items-center mb-4" aria-label="MakZeon home">
               <span className="text-white font-bold text-lg tracking-[0.15em] uppercase">
                 MAK<span className="text-[#0ea5e9]">ZEON</span>
               </span>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs mb-6">
-              Engineering Intelligence. Delivering integrated engineering, AI, and project delivery services across energy and infrastructure sectors.
+Specialist PMO-as-a-Service, project controls, reporting, risk, assurance, and contract management support for complex energy, utilities, and infrastructure programmes.
             </p>
             <div className="flex gap-3">
               {[
@@ -66,10 +62,12 @@ export default function Footer() {
             <h4 className="text-white text-xs font-semibold uppercase tracking-[0.15em] mb-4">Services</h4>
             <ul className="space-y-2">
               {[
-                "Engineering Intelligence",
-                "AI & Consulting",
-                "Project Delivery",
-                "Training & Capability",
+                "PMO-as-a-Service",
+                "Project Controls",
+                "Planning & Scheduling",
+                "Risk & Assurance",
+                "Reporting & Analytics",
+                "Contract Management",
               ].map((s) => (
                 <li key={s}>
                   <Link

@@ -167,7 +167,7 @@ export default function About() {
               Start with a focused diagnostic and get an independent view of the governance, controls, risk, and contract signals that matter.
             </p>
             <Link href="/contact" data-track="book-diagnostic" className="inline-flex items-center gap-2 px-8 py-4 bg-[#0ea5e9] text-[#050d1a] font-bold text-sm uppercase tracking-wide hover:bg-[#38bdf8] transition-all blue-glow group">
-              Book Diagnostic <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              Book a Delivery Diagnostic <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </Link>
           </FadeUp>
         </div>

@@ -136,7 +136,7 @@ export default function Projects() {
               </div>
               <div className="shrink-0">
                 <Link href="/contact" data-track="projects-cta" className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#0ea5e9] text-[#050d1a] font-bold text-sm uppercase tracking-wide hover:bg-[#38bdf8] transition-all blue-glow group">
-                  Book Diagnostic <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  Book a Delivery Diagnostic <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </div>

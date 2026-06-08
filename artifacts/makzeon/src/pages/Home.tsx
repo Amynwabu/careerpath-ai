@@ -219,7 +219,7 @@ export default function Home() {
                 data-track="book-diagnostic"
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#0ea5e9] text-[#050d1a] font-bold text-sm uppercase tracking-wide hover:bg-[#38bdf8] transition-all duration-200 blue-glow group"
               >
-                Book Diagnostic
+                Book a Delivery Diagnostic
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
@@ -465,7 +465,7 @@ export default function Home() {
                   data-track="book-diagnostic"
                   className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#0ea5e9] text-[#050d1a] font-bold text-sm uppercase tracking-wide hover:bg-[#38bdf8] transition-all blue-glow"
                 >
-                  Book Diagnostic <ArrowRight size={16} />
+                  Book a Delivery Diagnostic <ArrowRight size={16} />
                 </Link>
                 <Link
                   href="/services"

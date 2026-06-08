@@ -366,6 +366,34 @@ export const contactInfo = {
   hours: "Monday – Friday, 9:00am – 6:00pm GMT",
 };
 
+export const faqs = [
+  {
+    question: "How quickly can MakZeon mobilise a Delivery Diagnostic?",
+    answer:
+      "A Delivery Diagnostic can usually mobilise within one to two weeks, subject to access to baseline schedules, cost data, risk registers, governance packs, and key stakeholder availability. The diagnostic itself is designed to complete in two to four weeks.",
+  },
+  {
+    question: "What programme scale is MakZeon best suited to support?",
+    answer:
+      "MakZeon is best suited to complex energy, utilities, and infrastructure programmes where cost, schedule, risk, reporting, commercial, and governance signals need to be integrated. The model scales from targeted workstream support to full PMO-as-a-Service capability.",
+  },
+  {
+    question: "Can MakZeon support NEC contract environments?",
+    answer:
+      "Yes. MakZeon supports contract management, change control, early-warning discipline, compensation-event visibility, obligations tracking, and commercial reporting in NEC-style delivery environments, working alongside client commercial and legal teams.",
+  },
+  {
+    question: "Can MakZeon help recover a distressed or slipping project?",
+    answer:
+      "Yes. The Project Recovery Sprint is built for programmes facing schedule slippage, weak controls, governance drift, disputed change, or unreliable reporting. It establishes an honest baseline, prioritises recovery actions, and creates a practical control rhythm for decision-makers.",
+  },
+  {
+    question: "Do we need a permanent PMO before working with MakZeon?",
+    answer:
+      "No. MakZeon's PMO-as-a-Service model is designed for organisations that need stronger delivery control without committing to permanent overhead. Capability can be scaled up during mobilisation or recovery phases and reduced as internal teams mature.",
+  },
+];
+
 export const insightsArticles = [
   {
     id: 1,

@@ -29,11 +29,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-7 h-7 relative">
-              <div className="absolute inset-0 border-2 border-[#0ea5e9] rotate-45 group-hover:rotate-[135deg] transition-transform duration-500" />
-              <div className="absolute inset-[5px] bg-[#0ea5e9] rotate-45 group-hover:rotate-[135deg] transition-transform duration-500" />
-            </div>
+          <Link href="/" className="flex items-center group" aria-label="MakZeon home">
             <span className="text-white font-bold text-lg tracking-[0.15em] uppercase">
               MAK<span className="text-[#0ea5e9]">ZEON</span>
             </span>
@@ -62,7 +58,7 @@ export default function Navbar() {
               href="/contact"
               className="px-5 py-2 bg-[#0ea5e9] text-[#080d1a] text-sm font-semibold tracking-wide uppercase hover:bg-[#38bdf8] transition-all duration-200 blue-glow-hover"
             >
-              Book Consultation
+              Book a Delivery Diagnostic
             </Link>
           </div>
 
@@ -99,7 +95,7 @@ export default function Navbar() {
                 href="/contact"
                 className="block w-full text-center px-5 py-3 bg-[#0ea5e9] text-[#080d1a] text-sm font-semibold tracking-wide uppercase hover:bg-[#38bdf8] transition-colors"
               >
-                Book Consultation
+                Book a Delivery Diagnostic
               </Link>
             </div>
           </div>

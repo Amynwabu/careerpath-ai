@@ -218,15 +218,15 @@ export default function Insights() {
                 <div className="bg-[#0c1220] border border-[#0ea5e9]/20 p-6 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 border-l border-b border-[#0ea5e9]/10" />
                   <div className="text-[#0ea5e9] text-xs font-semibold uppercase tracking-[0.15em] mb-3">Talk to Us</div>
-                  <h3 className="text-white font-bold text-lg mb-3">Have a project?</h3>
+                  <h3 className="text-white font-bold text-lg mb-3">Need delivery confidence?</h3>
                   <p className="text-slate-400 text-sm mb-5 leading-relaxed">
-                    Discuss how MakZeon can support your goals.
+                    Start with a Delivery Diagnostic to expose control gaps, risk exposure, and practical recovery priorities.
                   </p>
                   <Link
                     href="/contact"
                     className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0ea5e9] text-[#060b17] font-semibold text-xs uppercase tracking-wide hover:bg-[#38bdf8] transition-all"
                   >
-                    Book Consultation <ArrowRight size={13} />
+                    Book a Delivery Diagnostic <ArrowRight size={13} />
                   </Link>
                 </div>
               </FadeUp>

@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import nodemailer from "nodemailer";
 
 type ContactPayload = {
   name?: string;
@@ -14,6 +15,10 @@ const CONTACT_TO = process.env.CONTACT_TO || "info@makzeon.com";
 const CONTACT_FROM = process.env.CONTACT_FROM || "MakZeon Website <leads@makzeon.com>";
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const CONTACT_WEBHOOK_URL = process.env.CONTACT_WEBHOOK_URL;
+const SMTP_HOST = process.env.SMTP_HOST;
+const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -24,6 +29,27 @@ function validate(payload: ContactPayload) {
   if (!payload.email || !isValidEmail(payload.email)) return "Please provide a valid email address.";
   if (!payload.message || payload.message.trim().length < 10) return "Please include a message of at least 10 characters.";
   return null;
+}
+
+function hasSmtpConfig() {
+  return Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS);
+}
+
+async function sendViaSmtp(payload: Required<Pick<ContactPayload, "name" | "email" | "message">> & ContactPayload) {
+  const transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+  });
+
+  await transporter.sendMail({
+    from: CONTACT_FROM,
+    to: CONTACT_TO,
+    replyTo: payload.email,
+    subject: `New MakZeon enquiry from ${payload.name}`,
+    text: textBody(payload),
+  });
 }
 
 function textBody(payload: Required<Pick<ContactPayload, "name" | "email" | "message">> & ContactPayload) {
@@ -63,6 +89,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   };
 
   try {
+    if (hasSmtpConfig()) {
+      await sendViaSmtp(safePayload);
+      return res.status(200).json({ ok: true });
+    }
+
     if (RESEND_API_KEY) {
       const resendResponse = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -104,7 +135,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(500).json({
       message:
-        "Contact delivery is not configured. Set RESEND_API_KEY or CONTACT_WEBHOOK_URL in the hosting environment.",
+        "Contact delivery is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS, RESEND_API_KEY, or CONTACT_WEBHOOK_URL in the hosting environment.",
     });
   } catch (err) {
     console.error("Contact submission failed", err);

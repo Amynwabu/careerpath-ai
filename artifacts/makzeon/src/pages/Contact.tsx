@@ -229,12 +229,12 @@ export default function Contact() {
                 <div className="bg-[#0c1220] border border-[#0ea5e9]/20 p-7 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-20 h-20 border-l border-b border-[#0ea5e9]/10" />
                   <div className="text-[#0ea5e9] text-xs font-semibold uppercase tracking-[0.2em] mb-3">Quick Enquiry</div>
-                  <h3 className="text-white font-bold text-lg mb-3">Book a Consultation</h3>
+                  <h3 className="text-white font-bold text-lg mb-3">Book a Delivery Diagnostic</h3>
                   <p className="text-slate-400 text-sm leading-relaxed mb-5">
-                    Prefer to reach us directly? Email us and a member of our team will respond within one business day.
+                    Prefer to reach us directly? Email us about your Delivery Diagnostic and a member of our team will respond within one business day.
                   </p>
                   <a
-                    href={`mailto:${contactInfo.email}?subject=Consultation Request`}
+                    href={`mailto:${contactInfo.email}?subject=Delivery Diagnostic Request`}
                     className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0ea5e9] text-[#060b17] font-semibold text-xs uppercase tracking-wide hover:bg-[#38bdf8] transition-all"
                   >
                     <Mail size={13} /> Email Us Directly

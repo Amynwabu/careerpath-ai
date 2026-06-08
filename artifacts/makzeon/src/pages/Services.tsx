@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { Link } from "wouter";
 import { motion, useInView } from "framer-motion";
 import { ArrowRight, CheckCircle2, Clock3, ShieldCheck, Activity, FileSearch, Radar, Gauge, Sparkles } from "lucide-react";
-import { services, signatureOffers } from "@/lib/data";
+import { services, signatureOffers, faqs } from "@/lib/data";
 
 function FadeUp({ children, delay = 0, className = "" }: { children: React.ReactNode; delay?: number; className?: string }) {
   const ref = useRef(null);
@@ -68,8 +68,15 @@ export default function Services() {
                     <div className="relative min-h-[320px] overflow-hidden">
                       <img src={service.image} alt={service.title} className="h-full w-full object-cover opacity-75 transition-transform duration-500 hover:scale-105" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#071426] via-transparent" />
-                      <div className="absolute left-6 top-6 font-command border border-[#0ea5e9]/30 bg-[#0ea5e9]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#38bdf8]">
-                        {service.tag}
+                      <div className="absolute left-6 top-6 flex flex-wrap gap-2">
+                        <span className="font-command border border-[#0ea5e9]/30 bg-[#0ea5e9]/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#38bdf8]">
+                          {service.tag.replace(" · AI", "")}
+                        </span>
+                        {service.tag.includes("AI") && (
+                          <span className="font-command border border-[#38bdf8]/40 bg-[#38bdf8]/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#7dd3fc]">
+                            AI-Powered
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="p-7 md:p-9">
@@ -129,6 +136,32 @@ export default function Services() {
         </div>
       </section>
 
+      <section className="py-24 bg-[#050d1a]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeUp>
+            <div className="mb-12 max-w-3xl">
+              <div className="font-command text-[#0ea5e9] text-xs font-semibold uppercase tracking-[0.24em] mb-3">FAQ</div>
+              <h2 className="text-3xl lg:text-4xl font-extrabold text-white mb-4">Common questions before a Delivery Diagnostic.</h2>
+              <p className="text-slate-400 leading-relaxed">
+                Straight answers to the mobilisation, scale, NEC contract, recovery, and PMO overhead questions sponsors usually raise before engaging MakZeon.
+              </p>
+            </div>
+          </FadeUp>
+
+          <div className="grid gap-px border border-[#0ea5e9]/15 bg-[#0ea5e9]/15 lg:grid-cols-2">
+            {faqs.map((item, index) => (
+              <FadeUp key={item.question} delay={index * 0.05}>
+                <article className="h-full bg-[#071426] p-7">
+                  <div className="font-command mb-4 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#0ea5e9]">Question {String(index + 1).padStart(2, "0")}</div>
+                  <h3 className="text-lg font-extrabold text-white">{item.question}</h3>
+                  <p className="mt-4 text-sm leading-relaxed text-slate-400">{item.answer}</p>
+                </article>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="relative py-20 overflow-hidden">
         <div className="absolute inset-0 hero-grid-bg opacity-50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -142,7 +175,7 @@ export default function Services() {
                 </p>
               </div>
               <Link href="/contact" data-track="book-diagnostic" className="mt-8 inline-flex items-center gap-2 bg-[#0ea5e9] px-7 py-3.5 text-sm font-bold uppercase tracking-wide text-[#050d1a] transition-all hover:bg-[#38bdf8] lg:mt-0">
-                Book Diagnostic <ArrowRight size={16} />
+                Book a Delivery Diagnostic <ArrowRight size={16} />
               </Link>
             </div>
           </FadeUp>
