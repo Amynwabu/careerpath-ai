@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MakZeon"
+version = "1.0.0"
+id = "artifacts/makzeon"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24675
+
+[services.development]
+run = "pnpm --filter @workspace/makzeon run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/makzeon", "run", "build" ]
+publicDir = "artifacts/makzeon/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24675"
+BASE_PATH = "/"
