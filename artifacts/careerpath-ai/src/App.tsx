@@ -17,9 +17,11 @@ import ResetPassword from "@/pages/reset-password";
 import Dashboard from "@/pages/dashboard";
 import Profile from "@/pages/profile";
 import ProfileImport, { ProfileGate } from "@/pages/profile-import";
+import CvStudio from "@/pages/cv-studio";
 import CareerGoal from "@/pages/career-goal";
 import Analysis from "@/pages/analysis";
 import Roadmap from "@/pages/roadmap";
+import RoleComparison from "@/pages/role-comparison";
 import Milestones from "@/pages/milestones";
 import AnalysisHistory from "@/pages/history";
 import Onboarding from "@/pages/onboarding";
@@ -55,9 +57,11 @@ function Router() {
       <Route path="/profile"><ProtectedRoute component={ProfileGate} /></Route>
       <Route path="/profile/import"><ProtectedRoute component={ProfileImport} /></Route>
       <Route path="/profile/manual"><ProtectedRoute component={Profile} /></Route>
+      <Route path="/cv-studio"><ProtectedRoute component={CvStudio} /></Route>
       <Route path="/career-goal"><ProtectedRoute component={CareerGoal} /></Route>
       <Route path="/analysis"><ProtectedRoute component={Analysis} /></Route>
       <Route path="/roadmap"><ProtectedRoute component={Roadmap} /></Route>
+      <Route path="/role-comparison"><ProtectedRoute component={RoleComparison} /></Route>
       <Route path="/milestones"><ProtectedRoute component={Milestones} /></Route>
       <Route path="/history"><ProtectedRoute component={AnalysisHistory} /></Route>
 

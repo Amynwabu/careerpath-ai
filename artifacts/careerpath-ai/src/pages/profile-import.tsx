@@ -149,6 +149,7 @@ export default function ProfileImport() {
       ["Certifications", suggestion.certifications.length],
     ];
   }, [suggestion]);
+  const confidence = useMemo(() => suggestion ? computeCvConfidence(suggestion) : null, [suggestion]);
 
   useEffect(() => {
     if (!uploading) return;
@@ -318,9 +319,13 @@ export default function ProfileImport() {
                 <div>
                   <p className="font-mono text-xs font-semibold uppercase tracking-[0.22em] text-primary/80">Parser Summary</p>
                   <h2 className="mt-2 text-2xl font-bold">Review what we found</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">Review before saving.</p>
+                  <p className="mt-1 text-sm text-muted-foreground">Review before saving. Every detected skill remains editable.</p>
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="grid grid-cols-2 gap-3 text-center md:grid-cols-4">
+                  <div className="rounded-xl blue-tile p-3">
+                    <p className="font-mono text-3xl font-bold text-primary">{confidence?.overall ?? 0}%</p>
+                    <p className="text-xs text-muted-foreground">confidence</p>
+                  </div>
                   <div className="rounded-xl blue-tile p-3">
                     <p className="font-mono text-3xl font-bold text-primary"><CountUp value={suggestion.workExperiences.length} /></p>
                     <p className="text-xs text-muted-foreground">roles</p>
@@ -336,6 +341,28 @@ export default function ProfileImport() {
                 </div>
               </CardContent>
             </Card>
+            {confidence && (
+              <Card className="blue-card">
+                <CardHeader>
+                  <p className="eyebrow">Trust Check</p>
+                  <CardTitle>Extraction Confidence</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-3 md:grid-cols-4">
+                  {confidence.rows.map((row) => (
+                    <div key={row.label} className="rounded-xl blue-tile p-4">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold">{row.label}</p>
+                        <p className="font-mono text-xl font-bold text-primary">{row.value}%</p>
+                      </div>
+                      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${row.value}%` }} />
+                      </div>
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">{row.note}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
             <div className="flex flex-wrap gap-2">
               <Badge variant="secondary">{suggestion.fileName}</Badge>
               {counts?.map(([label, count]) => <Badge key={label} variant="outline">{label}: {count}</Badge>)}
@@ -374,6 +401,44 @@ export default function ProfileImport() {
 
 function toBoolean(value: unknown): boolean {
   return value === true || String(value).toLowerCase() === "true";
+}
+
+function computeCvConfidence(suggestion: CvImportSuggestion) {
+  const rows = [
+    {
+      label: "Profile",
+      value: scoreFromCount([
+        suggestion.profile.currentRole,
+        suggestion.profile.professionalSummary,
+        suggestion.profile.totalExperienceMonths,
+        suggestion.profile.linkedinUrl,
+      ]),
+      note: "Role, summary, experience, and links detected.",
+    },
+    {
+      label: "Work",
+      value: Math.min(96, 42 + suggestion.workExperiences.length * 18),
+      note: "Structured roles with dates and organisations.",
+    },
+    {
+      label: "Skills",
+      value: Math.min(94, 35 + suggestion.skills.length * 4),
+      note: "Matched against the shared taxonomy list.",
+    },
+    {
+      label: "Education",
+      value: Math.min(92, 38 + (suggestion.education.length + suggestion.certifications.length) * 16),
+      note: "Qualifications and certifications found.",
+    },
+  ];
+  const penalty = suggestion.warnings.length * 6;
+  const overall = Math.max(25, Math.round(rows.reduce((sum, row) => sum + row.value, 0) / rows.length - penalty));
+  return { overall, rows };
+}
+
+function scoreFromCount(values: unknown[]) {
+  const count = values.filter(Boolean).length;
+  return Math.min(95, 34 + count * 15);
 }
 
 function ReviewProfile({ suggestion, onChange }: { suggestion: CvImportSuggestion; onChange: (next: CvImportSuggestion) => void }) {

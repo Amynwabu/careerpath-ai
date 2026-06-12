@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/input";
 const COMMANDS = [
   { label: "Run Analysis", path: "/analysis", hint: "Generate readiness and gaps" },
   { label: "View Roadmap", path: "/roadmap", hint: "Open your career phases" },
+  { label: "Compare Roles", path: "/role-comparison", hint: "AI Engineer vs Architect vs Product Manager" },
   { label: "Edit Profile", path: "/profile/manual", hint: "Update career evidence" },
+  { label: "Recreate CV", path: "/cv-studio", hint: "Choose a CV template and humanise language" },
   { label: "Set Career Goal", path: "/career-goal", hint: "Choose target role" },
   { label: "View Milestones", path: "/milestones", hint: "Track next actions" },
   { label: "Analysis History", path: "/history", hint: "Review previous scores" },

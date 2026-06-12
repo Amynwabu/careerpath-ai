@@ -77,13 +77,16 @@ function Wait-Port($Port, $Name, $TimeoutSeconds = 30) {
   throw "$Name did not start on port $Port within $TimeoutSeconds seconds."
 }
 
-function Start-Detached($FileName, $Arguments, $WorkingDirectory) {
+function Start-Detached($FileName, $Arguments, $WorkingDirectory, $Environment = @{}) {
   $psi = [System.Diagnostics.ProcessStartInfo]::new()
   $psi.FileName = $FileName
   $psi.Arguments = $Arguments
   $psi.WorkingDirectory = $WorkingDirectory
-  $psi.UseShellExecute = $true
-  $psi.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
+  $psi.UseShellExecute = $false
+  $psi.CreateNoWindow = $true
+  foreach ($entry in $Environment.GetEnumerator()) {
+    $psi.EnvironmentVariables[$entry.Key] = [string]$entry.Value
+  }
   return [System.Diagnostics.Process]::Start($psi)
 }
 
@@ -173,7 +176,7 @@ if (!$SkipApi) {
     }
 
     Write-Step "Starting API server on port $ApiPort"
-    $apiProcess = Start-Detached $Node "--enable-source-maps ./dist/index.mjs" $ApiDir
+    $apiProcess = Start-Detached $Node "--enable-source-maps ./dist/index.mjs" $ApiDir @{ PORT = $ApiPort; NODE_ENV = "development" }
     Write-Host "API PID: $($apiProcess.Id)"
     Wait-Port $ApiPort "API server"
   }

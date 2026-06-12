@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "node:crypto";
 import { db, eq, usersTable, profilesTable } from "@workspace/db";
 import { ForgotPasswordBody, LoginBody, RegisterBody, ResetPasswordBody, VerifyEmailBody } from "@workspace/api-zod";
 import {
@@ -10,7 +11,7 @@ import {
   setAuthCookie,
   clearAuthCookie,
 } from "../middlewares/auth";
-import { clearCsrfCookie, setCsrfCookie } from "../middlewares/csrf";
+import { appCookieName, clearCsrfCookie, cookieOptions, setCsrfCookie } from "../middlewares/csrf";
 import {
   appBaseUrl,
   resetPasswordEmail,
@@ -22,6 +23,9 @@ import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 const DUMMY_PASSWORD_HASH = bcrypt.hashSync("careerpath-invalid-user-password", 10);
+const GOOGLE_OAUTH_STATE_COOKIE = appCookieName("google_oauth_state");
+const GOOGLE_SCOPES = ["openid", "email", "profile"].join(" ");
+
 function publicUser(user: typeof usersTable.$inferSelect) {
   return {
     id: user.id,
@@ -31,6 +35,29 @@ function publicUser(user: typeof usersTable.$inferSelect) {
     role: user.role,
     createdAt: user.createdAt.toISOString(),
   };
+}
+
+function apiBaseUrl(): string {
+  return (process.env.API_BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+}
+
+function googleOAuthConfig() {
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
+  const redirectUri = (process.env.GOOGLE_REDIRECT_URI ?? `${apiBaseUrl()}/api/auth/google/callback`).trim();
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    return null;
+  }
+
+  return { clientId, clientSecret, redirectUri };
+}
+
+function clearGoogleState(req: Parameters<typeof cookieOptions>[1], res: Parameters<typeof setCsrfCookie>[1]) {
+  res.clearCookie(GOOGLE_OAUTH_STATE_COOKIE, {
+    ...cookieOptions(true, req),
+    sameSite: "lax",
+  });
 }
 
 function verificationLink(token: string) {
@@ -55,6 +82,142 @@ async function sendVerificationEmail(user: typeof usersTable.$inferSelect): Prom
 router.get("/auth/csrf", (req, res): void => {
   const csrfToken = setCsrfCookie(req, res);
   res.json({ csrfToken });
+});
+
+router.get("/auth/google", (req, res): void => {
+  const config = googleOAuthConfig();
+  if (!config) {
+    res.redirect(`${appBaseUrl()}/login?google=not-configured`);
+    return;
+  }
+
+  const state = randomBytes(32).toString("base64url");
+  res.cookie(GOOGLE_OAUTH_STATE_COOKIE, state, {
+    ...cookieOptions(true, req),
+    sameSite: "lax",
+    maxAge: 10 * 60 * 1000,
+  });
+
+  const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+  url.searchParams.set("client_id", config.clientId);
+  url.searchParams.set("redirect_uri", config.redirectUri);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("scope", GOOGLE_SCOPES);
+  url.searchParams.set("state", state);
+  url.searchParams.set("prompt", "select_account");
+
+  res.redirect(url.toString());
+});
+
+router.get("/auth/google/callback", async (req, res): Promise<void> => {
+  const config = googleOAuthConfig();
+  if (!config) {
+    res.redirect(`${appBaseUrl()}/login?google=not-configured`);
+    return;
+  }
+
+  const error = typeof req.query.error === "string" ? req.query.error : "";
+  if (error) {
+    clearGoogleState(req, res);
+    res.redirect(`${appBaseUrl()}/login?google=cancelled`);
+    return;
+  }
+
+  const code = typeof req.query.code === "string" ? req.query.code : "";
+  const state = typeof req.query.state === "string" ? req.query.state : "";
+  const expectedState = req.cookies?.[GOOGLE_OAUTH_STATE_COOKIE];
+  clearGoogleState(req, res);
+
+  if (!code || !state || !expectedState || state !== expectedState) {
+    res.redirect(`${appBaseUrl()}/login?google=invalid-state`);
+    return;
+  }
+
+  try {
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        code,
+        grant_type: "authorization_code",
+        redirect_uri: config.redirectUri,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const body = await tokenResponse.text().catch(() => "");
+      throw new Error(`Google token exchange failed (${tokenResponse.status}): ${body}`);
+    }
+
+    const tokenPayload = await tokenResponse.json() as { access_token?: string };
+    if (!tokenPayload.access_token) {
+      throw new Error("Google token response did not include an access token");
+    }
+
+    const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+      headers: { Authorization: `Bearer ${tokenPayload.access_token}` },
+    });
+
+    if (!profileResponse.ok) {
+      const body = await profileResponse.text().catch(() => "");
+      throw new Error(`Google userinfo lookup failed (${profileResponse.status}): ${body}`);
+    }
+
+    const googleProfile = await profileResponse.json() as {
+      email?: string;
+      email_verified?: boolean;
+      name?: string;
+    };
+
+    if (!googleProfile.email || googleProfile.email_verified !== true) {
+      res.redirect(`${appBaseUrl()}/login?google=unverified`);
+      return;
+    }
+
+    const email = googleProfile.email.toLowerCase();
+    const [existingUser] = await db.select().from(usersTable).where(eq(usersTable.email, email)).limit(1);
+    let user = existingUser;
+
+    if (!user) {
+      const passwordHash = await bcrypt.hash(randomBytes(32).toString("base64url"), 10);
+      [user] = await db.insert(usersTable).values({
+        name: googleProfile.name?.trim() || email.split("@")[0],
+        email,
+        emailVerified: true,
+        passwordHash,
+      }).returning();
+      await db.insert(profilesTable).values({ userId: user.id });
+      await logActivity({
+        userId: user.id,
+        type: "auth.google_register",
+        description: "Registered account with Google",
+      });
+    } else {
+      if (!user.emailVerified) {
+        const [updatedUser] = await db.update(usersTable)
+          .set({ emailVerified: true, updatedAt: new Date() })
+          .where(eq(usersTable.id, user.id))
+          .returning();
+        user = updatedUser;
+      }
+
+      await logActivity({
+        userId: user.id,
+        type: "auth.google_login",
+        description: "Logged in with Google",
+      });
+    }
+
+    const token = signToken({ userId: user.id, email: user.email, tokenVersion: user.tokenVersion });
+    setAuthCookie(req, res, token);
+    setCsrfCookie(req, res);
+    res.redirect(`${appBaseUrl()}/dashboard`);
+  } catch (error) {
+    logger.error({ err: error }, "Google sign-in failed");
+    res.redirect(`${appBaseUrl()}/login?google=failed`);
+  }
 });
 
 router.post("/auth/register", async (req, res): Promise<void> => {

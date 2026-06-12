@@ -3,7 +3,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRunAnalysis, useGetLatestAnalysis, useGetCareerGoal, getGetLatestAnalysisQueryKey, getGetDashboardSummaryQueryKey, getGetSkillGapsQueryKey, getGetRecentActivityQueryKey, getGetRoadmapQueryKey, getListMilestonesQueryKey } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { CourseRecommendations } from "@/components/learning/course-recommendations";
+import { MentorFeedbackLoop } from "@/components/execution/mentor-feedback-loop";
 import { ProductEmptyState } from "@/components/product-empty-state";
+import { ApplicationReadiness } from "@/components/trust/application-readiness";
+import { JobMarketEvidencePanel } from "@/components/trust/job-market-evidence";
+import { OutcomeTransparency } from "@/components/trust/outcome-transparency";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -255,10 +259,23 @@ export default function Analysis() {
 
             <AnalysisVisualLead analysis={analysis} />
 
+            <JobMarketEvidencePanel gaps={analysis.skillGapsStructured} />
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <OutcomeTransparency readinessScore={analysis.readinessScore} targetMonths={targetMonths} />
+              <ApplicationReadiness
+                readinessScore={analysis.readinessScore}
+                subScores={analysis.readinessSubScores as unknown as Record<string, number>}
+                gapCount={analysis.skillGapsStructured?.length ?? 0}
+              />
+            </div>
+
             <CourseRecommendations
               title="Curated Learning Paths"
               groups={analysis.learningRecommendations?.filter((group) => group.sourceType === "skill-gap") ?? []}
             />
+
+            <MentorFeedbackLoop />
 
             {/* Analysis Sections */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

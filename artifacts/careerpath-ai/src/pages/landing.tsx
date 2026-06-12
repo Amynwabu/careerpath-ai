@@ -112,7 +112,7 @@ const HOW_IT_WORKS = [
     icon: Brain,
     step: "01",
     title: "Analyse",
-    desc: "Upload your CV and tell us your target role. Our AI breaks down your current skills, experience, and qualifications against real job requirements.",
+    desc: "Upload your CV and tell us your target role. Our AI breaks down your current skills, experience, and qualifications against evidence-backed role signals.",
     bullets: ["CV skill extraction", "Role requirement mapping", "Gap identification"],
   },
   {
@@ -132,12 +132,27 @@ const HOW_IT_WORKS = [
 ];
 
 const FEATURES = [
-  { icon: BarChart3, title: "Skill Gap Detection", desc: "AI compares your profile to real job requirements and highlights exactly what's missing." },
+  { icon: BarChart3, title: "Skill Gap Detection", desc: "AI compares your profile to evidence-backed role signals and highlights exactly what's missing." },
   { icon: Map, title: "AI Career Roadmap", desc: "Phase-by-phase plan personalised to your timeline, skills, and target role." },
   { icon: BookOpen, title: "Curated Training Links", desc: "Hand-picked learning paths from Coursera, Udemy, YouTube, and more — matched to your gaps." },
   { icon: FolderOpen, title: "Portfolio Guidance", desc: "AI-suggested projects that prove your skills to employers." },
   { icon: TrendingUp, title: "Progress Tracking", desc: "Milestone-based tracking so you know exactly how far you've come." },
-  { icon: Target, title: "Real Job Outcomes", desc: "Every recommendation is tied to actual hiring requirements, not guesswork." },
+  { icon: Target, title: "Evidence-backed Outcomes", desc: "Recommendations show the role signals, assumptions, and proof needed before you apply." },
+];
+
+const TRUST_FEATURES = [
+  {
+    title: "Evidence-backed gaps",
+    desc: "Skill recommendations include the job titles, UK regions, and employer types behind the signal.",
+  },
+  {
+    title: "Transparent timing",
+    desc: "Transition estimates show assumptions, likely ranges, and what can improve or slow progress.",
+  },
+  {
+    title: "Verified proof standard",
+    desc: "Case studies are designed to include before/after profiles, portfolio evidence, and employer outcomes.",
+  },
 ];
 
 export default function Landing() {
@@ -294,6 +309,27 @@ export default function Landing() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 px-6">
+        <div className="container mx-auto">
+          <div className="mb-10 max-w-2xl">
+            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">Trust Layer</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Evidence you can inspect</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              CareerpathX is moving from roadmap generation to a career operating system: explainable recommendations, editable AI extraction, and execution tools that show their assumptions.
+            </p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-3">
+            {TRUST_FEATURES.map((feature) => (
+              <div key={feature.title} className="blue-card rounded-2xl p-6">
+                <p className="font-mono text-xs font-semibold uppercase tracking-widest text-primary/80">Trust feature</p>
+                <h3 className="mt-3 text-xl font-bold">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{feature.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

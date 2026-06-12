@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useListMilestones, useCompleteMilestone, getListMilestonesQueryKey, getGetDashboardSummaryQueryKey } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
+import { AccountabilityPanel } from "@/components/execution/accountability-panel";
 import { ProductEmptyState } from "@/components/product-empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,8 @@ export default function Milestones() {
             />
           </div>
         )}
+
+        {milestones && milestones.length > 0 && <AccountabilityPanel milestones={milestones} />}
 
         {isLoading && (
           <div className="space-y-4">

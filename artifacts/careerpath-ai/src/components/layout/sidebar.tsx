@@ -20,9 +20,11 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: profileHref, match: ["/profile", "/profile/import", "/profile/manual"], label: "My Profile" },
+    { href: "/cv-studio", label: "Recreate CV" },
     { href: "/career-goal", label: "Career Goal" },
     { href: "/analysis", label: "Career Analysis" },
     { href: "/roadmap", label: "Career Roadmap" },
+    { href: "/role-comparison", label: "Compare Roles" },
     { href: "/milestones", label: "Milestones" },
     { href: "/history", label: "History" },
   ];

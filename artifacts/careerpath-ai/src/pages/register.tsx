@@ -5,6 +5,7 @@ import * as z from "zod";
 import { useRegister } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Logo } from "@/components/branding/logo";
 import {
   Form,
@@ -70,6 +71,14 @@ export default function Register() {
         </div>
 
         <div className="auth-panel blue-card p-8 rounded-xl">
+          <div className="mb-6">
+            <GoogleSignInButton mode="register" />
+            <div className="my-5 flex items-center gap-3">
+              <div className="h-px flex-1 bg-white/15" />
+              <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">or</span>
+              <div className="h-px flex-1 bg-white/15" />
+            </div>
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -79,7 +88,12 @@ export default function Register() {
                   <FormItem>
                     <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Full Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" className="bg-black/20 border-white/35 focus:border-primary/50 focus:ring-primary/20 h-12" {...field} />
+                      <Input
+                        autoComplete="name"
+                        placeholder="John Doe"
+                        className="bg-black/20 border-white/35 focus:border-primary/50 focus:ring-primary/20 h-12"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -92,7 +106,13 @@ export default function Register() {
                   <FormItem>
                     <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="you@example.com" className="bg-black/20 border-white/35 focus:border-primary/50 focus:ring-primary/20 h-12" {...field} />
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        className="bg-black/20 border-white/35 focus:border-primary/50 focus:ring-primary/20 h-12"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,7 +125,13 @@ export default function Register() {
                   <FormItem>
                     <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Create a secure password" className="bg-black/20 border-white/35 focus:border-primary/50 focus:ring-primary/20 h-12" {...field} />
+                      <Input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="Create a secure password"
+                        className="bg-black/20 border-white/35 focus:border-primary/50 focus:ring-primary/20 h-12"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

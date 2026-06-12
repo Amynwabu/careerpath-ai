@@ -8,6 +8,8 @@ The API rejects the example JWT placeholder and requires a `JWT_SECRET` of at le
 
 Password reset and email verification require a transactional email provider. Set `RESEND_API_KEY`, `EMAIL_FROM`, `APP_BASE_URL`, and `API_BASE_URL` from the deployment secret manager. In local development, missing `RESEND_API_KEY` is allowed and the API logs the generated links instead of sending mail.
 
+Google sign-in requires a Google OAuth web client. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and, when the API is not hosted at `API_BASE_URL`, `GOOGLE_REDIRECT_URI`. The default callback is `{API_BASE_URL}/api/auth/google/callback`; register that exact URL in Google Cloud Console as an authorized redirect URI. Local development usually uses `http://localhost:3000/api/auth/google/callback`.
+
 CI rejects production artifacts that contain a literal `.env` file. Deployments should pull environment values from the secret manager, not from a zip export or checked-in file.
 
 ## Observability

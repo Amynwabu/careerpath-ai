@@ -1,7 +1,9 @@
 import { useGetRoadmap, type LearningRecommendationGroup, type RoadmapPhase } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { CourseCard } from "@/components/learning/course-recommendations";
+import { PortfolioBuilder } from "@/components/execution/portfolio-builder";
 import { ProductEmptyState } from "@/components/product-empty-state";
+import { UkMarketPathways } from "@/components/uk/uk-market-pathways";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -140,6 +142,9 @@ export default function Roadmap() {
                 })}
               </div>
             </div>
+
+            <PortfolioBuilder phases={roadmap.phases} />
+            <UkMarketPathways />
           </>
         )}
       </div>

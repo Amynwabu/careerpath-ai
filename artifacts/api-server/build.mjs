@@ -11,7 +11,7 @@ globalThis.require = createRequire(import.meta.url);
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 
 async function buildAll() {
-  const distDir = path.resolve(artifactDir, "dist");
+  const distDir = path.resolve(artifactDir, process.env.API_BUILD_DIR ?? "dist");
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
@@ -62,7 +62,6 @@ async function buildAll() {
       "@swc/*",
       "@aws-sdk/*",
       "@azure/*",
-      "@opentelemetry/*",
       "@google-cloud/*",
       "@google/*",
       "googleapis",
