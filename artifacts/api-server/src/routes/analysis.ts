@@ -1,179 +1,320 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
-import { db, careerAnalysesTable, careerGoalsTable, profilesTable, workExperiencesTable, educationTable, skillsTable, certificationsTable, milestonesTable, activityLogTable } from "@workspace/db";
+import {
+  careerAnalysesTable,
+  careerGoalsTable,
+  certificationsTable,
+  db,
+  desc,
+  educationTable,
+  eq,
+  milestonesTable,
+  profilesTable,
+  skillsTable,
+  workExperiencesTable,
+  type AnalysisProfileSnapshot,
+  type ReadinessSubScores,
+  type RoadmapPhase,
+  type StructuredInsight,
+} from "@workspace/db";
 import { requireAuth } from "../middlewares/auth";
+import { logActivity } from "../lib/audit";
 import { logger } from "../lib/logger";
+import { buildLearningRecommendations, inferSkillCodesFromTargetRole } from "../lib/learning-recommendations";
 
 const router: IRouter = Router();
 const inProgressUsers = new Set<number>();
-const idempotencyCache = new Map<string, { expiresAt: number; response: unknown }>();
+const idempotencyCache = new Map<string, { analysisId: number; expiresAt: number }>();
+const IDEMPOTENCY_TTL_MS = 10 * 60 * 1000;
 
-const PROMPT_VERSION = "local-rubric-2026-05";
-const MODEL_NAME = "deterministic-rubric-v1";
+type ProfileInput = {
+  currentRole?: string | null;
+  totalExperienceMonths?: number | null;
+  industry?: string | null;
+  professionalSummary?: string | null;
+  careerLevel?: string | null;
+  weeklyLearningMinutes?: number | null;
+};
 
-type ProfileInput = { currentRole?: string | null; yearsExperience?: number | null; industry?: string | null; professionalSummary?: string | null; careerLevel?: string | null; weeklyLearningHours?: number | null };
 type SkillInput = { name: string; category: string; proficiencyLevel: string };
-type WorkInput = { company: string; title: string; description?: string | null };
+type WorkExperienceInput = { company: string; title: string; description?: string | null };
 type EducationInput = { degree: string; institution: string; fieldOfStudy?: string | null };
 type CertificationInput = { name: string; issuingOrganization: string };
 
-type AnalysisParams = {
-  profile: ProfileInput;
-  goal: { targetRole: string; targetYears?: number | null };
-  targetRole: string;
-  targetYears: number; // Retained API/database field name; value is interpreted as months.
-  skills: SkillInput[];
-  workExp: WorkInput[];
-  education: EducationInput[];
-  certifications: CertificationInput[];
-};
-
-function clampScore(value: number) {
+function clampScore(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function tokenizeEstimate(value: unknown) {
-  return Math.ceil(JSON.stringify(value).length / 4);
+function compactJoin(values: Array<string | null | undefined>, fallback: string): string {
+  const cleaned = values.map((value) => value?.trim()).filter(Boolean) as string[];
+  return cleaned.length > 0 ? cleaned.join(", ") : fallback;
 }
 
-function listText(items: string[]) {
-  return items.map((item, index) => `${index + 1}) ${item}`).join(" ");
+function yearsFromMonths(totalExperienceMonths?: number | null): number {
+  return Math.floor((totalExperienceMonths ?? 0) / 12);
 }
 
-function buildRoadmapPhases(targetRole: string, targetMonths: number, weeklyLearningHours: number) {
-  const totalMonths = Math.max(1, targetMonths);
-  const phaseCount = totalMonths <= 24 ? Math.min(4, Math.max(2, Math.ceil(totalMonths / 6))) : 4;
-  const phaseMonths = Math.max(3, Math.round(totalMonths / phaseCount));
-  const phases = [
+function formatExperience(totalExperienceMonths?: number | null): string {
+  const total = totalExperienceMonths ?? 0;
+  const years = Math.floor(total / 12);
+  const months = total % 12;
+  if (years > 0 && months > 0) return `${years} year${years === 1 ? "" : "s"} ${months} month${months === 1 ? "" : "s"}`;
+  if (years > 0) return `${years} year${years === 1 ? "" : "s"}`;
+  return `${months} month${months === 1 ? "" : "s"}`;
+}
+
+function formatWeeklyLearning(weeklyLearningMinutes?: number | null): string {
+  const total = weeklyLearningMinutes ?? 0;
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m / week`;
+  if (hours > 0) return `${hours}h / week`;
+  return `${minutes}m / week`;
+}
+
+export function buildReadinessSubScores(params: {
+  profile: ProfileInput;
+  skills: SkillInput[];
+  workExp: WorkExperienceInput[];
+  education: EducationInput[];
+  certifications: CertificationInput[];
+}): ReadinessSubScores {
+  const { profile, skills, workExp, education, certifications } = params;
+  const yearsExp = yearsFromMonths(profile.totalExperienceMonths);
+
+  return {
+    profile: clampScore(
+      20 +
+        (profile.currentRole ? 15 : 0) +
+        (profile.industry ? 15 : 0) +
+        (profile.professionalSummary ? 25 : 0) +
+        (profile.careerLevel ? 10 : 0) +
+        (profile.weeklyLearningMinutes ? 15 : 0),
+    ),
+    skills: clampScore(20 + skills.length * 8),
+    experience: clampScore(15 + yearsExp * 8 + workExp.length * 12),
+    education: clampScore(education.length > 0 ? 70 + Math.min(education.length, 3) * 10 : 35),
+    certifications: clampScore(certifications.length > 0 ? 55 + Math.min(certifications.length, 4) * 10 : 25),
+  };
+}
+
+function weightedReadiness(subScores: ReadinessSubScores): number {
+  return clampScore(
+    subScores.profile * 0.2 +
+      subScores.skills * 0.25 +
+      subScores.experience * 0.3 +
+      subScores.education * 0.1 +
+      subScores.certifications * 0.15,
+  );
+}
+
+function splitTargetThemes(targetRole: string): { technical: string; leadership: string; business: string } {
+  const lower = targetRole.toLowerCase();
+  const technical =
+    lower.includes("ai") || lower.includes("data")
+      ? "AI, data product, model evaluation, and applied analytics"
+      : lower.includes("product")
+        ? "product strategy, discovery, delivery metrics, and customer insight"
+        : "advanced domain methods, modern tooling, and evidence-based delivery";
+
+  return {
+    technical,
+    leadership: "cross-functional leadership, stakeholder influence, and mentoring",
+    business: "commercial judgement, prioritisation, and measurable impact",
+  };
+}
+
+function skillLabelFromCode(skillCode: string): string {
+  return skillCode
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function buildSkillGapInsights(targetRole: string, themes: ReturnType<typeof splitTargetThemes>): StructuredInsight[] {
+  const [primarySkill = "data-analysis", secondarySkill = "stakeholder-management", tertiarySkill = "strategic-planning"] = inferSkillCodesFromTargetRole(targetRole);
+
+  return [
     {
-      sequence: 1,
-      label: "Immediate foundation",
-      timeframeMonths: Math.min(3, phaseMonths),
-      focus: "Profile completeness, first learning commitment, and target-role research.",
+      title: `${skillLabelFromCode(primarySkill)} depth`,
+      detail: `Build stronger evidence in ${themes.technical}.`,
+      priority: "High",
+      category: "Technical",
+      skillCode: primarySkill,
+      skillLabel: skillLabelFromCode(primarySkill),
+    },
+    {
+      title: `${skillLabelFromCode(secondarySkill)} signal`,
+      detail: `Show more proof of ${themes.leadership}.`,
+      priority: "High",
+      category: "Leadership",
+      skillCode: secondarySkill,
+      skillLabel: skillLabelFromCode(secondarySkill),
+    },
+    {
+      title: `${skillLabelFromCode(tertiarySkill)} impact`,
+      detail: `Translate work into ${themes.business} outcomes that hiring managers can compare.`,
+      priority: "Medium",
+      category: "Business",
+      skillCode: tertiarySkill,
+      skillLabel: skillLabelFromCode(tertiarySkill),
+    },
+  ];
+}
+
+export function buildRoadmapPhases(targetRole: string, targetMonths: number, weeklyLearningMinutes: number): RoadmapPhase[] {
+  const months = Math.max(1, targetMonths);
+  const foundationEnd = Math.max(1, Math.min(months, Math.min(3, Math.ceil(months * 0.25))));
+  const accelerationStart = Math.min(months, foundationEnd + 1);
+  const accelerationEnd = Math.max(accelerationStart, Math.min(months, Math.ceil(months * 0.6)));
+  const positioningStart = Math.min(months, accelerationEnd + 1);
+
+  return [
+    {
+      label: "Immediate",
+      timeframe: "0-30 days",
+      focus: "Clarify the target, baseline your evidence, and start one visible development action.",
       actions: [
-        "Complete every profile section and validate your target role assumptions.",
-        `Reserve ${weeklyLearningHours} learning hours per week and choose one priority credential.`,
-        `Interview or connect with at least three professionals already working as ${targetRole}.`,
+        `Confirm the success profile for ${targetRole} by reviewing 5 job descriptions.`,
+        `Block ${formatWeeklyLearning(weeklyLearningMinutes)} in your calendar.`,
+        "Choose one credential, project, or mentor conversation to start this month.",
       ],
     },
     {
-      sequence: 2,
-      label: "Capability build",
-      timeframeMonths: phaseMonths,
-      focus: "Close the most visible skill and qualification gaps.",
+      label: "Foundation",
+      timeframe: `Months 1-${foundationEnd}`,
+      focus: "Build missing foundations and create proof that your current role can stretch toward the target.",
       actions: [
-        "Complete the first priority certification or equivalent portfolio proof.",
-        "Take ownership of one stretch project with measurable outcomes.",
-        "Document evidence for each required capability in a living portfolio.",
+        "Complete the first priority learning module or certification milestone.",
+        "Volunteer for a project with measurable business or user impact.",
+        "Document your portfolio evidence in STAR format after each meaningful achievement.",
       ],
     },
     {
-      sequence: 3,
-      label: "Leadership proof",
-      timeframeMonths: phaseMonths,
-      focus: "Demonstrate senior responsibility, stakeholder influence, and delivery at scale.",
+      label: "Acceleration",
+      timeframe: `Months ${accelerationStart}-${accelerationEnd}`,
+      focus: "Increase responsibility, visibility, and target-role signal.",
       actions: [
-        "Lead a cross-functional initiative with senior stakeholder visibility.",
-        "Mentor or coach junior colleagues to show scalable leadership.",
-        "Publish, present, or otherwise build credibility in the target domain.",
+        "Lead a cross-functional deliverable and publish the outcome internally.",
+        "Ask for feedback from a manager or mentor against the target role criteria.",
+        "Build a second portfolio artifact showing leadership and technical judgement.",
       ],
     },
     {
-      sequence: 4,
-      label: "Target-role conversion",
-      timeframeMonths: Math.max(3, totalMonths - (phaseMonths * 2) - 3),
-      focus: `Position yourself for ${targetRole} roles and interview with evidence.`,
+      label: "Positioning",
+      timeframe: `Months ${positioningStart}-${months}`,
+      focus: `Convert evidence into applications, interviews, and a credible move into ${targetRole}.`,
       actions: [
-        `Apply for roles one step below or directly aligned to ${targetRole}.`,
-        "Refine your CV and LinkedIn profile around measurable transition evidence.",
-        "Build a final interview narrative connecting skills, experience, and leadership impact.",
+        "Refresh your CV and LinkedIn around quantified outcomes.",
+        "Apply for roles one step below or directly aligned with the target.",
+        "Run interview practice using your portfolio evidence and readiness gaps.",
       ],
     },
   ];
-  return phases.slice(0, phaseCount).map((phase, index) => ({ ...phase, sequence: index + 1 }));
 }
 
-function generateAnalysis(params: AnalysisParams) {
+function generateAnalysis(params: {
+  profile: ProfileInput;
+  targetRole: string;
+  targetMonths: number;
+  skills: SkillInput[];
+  workExp: WorkExperienceInput[];
+  education: EducationInput[];
+  certifications: CertificationInput[];
+}) {
   const startedAt = Date.now();
-  const { profile, goal, targetRole, targetYears, skills, workExp, education, certifications } = params;
-
-  const yearsExp = profile.yearsExperience ?? 0;
+  const { profile, targetRole, targetMonths, skills, workExp, education, certifications } = params;
+  const experienceLabel = formatExperience(profile.totalExperienceMonths);
   const currentRole = profile.currentRole ?? "Professional";
-  const skillCount = skills.length;
-  const certCount = certifications.length;
-  const weeklyLearningHours = profile.weeklyLearningHours ?? 5;
-
-  const skillsCoverage = clampScore(25 + Math.min(skillCount * 7, 45) + Math.min(certCount * 5, 15) + (profile.professionalSummary ? 10 : 0));
-  const experienceDepth = clampScore(20 + Math.min(yearsExp * 7, 55) + Math.min(workExp.length * 8, 20));
-  const qualificationFit = clampScore(20 + (education.length > 0 ? 25 : 0) + Math.min(certCount * 15, 40) + (profile.industry ? 10 : 0));
-  const leadershipReadiness = clampScore(15 + Math.min(yearsExp * 5, 35) + (workExp.some(w => /lead|manager|head|principal|senior/i.test(w.title)) ? 25 : 0) + Math.min(skillCount * 3, 20));
-  const readinessSubScores = { skillsCoverage, experienceDepth, qualificationFit, leadershipReadiness };
-  const readinessScore = clampScore(
-    readinessSubScores.skillsCoverage * 0.30 +
-    readinessSubScores.experienceDepth * 0.30 +
-    readinessSubScores.qualificationFit * 0.20 +
-    readinessSubScores.leadershipReadiness * 0.20,
-  );
-
-  const topSkills = skills.slice(0, 5).map(s => s.name);
   const latestRole = workExp[0]?.title ?? currentRole;
   const latestCompany = workExp[0]?.company ?? "your organisation";
-  const highestDegree = education[0]?.degree ?? "your qualification";
-  const isTechnicalTarget = /ai|data|engineer|developer|software|architect|product/i.test(targetRole);
+  const topSkills = compactJoin(skills.slice(0, 5).map((skill) => skill.name), "general professional skills");
+  const highestDegree = education[0]?.degree ?? "your current qualification base";
+  const weeklyLearningMinutes = profile.weeklyLearningMinutes ?? 300;
+  const weeklyLearningLabel = formatWeeklyLearning(weeklyLearningMinutes);
+  const themes = splitTargetThemes(targetRole);
+  const readinessSubScores = buildReadinessSubScores({ profile, skills, workExp, education, certifications });
+  const readinessScore = Math.min(weightedReadiness(readinessSubScores), 92);
+  const roadmapPhases = buildRoadmapPhases(targetRole, targetMonths, weeklyLearningMinutes);
 
-  const currentStrengthsStructured = [
-    { title: "Existing domain foundation", category: "Experience", evidence: `${yearsExp} year(s) of experience with ${workExp.length} documented role(s).` },
-    { title: "Documented skills inventory", category: "Skills", evidence: topSkills.length ? topSkills.join(", ") : "Add more skills to make this assessment stronger." },
-    { title: "Credential base", category: "Qualifications", evidence: education.length > 0 ? `${highestDegree} plus ${certCount} certification(s).` : `${certCount} certification(s); add education details if applicable.` },
+  const currentStrengthsStructured: StructuredInsight[] = [
+    {
+      title: "Relevant foundation",
+      detail: `${latestRole} experience at ${latestCompany} gives you a practical base to connect to ${targetRole}.`,
+      priority: "High",
+      category: "Experience",
+    },
+    {
+      title: "Documented skills",
+      detail: `Your strongest visible skills are ${topSkills}. Keep turning these into measurable outcomes.`,
+      priority: skills.length >= 5 ? "Medium" : "High",
+      category: "Skills",
+    },
+    {
+      title: "Learning capacity",
+      detail: `${weeklyLearningLabel} is enough to make visible progress if focused on one priority at a time.`,
+      priority: "Medium",
+      category: "Execution",
+    },
   ];
 
-  const skillGapsStructured = [
-    { skill: "Strategic Leadership", priority: "High" as const, category: "Leadership", currentLevel: leadershipReadiness >= 70 ? "Intermediate" : null, requiredLevel: "Expert", rationale: "Target-role readiness requires evidence of operating through others and influencing senior stakeholders." },
-    { skill: "Executive Stakeholder Management", priority: "High" as const, category: "Communication", currentLevel: null, requiredLevel: "Advanced", rationale: "Senior transitions depend on consistent communication with decision makers across functions." },
-    { skill: isTechnicalTarget ? "Advanced Technical Depth" : "Domain Expertise", priority: "High" as const, category: isTechnicalTarget ? "Technical" : "Domain", currentLevel: skillCount >= 8 ? "Intermediate" : "Beginner", requiredLevel: "Expert", rationale: `The ${targetRole} path needs credible, up-to-date expertise beyond general experience.` },
-    { skill: "Change Management", priority: "Medium" as const, category: "Management", currentLevel: null, requiredLevel: "Advanced", rationale: "Progression into larger roles requires leading adoption, not only delivering tasks." },
-    { skill: "Budget and Commercial Ownership", priority: "Medium" as const, category: "Business", currentLevel: null, requiredLevel: "Intermediate", rationale: "Commercial accountability strengthens senior-role credibility." },
+  const skillGapsStructured = buildSkillGapInsights(targetRole, themes);
+
+  const immediateActionsStructured: StructuredInsight[] = [
+    {
+      title: "Map the role",
+      detail: `Collect 5 ${targetRole} job descriptions and identify repeated skills, tools, and accountabilities.`,
+      priority: "High",
+      category: "Research",
+    },
+    {
+      title: "Choose one proof project",
+      detail: "Pick a project you can complete or influence in the next 90 days with a measurable outcome.",
+      priority: "High",
+      category: "Portfolio",
+    },
+    {
+      title: "Close one credential gap",
+      detail: "Start the most relevant certification, course, or structured learning path.",
+      priority: "Medium",
+      category: "Learning",
+    },
   ];
 
-  const immediateActionsStructured = [
-    { title: "Complete profile gaps", timeframe: "7 days", outcome: "Improve analysis accuracy and dashboard completeness." },
-    { title: "Start one priority credential", timeframe: "30 days", outcome: `Build evidence for ${targetRole} readiness.` },
-    { title: "Secure a stretch project", timeframe: "60 days", outcome: "Create measurable leadership or delivery proof." },
-    { title: "Build target-role network", timeframe: "90 days", outcome: "Validate expectations and uncover opportunities." },
-  ];
-
-  const roadmapPhases = buildRoadmapPhases(targetRole, targetYears, weeklyLearningHours);
-  const year1Priorities = `${roadmapPhases[0].label}: ${roadmapPhases[0].actions.join(" ")}`;
-  const year2To3Plan = roadmapPhases[1] ? `${roadmapPhases[1].label}: ${roadmapPhases[1].actions.join(" ")}` : year1Priorities;
-  const year4To5Plan = roadmapPhases.slice(2).map(phase => `${phase.label}: ${phase.actions.join(" ")}`).join(" ") || year2To3Plan;
-
-  const profileSummary = `You are currently a ${latestRole} at ${latestCompany} with ${yearsExp} years of experience in ${profile.industry ?? "your field"}. Your structured readiness score for ${targetRole} is ${readinessScore}%, calculated from skills coverage, experience depth, qualification fit, and leadership readiness.`;
-  const currentStrengths = currentStrengthsStructured.map(s => `${s.title}: ${s.evidence}`).join(" ");
-  const skillGaps = skillGapsStructured.map(g => `${g.skill} (${g.priority}): ${g.rationale}`).join(" ");
-  const experienceGaps = `To reach ${targetRole}, prioritise evidence of senior responsibility, measurable delivery outcomes, and stakeholder ownership. Seek roles or projects that expose you to team leadership, budget accountability, and strategic programme delivery.`;
-  const qualificationGaps = `Credentials relevant to ${targetRole} would strengthen your candidacy. Prioritise qualifications that create demonstrable evidence instead of collecting generic certificates.`;
-  const certificationRecommendations = listText([
-    isTechnicalTarget ? "Cloud, data, AI, or architecture certification aligned to the target stack" : "Recognised sector-specific professional credential",
-    "Project, programme, or agile delivery credential such as PMP, PRINCE2, or Scrum Master where relevant",
-    "Leadership or management qualification such as CMI, CIPD, or an equivalent local credential",
-  ]);
-  const suggestedProjects = listText([
-    "Lead a cross-functional project from discovery through measurable delivery",
-    isTechnicalTarget ? "Build a technical portfolio project showing target-role depth" : "Produce a domain case study with commercial or operational impact",
-    "Publish a short thought-leadership article or give an internal presentation",
-  ]);
-  const jobProgressionLadder = `${latestRole} → Senior ${latestRole.replace(/^Senior\s+/i, "")} → Lead / Principal role → ${targetRole}. Estimated timeline: ${targetYears} month(s) with deliberate development.`;
-  const immediateActions = immediateActionsStructured.map(a => `${a.title} (${a.timeframe}): ${a.outcome}`).join(" ");
-
-  const profileSnapshot = {
-    profile,
-    careerGoal: goal,
-    skills,
-    workExperience: workExp,
-    education,
-    certifications,
+  const profileSummary = `You are currently a ${latestRole} at ${latestCompany} with ${experienceLabel} of experience in ${profile.industry ?? "your field"}. Your profile shows ${skills.length} documented skill(s), ${certifications.length} certification(s), and a ${readinessScore}% readiness score for ${targetRole}.`;
+  const currentStrengths = currentStrengthsStructured.map((item) => `${item.title}: ${item.detail}`).join(" ");
+  const skillGaps = skillGapsStructured.map((item) => `${item.title}: ${item.detail}`).join(" ");
+  const experienceGaps = `To reach ${targetRole}, build more direct evidence of target-role responsibilities: owning outcomes, influencing senior stakeholders, and leading work beyond your immediate remit.`;
+  const qualificationGaps = education.length > 0
+    ? `Your ${highestDegree} is a useful foundation. Add role-specific credentials only where they create clear hiring signal.`
+    : "Add a recognised qualification or portfolio-backed learning path to strengthen credibility for the target role.";
+  const certificationRecommendations = `Prioritise one credential aligned to ${themes.technical}; then add a delivery or leadership credential only if it supports your target job descriptions.`;
+  const suggestedProjects = `Build a portfolio around: a measurable cross-functional project, a target-role technical artifact, a stakeholder-facing presentation, and a retrospective showing decisions and trade-offs.`;
+  const jobProgressionLadder = `Recommended progression: ${latestRole} -> Senior ${latestRole.replace("Senior ", "")} -> Lead / Principal role -> ${targetRole}. Target timeline: ${targetMonths} months with focused evidence building.`;
+  const immediateActions = immediateActionsStructured.map((item, index) => `${index + 1}) ${item.detail}`).join(" ");
+  const year1Priorities = roadmapPhases[1]?.actions.join(" ") ?? "Build foundations and evidence.";
+  const year2To3Plan = roadmapPhases[2]?.actions.join(" ") ?? "Accelerate visibility and responsibility.";
+  const year4To5Plan = roadmapPhases[3]?.actions.join(" ") ?? "Position for target-role applications.";
+  const learningRecommendations = buildLearningRecommendations({
+    skillGaps: skillGapsStructured,
+    roadmapPhases,
+    targetRole,
+    profileSkills: skills.map((skill) => skill.name),
+    totalExperienceMonths: profile.totalExperienceMonths,
+  });
+  const profileSnapshot: AnalysisProfileSnapshot = {
+    currentRole: profile.currentRole ?? null,
+    totalExperienceMonths: profile.totalExperienceMonths ?? null,
+    industry: profile.industry ?? null,
+    careerLevel: profile.careerLevel ?? null,
+    weeklyLearningMinutes: profile.weeklyLearningMinutes ?? null,
+    skills: skills.map((skill) => skill.name),
+    workExperienceCount: workExp.length,
+    educationCount: education.length,
+    certificationCount: certifications.length,
   };
-  const output = {
+  const promptBasis = JSON.stringify({ profile, targetRole, targetMonths, skills, workExp, education, certifications });
+
+  return {
     readinessScore,
     readinessSubScores,
     profileSummary,
@@ -192,45 +333,71 @@ function generateAnalysis(params: AnalysisParams) {
     year2To3Plan,
     year4To5Plan,
     roadmapPhases,
-    modelName: MODEL_NAME,
-    promptVersion: PROMPT_VERSION,
-    inputTokens: tokenizeEstimate(profileSnapshot),
-    outputTokens: 0,
-    latencyMs: 0,
+    learningRecommendations,
+    modelName: "careerpath-rules-v2",
+    promptVersion: "v2.0.0",
+    inputTokens: Math.ceil(promptBasis.length / 4),
+    outputTokens: Math.ceil(
+      [
+        profileSummary,
+        currentStrengths,
+        skillGaps,
+        experienceGaps,
+        qualificationGaps,
+        certificationRecommendations,
+        suggestedProjects,
+        jobProgressionLadder,
+        immediateActions,
+      ].join(" ").length / 4,
+    ),
+    latencyMs: Date.now() - startedAt,
     profileSnapshot,
   };
-  output.outputTokens = tokenizeEstimate(output);
-  output.latencyMs = Date.now() - startedAt;
-  return output;
 }
 
-function generateMilestones(targetRole: string, roadmapPhases: Array<{ label: string; actions: string[] }>) {
-  return roadmapPhases.flatMap((phase) => phase.actions.slice(0, 3).map((action, index) => ({
-    title: index === phase.actions.length - 1 && phase.label.includes("Target-role") ? `Land the ${targetRole} role` : action.replace(/\.$/, ""),
-    phase: phase.label,
-    description: action,
-  })));
+function generateMilestones(targetRole: string, roadmapPhases: RoadmapPhase[]) {
+  return roadmapPhases.flatMap((phase) =>
+    phase.actions.map((action, index) => ({
+      title: index === phase.actions.length - 1 && phase.label === "Positioning"
+        ? `Land the ${targetRole} role`
+        : action.replace(/\.$/, ""),
+      phase: phase.timeframe,
+      description: action,
+      completed: false,
+    })),
+  );
+}
+
+function getIdempotencyKey(userId: number, rawKey: unknown): string | null {
+  if (typeof rawKey !== "string" || rawKey.trim().length === 0) return null;
+  return `${userId}:${rawKey.trim()}`;
+}
+
+async function readAnalysisForResponse(analysisId: number) {
+  const [analysis] = await db.select().from(careerAnalysesTable).where(eq(careerAnalysesTable.id, analysisId)).limit(1);
+  return analysis ? { ...analysis, createdAt: analysis.createdAt.toISOString() } : null;
 }
 
 router.post("/analysis", requireAuth, async (req, res): Promise<void> => {
   const userId = req.user!.userId;
-  const idempotencyKey = typeof req.header("Idempotency-Key") === "string" ? req.header("Idempotency-Key")! : undefined;
-  const cacheKey = idempotencyKey ? `${userId}:${idempotencyKey}` : undefined;
+  const idempotencyKey = getIdempotencyKey(userId, req.header("idempotency-key"));
+  const cached = idempotencyKey ? idempotencyCache.get(idempotencyKey) : undefined;
 
-  if (cacheKey) {
-    const cached = idempotencyCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      res.status(200).json(cached.response);
+  if (cached && cached.expiresAt > Date.now()) {
+    const cachedAnalysis = await readAnalysisForResponse(cached.analysisId);
+    if (cachedAnalysis) {
+      res.status(200).json(cachedAnalysis);
       return;
     }
   }
 
   if (inProgressUsers.has(userId)) {
-    res.status(409).json({ error: "An analysis is already in progress. Please wait for it to complete before starting another." });
+    res.status(409).json({ error: "An analysis is already in progress for this user" });
     return;
   }
 
   inProgressUsers.add(userId);
+
   try {
     const [profile] = await db.select().from(profilesTable).where(eq(profilesTable.userId, userId));
     const [goal] = await db.select().from(careerGoalsTable).where(eq(careerGoalsTable.userId, userId));
@@ -244,11 +411,19 @@ router.post("/analysis", requireAuth, async (req, res): Promise<void> => {
     const workExp = await db.select().from(workExperiencesTable).where(eq(workExperiencesTable.userId, userId));
     const education = await db.select().from(educationTable).where(eq(educationTable.userId, userId));
     const certifications = await db.select().from(certificationsTable).where(eq(certificationsTable.userId, userId));
-    const targetYears = goal.targetYears ?? 24;
+    const targetMonths = goal.targetMonths ?? 60;
 
-    logger.info({ userId, targetRole: goal.targetRole, targetYears, promptVersion: PROMPT_VERSION }, "Running career analysis");
+    logger.info({ userId, targetRole: goal.targetRole, targetMonths }, "Running career analysis");
 
-    const analysis = generateAnalysis({ profile: profile ?? {}, goal, targetRole: goal.targetRole, targetYears, skills, workExp, education, certifications });
+    const analysis = generateAnalysis({
+      profile: profile ?? {},
+      targetRole: goal.targetRole,
+      targetMonths,
+      skills,
+      workExp,
+      education,
+      certifications,
+    });
 
     const [saved] = await db.insert(careerAnalysesTable).values({
       userId,
@@ -257,29 +432,21 @@ router.post("/analysis", requireAuth, async (req, res): Promise<void> => {
     }).returning();
 
     const milestones = generateMilestones(goal.targetRole, analysis.roadmapPhases);
-    for (const m of milestones) {
-      await db.insert(milestonesTable).values({ userId, analysisId: saved.id, ...m, completed: false });
+    for (const milestone of milestones) {
+      await db.insert(milestonesTable).values({ userId, analysisId: saved.id, ...milestone });
     }
 
-    await db.insert(activityLogTable).values({
+    await logActivity({
       userId,
       type: "analysis",
-      description: `Ran career analysis for ${goal.targetRole} — readiness score: ${analysis.readinessScore}%`,
-      entityType: "career_analysis",
-      entityId: saved.id,
-      metadata: {
-        readinessSubScores: analysis.readinessSubScores,
-        modelName: analysis.modelName,
-        promptVersion: analysis.promptVersion,
-        inputTokens: analysis.inputTokens,
-        outputTokens: analysis.outputTokens,
-        latencyMs: analysis.latencyMs,
-      },
+      description: `Ran career analysis for ${goal.targetRole}; readiness score: ${analysis.readinessScore}%`,
     });
 
-    const response = { ...saved, createdAt: saved.createdAt.toISOString() };
-    if (cacheKey) idempotencyCache.set(cacheKey, { expiresAt: Date.now() + 24 * 60 * 60 * 1000, response });
-    res.status(201).json(response);
+    if (idempotencyKey) {
+      idempotencyCache.set(idempotencyKey, { analysisId: saved.id, expiresAt: Date.now() + IDEMPOTENCY_TTL_MS });
+    }
+
+    res.status(201).json({ ...saved, createdAt: saved.createdAt.toISOString() });
   } finally {
     inProgressUsers.delete(userId);
   }
@@ -309,7 +476,7 @@ router.get("/analysis/history", requireAuth, async (req, res): Promise<void> => 
     .where(eq(careerAnalysesTable.userId, req.user!.userId))
     .orderBy(desc(careerAnalysesTable.createdAt));
 
-  res.json(analyses.map(a => ({ ...a, createdAt: a.createdAt.toISOString() })));
+  res.json(analyses.map((analysis) => ({ ...analysis, createdAt: analysis.createdAt.toISOString() })));
 });
 
 export default router;

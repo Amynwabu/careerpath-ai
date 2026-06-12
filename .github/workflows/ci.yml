@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: careerpath_ai_test
+          POSTGRES_USER: careerpath
+          POSTGRES_PASSWORD: careerpath
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U careerpath -d careerpath_ai_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://careerpath:careerpath@localhost:5432/careerpath_ai_test
+      JWT_SECRET: ci-jwt-secret-with-more-than-32-characters
+      NODE_ENV: test
+      COOKIE_SECURE: "false"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit dependency baseline
+        run: pnpm run audit:ci
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Build production targets
+        run: pnpm run build:production
+
+      - name: Reject local env files in deploy artifact
+        run: |
+          if find . -name .env -not -path './node_modules/*' -print -quit | grep -q .; then
+            echo "Do not include .env in production artifacts; use the deployment secret manager instead."
+            exit 1
+          fi
+
+      - name: Push test database schema
+        run: pnpm --filter @workspace/db run push-force
+
+      - name: Test
+        run: pnpm run test

@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useListMilestones, useCompleteMilestone, getListMilestonesQueryKey, getGetDashboardSummaryQueryKey } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
+import { ProductEmptyState } from "@/components/product-empty-state";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +51,7 @@ export default function Milestones() {
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Milestones</h1>
-              <p className="text-muted-foreground mt-1">Track your progress through each phase of your career journey.</p>
+              <p className="text-muted-foreground mt-1">Your next actions by phase.</p>
             </div>
           </div>
           {total > 0 && (
@@ -77,22 +78,13 @@ export default function Milestones() {
         )}
 
         {noMilestones && (
-          <Card className="border-border bg-card">
-            <CardContent className="pt-12 pb-12 flex flex-col items-center text-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Flag className="w-10 h-10 text-primary" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold">No Milestones Yet</h2>
-                <p className="text-muted-foreground mt-2 max-w-md">
-                  Run your career analysis to auto-generate a set of milestones tailored to your career target and development timeline.
-                </p>
-              </div>
-              <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/analysis"><ArrowRight className="w-4 h-4 mr-2" /> Run Career Analysis</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <ProductEmptyState
+            title="Turn the roadmap into action"
+            description="Run analysis to create focused milestones you can complete one by one."
+            cta="Create milestones"
+            href="/analysis"
+            exampleScore={76}
+          />
         )}
 
         {grouped && PHASE_ORDER.map(phase => {
@@ -106,16 +98,17 @@ export default function Milestones() {
                 <Badge variant="secondary">{phaseCompleted}/{items.length}</Badge>
               </div>
               {items.map(m => (
-                <Card key={m.id} className={`border transition-all ${m.completed ? "border-primary/30 bg-primary/5" : "border-border bg-card"}`}>
+                <Card key={m.id} className={`transition-all ${m.completed ? "blue-card-strong" : "blue-card"}`}>
                   <CardContent className="pt-4 pb-4 flex items-start gap-4">
                     <button
+                      aria-label={m.completed ? `Milestone ${m.title} completed` : `Mark ${m.title} as complete`}
                       onClick={() => !m.completed && handleComplete(m.id)}
                       disabled={m.completed}
                       className="mt-0.5 flex-shrink-0"
                     >
                       {m.completed
-                        ? <CheckCircle2 className="w-5 h-5 text-primary" />
-                        : <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
+                        ? <CheckCircle2 className="inline-edit-icon w-5 h-5 text-primary" />
+                        : <Circle className="inline-edit-icon w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
                       }
                     </button>
                     <div className="flex-1 min-w-0">

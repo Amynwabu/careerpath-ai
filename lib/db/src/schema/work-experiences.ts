@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, boolean, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
@@ -8,8 +8,8 @@ export const workExperiencesTable = pgTable("work_experiences", {
   userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
   company: text("company").notNull(),
   title: text("title").notNull(),
-  startDate: text("start_date").notNull(),
-  endDate: text("end_date"),
+  startDate: date("start_date", { mode: "string" }).notNull(),
+  endDate: date("end_date", { mode: "string" }),
   isCurrent: boolean("is_current").notNull().default(false),
   description: text("description"),
   skills: text("skills"),

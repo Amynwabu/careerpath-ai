@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { useGetCareerGoal, useSetCareerGoal, getGetCareerGoalQueryKey } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,9 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 
 const LEADERSHIP_OPTIONS = ["Individual Contributor", "Team Lead", "Manager", "Senior Manager", "Director", "VP", "C-Suite"];
 const WORK_MODE_OPTIONS = ["Remote", "Hybrid", "On-site", "No preference"];
-const MONTH_OPTIONS = [1, 3, 6, 9, 12, 18, 24, 36, 48, 60, 72, 96, 120];
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => index + 1);
 
 export default function CareerGoal() {
+  const [, setLocation] = useLocation();
   const qc = useQueryClient();
   const { toast } = useToast();
   const { data: goal, isLoading } = useGetCareerGoal();
@@ -24,11 +26,11 @@ export default function CareerGoal() {
   const [form, setForm] = useState<Record<string, string>>({});
   const [targetMonths, setTargetMonths] = useState<number | null>(null);
   const f = (key: string) => form[key] ?? (goal as any)?.[key] ?? "";
-  const months = targetMonths ?? (goal as any)?.targetYears ?? 24;
+  const months = targetMonths ?? goal?.targetMonths ?? 12;
 
   const handleSave = async () => {
     if (!f("targetRole")) {
-      toast({ title: "Target role required", description: `Please enter your desired role for the selected month timeline.`, variant: "destructive" });
+      toast({ title: "Target role required", description: `Please enter your desired ${months}-month role.`, variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -42,11 +44,12 @@ export default function CareerGoal() {
         workModePreference: f("workModePreference") || undefined,
         strengthsToBuild: f("strengthsToBuild") || undefined,
         areasToImprove: f("areasToImprove") || undefined,
-        targetYears: months,
+        targetMonths: months,
       } });
       qc.invalidateQueries({ queryKey: getGetCareerGoalQueryKey() });
       setForm({});
       toast({ title: "Career goal saved", description: `Your ${months}-month target has been updated.` });
+      setLocation("/analysis");
     } catch {
       toast({ title: "Error", description: "Failed to save career goal.", variant: "destructive" });
     }
@@ -67,35 +70,28 @@ export default function CareerGoal() {
         </div>
 
         {isLoading ? <Skeleton className="h-96 w-full" /> : (
-          <Card className="border-border bg-card">
+          <Card className="blue-card">
             <CardHeader>
               <CardTitle>Target Role Definition</CardTitle>
-              <CardDescription>The more specific you are, the more accurate your roadmap will be.</CardDescription>
+              <CardDescription>Keep it focused. You can refine this later.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
                 <label className="text-sm font-semibold mb-3 block">Months to achieve this goal</label>
-                <div className="flex flex-wrap gap-2">
-                  {MONTH_OPTIONS.map(m => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setTargetMonths(m)}
-                      className={`w-10 h-10 rounded-lg text-sm font-semibold border transition-all ${
-                        months === m
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "border-border text-muted-foreground hover:border-primary hover:text-foreground bg-background"
-                      }`}
-                    >
-                      {m}
-                    </button>
+                <select
+                  value={months}
+                  onChange={event => setTargetMonths(Number(event.target.value))}
+                  className="w-full bg-background border border-border rounded-md px-4 py-3 text-base font-semibold"
+                >
+                  {MONTH_OPTIONS.map(option => (
+                    <option key={option} value={option}>{option} month{option !== 1 ? "s" : ""}</option>
                   ))}
-                </div>
+                </select>
               </div>
               <div>
                 <label className="text-sm font-semibold mb-2 block">Desired Role in {months} Months <span className="text-primary">*</span></label>
                 <Input
-                  placeholder="e.g. Head of AI Engineering, Senior Product Manager, Director of Digital Transformation"
+                  placeholder="e.g. Senior Product Manager"
                   value={f("targetRole")}
                   onChange={e => setForm(p => ({ ...p, targetRole: e.target.value }))}
                   className="bg-background border-border text-base"
@@ -105,11 +101,11 @@ export default function CareerGoal() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Target Industry / Sector</label>
-                  <Input placeholder="e.g. FinTech, Healthcare, Public Sector" value={f("targetIndustry")} onChange={e => setForm(p => ({ ...p, targetIndustry: e.target.value }))} className="bg-background border-border" />
+                  <Input placeholder="e.g. FinTech" value={f("targetIndustry")} onChange={e => setForm(p => ({ ...p, targetIndustry: e.target.value }))} className="bg-background border-border" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Geographic Preference</label>
-                  <Input placeholder="e.g. London, UK or Remote globally" value={f("geographicPreference")} onChange={e => setForm(p => ({ ...p, geographicPreference: e.target.value }))} className="bg-background border-border" />
+                  <Input placeholder="e.g. London or Remote" value={f("geographicPreference")} onChange={e => setForm(p => ({ ...p, geographicPreference: e.target.value }))} className="bg-background border-border" />
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">Leadership Level</label>
@@ -129,12 +125,12 @@ export default function CareerGoal() {
 
               <div>
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">Strengths You Want to Build On</label>
-                <Textarea rows={3} placeholder="e.g. My technical expertise in data engineering, stakeholder communication skills, strategic thinking..." value={f("strengthsToBuild")} onChange={e => setForm(p => ({ ...p, strengthsToBuild: e.target.value }))} className="bg-background border-border resize-none" />
+                <Textarea rows={2} placeholder="e.g. data analysis, stakeholder communication" value={f("strengthsToBuild")} onChange={e => setForm(p => ({ ...p, strengthsToBuild: e.target.value }))} className="bg-background border-border resize-none" />
               </div>
 
               <div>
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">Areas You Want to Improve</label>
-                <Textarea rows={3} placeholder="e.g. Leadership and people management, executive presence, commercial awareness..." value={f("areasToImprove")} onChange={e => setForm(p => ({ ...p, areasToImprove: e.target.value }))} className="bg-background border-border resize-none" />
+                <Textarea rows={2} placeholder="e.g. leadership, cloud architecture" value={f("areasToImprove")} onChange={e => setForm(p => ({ ...p, areasToImprove: e.target.value }))} className="bg-background border-border resize-none" />
               </div>
 
               <Button onClick={handleSave} disabled={saving} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11">

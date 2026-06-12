@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Logo } from "@/components/branding/logo";
 import { ArrowRight, CheckCircle2, X, Zap, HelpCircle } from "lucide-react";
 
 const PLANS = [
@@ -17,13 +18,6 @@ const PLANS = [
       { text: "Skill gap overview (top 5 gaps)", included: true },
       { text: "3 AI analysis runs", included: true },
       { text: "Core milestone tracking", included: true },
-      { text: "Profile completion tracker", included: true },
-      { text: "Unlimited analysis runs", included: false },
-      { text: "AI mentor coaching tips", included: false },
-      { text: "Advanced course recommendations", included: false },
-      { text: "Portfolio project guidance", included: false },
-      { text: "Full skill gap breakdown", included: false },
-      { text: "Priority email support", included: false },
     ],
   },
   {
@@ -40,13 +34,9 @@ const PLANS = [
       { text: "Complete skill gap breakdown", included: true },
       { text: "Unlimited analysis runs", included: true },
       { text: "Full milestone tracking & history", included: true },
-      { text: "Profile completion tracker", included: true },
       { text: "AI mentor coaching tips", included: true },
-      { text: "Advanced course recommendations", included: true },
+      { text: "Curated training recommendations", included: true },
       { text: "Portfolio project guidance", included: true },
-      { text: "Certification path recommendations", included: true },
-      { text: "Job progression ladder", included: true },
-      { text: "Priority email support", included: true },
     ],
   },
   {
@@ -65,11 +55,6 @@ const PLANS = [
       { text: "Custom role templates", included: true },
       { text: "Bulk member onboarding", included: true },
       { text: "Dedicated account manager", included: true },
-      { text: "Custom branding", included: true },
-      { text: "API access", included: true },
-      { text: "SLA & uptime guarantees", included: true },
-      { text: "Priority support", included: true },
-      { text: "Quarterly strategy reviews", included: true },
     ],
   },
 ];
@@ -106,14 +91,9 @@ export default function Pricing() {
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/30">
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/35">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center glow-box">
-              <div className="w-4 h-4 border-2 border-primary-foreground rounded-sm" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">CareerPath AI</span>
-          </Link>
+          <Logo size="md" />
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="/intelligence" className="hover:text-primary transition-colors">Intelligence</Link>
             <Link href="/#how-it-works" className="hover:text-primary transition-colors">How It Works</Link>
@@ -135,7 +115,7 @@ export default function Pricing() {
           <Badge className="bg-primary/10 text-primary border-primary/20 mb-6">Simple Pricing</Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-5">Start Free. Upgrade When Ready.</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            No credit card required to get started. Upgrade to unlock the full AI career execution system.
+            Start with the essentials. Upgrade when you want unlimited guidance.
           </p>
         </div>
       </section>
@@ -149,8 +129,8 @@ export default function Pricing() {
                 key={plan.name}
                 className={`relative rounded-2xl p-8 flex flex-col ${
                   plan.highlight
-                    ? "border border-primary/40 bg-primary/5 shadow-[0_0_40px_rgba(0,240,255,0.1)]"
-                    : "glass-panel border border-white/5"
+                    ? "blue-card-strong"
+                    : "blue-card"
                 }`}
               >
                 {plan.badge && (
@@ -189,7 +169,7 @@ export default function Pricing() {
                     className={`w-full ${
                       plan.highlight
                         ? "bg-primary hover:bg-primary/90 text-primary-foreground glow-box shadow-[0_0_20px_rgba(0,240,255,0.3)]"
-                        : "border border-white/10 bg-transparent hover:bg-white/5 text-foreground"
+                        : "border border-white/35 bg-transparent hover:bg-white/5 text-foreground"
                     }`}
                     variant={plan.highlight ? "default" : "outline"}
                   >
@@ -205,16 +185,16 @@ export default function Pricing() {
       </section>
 
       {/* Feature comparison table */}
-      <section className="py-24 px-6 bg-white/2 border-y border-white/5">
+      <section className="py-16 px-6 bg-white/2 border-y border-white/35">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-3xl font-bold mb-3">Compare Plans</h2>
-            <p className="text-muted-foreground">Full breakdown of what's included in each tier.</p>
+            <p className="text-muted-foreground">The main differences at a glance.</p>
           </div>
           <div className="max-w-4xl mx-auto overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10">
+                <tr className="border-b border-white/35">
                   <th className="text-left py-4 pr-6 font-semibold text-muted-foreground">Feature</th>
                   {PLANS.map(p => (
                     <th key={p.name} className={`py-4 px-4 text-center font-semibold ${p.highlight ? "text-primary" : "text-muted-foreground"}`}>{p.name}</th>
@@ -228,14 +208,14 @@ export default function Pricing() {
                   { label: "Career Roadmap", values: ["Basic", "Full phases", "Full phases"] },
                   { label: "Milestone Tracking", values: ["Core", "Full history", "Full history"] },
                   { label: "AI Coach Tips", values: [false, true, true] },
-                  { label: "Course Recommendations", values: [false, true, true] },
+                  { label: "Curated Training", values: [false, true, true] },
                   { label: "Portfolio Projects", values: [false, true, true] },
                   { label: "Certification Paths", values: [false, true, true] },
                   { label: "Team Dashboard", values: [false, false, true] },
                   { label: "API Access", values: [false, false, true] },
                   { label: "Support", values: ["Community", "Priority email", "Dedicated manager"] },
                 ].map((row, i) => (
-                  <tr key={row.label} className={`border-b border-white/5 ${i % 2 === 1 ? "bg-white/2" : ""}`}>
+                  <tr key={row.label} className={`border-b border-white/35 ${i % 2 === 1 ? "bg-white/2" : ""}`}>
                     <td className="py-3.5 pr-6 text-foreground/80">{row.label}</td>
                     {row.values.map((val, vi) => (
                       <td key={vi} className="py-3.5 px-4 text-center">
@@ -257,15 +237,15 @@ export default function Pricing() {
       </section>
 
       {/* FAQ */}
-      <section className="py-24 px-6">
+      <section className="py-16 px-6">
         <div className="container mx-auto max-w-2xl">
           <div className="text-center mb-12">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">FAQ</Badge>
             <h2 className="text-3xl font-bold mb-3">Common Questions</h2>
           </div>
           <div className="space-y-4">
-            {FAQ.map((item) => (
-              <div key={item.q} className="glass-panel border border-white/5 rounded-xl p-6">
+            {FAQ.slice(0, 4).map((item) => (
+              <div key={item.q} className="blue-card rounded-xl p-6">
                 <div className="flex items-start gap-3">
                   <HelpCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                   <div>
@@ -280,7 +260,7 @@ export default function Pricing() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 px-6 border-t border-white/5 bg-white/2 relative overflow-hidden">
+      <section className="py-24 px-6 border-t border-white/35 bg-white/2 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="container mx-auto text-center relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold mb-5">Start Your Career Path Today</h2>
@@ -293,15 +273,10 @@ export default function Pricing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-12">
+      <footer className="border-t border-white/35 py-12">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded bg-primary flex items-center justify-center">
-                <div className="w-3.5 h-3.5 border-2 border-primary-foreground rounded-sm" />
-              </div>
-              <span className="font-bold text-sm">CareerPath AI</span>
-            </Link>
+            <Logo size="sm" />
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/intelligence" className="hover:text-primary transition-colors">Features</Link>
               <Link href="/pricing" className="text-primary">Pricing</Link>

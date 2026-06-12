@@ -10,6 +10,9 @@ export type AuthTokenGetter = () => Promise<string | null> | string | null;
 
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
+const DEFAULT_COOKIE_PREFIX = "careerpath";
+const CSRF_HEADER = "x-csrf-token";
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 // ---------------------------------------------------------------------------
 // Module-level configuration
@@ -17,6 +20,8 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _cookiePrefix = DEFAULT_COOKIE_PREFIX;
+let _csrfRequest: Promise<void> | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -42,6 +47,20 @@ export function setBaseUrl(url: string | null): void {
  */
 export function setAuthTokenGetter(getter: AuthTokenGetter | null): void {
   _authTokenGetter = getter;
+}
+
+export function setCookiePrefix(prefix: string | null): void {
+  _cookiePrefix = sanitizeCookiePrefix(prefix) ?? DEFAULT_COOKIE_PREFIX;
+}
+
+function sanitizeCookiePrefix(value?: string | null): string | undefined {
+  const normalized = value?.trim();
+  if (!normalized) return undefined;
+  return normalized.replace(/[^A-Za-z0-9_-]/g, "_");
+}
+
+function appCookieName(name: string): string {
+  return `${_cookiePrefix}_${name}`;
 }
 
 function isRequest(input: RequestInfo | URL): input is Request {
@@ -146,6 +165,58 @@ function getStringField(value: unknown, key: string): string | undefined {
 
 function truncate(text: string, maxLength = 300): string {
   return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+}
+
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+
+  const prefix = `${name}=`;
+  const match = document.cookie
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(prefix));
+
+  return match ? decodeURIComponent(match.slice(prefix.length)) : null;
+}
+
+function shouldAttachCsrf(method: string): boolean {
+  return !SAFE_METHODS.has(method);
+}
+
+async function ensureCsrfToken(): Promise<string | null> {
+  const csrfCookie = appCookieName("csrf");
+  const current = readCookie(csrfCookie);
+  if (current) return current;
+  if (typeof fetch === "undefined") return null;
+
+  _csrfRequest ??= fetch(applyBaseUrl("/api/auth/csrf") as RequestInfo, {
+    credentials: _baseUrl ? "include" : "same-origin",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to get CSRF token (${response.status})`);
+      }
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.toLowerCase().includes("application/json")) {
+        throw new Error("Failed to get CSRF token: API returned a non-JSON response");
+      }
+      return response.json() as Promise<{ csrfToken?: unknown }>;
+    })
+    .then((data) => {
+      if (typeof data.csrfToken !== "string" || data.csrfToken.length === 0) {
+        throw new Error("Failed to get CSRF token: response did not include csrfToken");
+      }
+    })
+    .finally(() => {
+      _csrfRequest = null;
+    });
+
+  await _csrfRequest;
+  const token = readCookie(csrfCookie);
+  if (!token) {
+    throw new Error("Failed to get CSRF token: CSRF cookie was not set");
+  }
+  return token;
 }
 
 function buildErrorMessage(response: Response, data: unknown): string {
@@ -358,9 +429,21 @@ export async function customFetch<T = unknown>(
     }
   }
 
+  if (shouldAttachCsrf(method) && !headers.has(CSRF_HEADER)) {
+    const csrfToken = await ensureCsrfToken();
+    if (csrfToken) {
+      headers.set(CSRF_HEADER, csrfToken);
+    }
+  }
+
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(input, {
+    ...init,
+    method,
+    headers,
+    credentials: init.credentials ?? (_baseUrl ? "include" : "same-origin"),
+  });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

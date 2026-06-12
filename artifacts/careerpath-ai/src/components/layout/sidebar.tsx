@@ -1,41 +1,36 @@
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/lib/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { useGetProfile } from "@workspace/api-client-react";
+import { getGetMeQueryKey, logout as logoutRequest } from "@workspace/api-client-react";
+import { Logo } from "@/components/branding/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  User,
-  Target,
-  BrainCircuit,
-  Map as MapIcon,
-  Flag,
-  History,
-  LogOut,
-} from "lucide-react";
 
-export function Sidebar() {
-  const [location] = useLocation();
-  const { logout } = useAuth();
+type SidebarProps = {
+  className?: string;
+  onNavigate?: () => void;
+};
+
+export function Sidebar({ className, onNavigate }: SidebarProps) {
+  const [location, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { data: profile } = useGetProfile();
+  const profileHref = profile?.cvImportCompletedAt ? "/profile/manual" : "/profile/import";
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/profile", label: "My Profile", icon: User },
-    { href: "/career-goal", label: "Career Goal", icon: Target },
-    { href: "/analysis", label: "Career Analysis", icon: BrainCircuit },
-    { href: "/roadmap", label: "Career Roadmap", icon: MapIcon },
-    { href: "/milestones", label: "Milestones", icon: Flag },
-    { href: "/history", label: "History", icon: History },
+    { href: "/dashboard", label: "Dashboard" },
+    { href: profileHref, match: ["/profile", "/profile/import", "/profile/manual"], label: "My Profile" },
+    { href: "/career-goal", label: "Career Goal" },
+    { href: "/analysis", label: "Career Analysis" },
+    { href: "/roadmap", label: "Career Roadmap" },
+    { href: "/milestones", label: "Milestones" },
+    { href: "/history", label: "History" },
   ];
 
   return (
-    <div className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col sticky top-0 left-0">
-      <div className="h-20 flex items-center px-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-primary flex items-center justify-center glow-box">
-            <div className="w-4 h-4 border-2 border-primary-foreground rounded-sm" />
-          </div>
-          <span className="font-bold text-lg tracking-tight">CareerPath AI</span>
-        </div>
+    <div className={cn("w-64 h-screen bg-sidebar/95 border-r border-sidebar-border flex flex-col sticky top-0 left-0", className)}>
+      <div className="flex h-24 items-center px-6 border-b border-sidebar-border">
+        <Logo size="sm" />
       </div>
 
       <div className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
@@ -43,19 +38,20 @@ export function Sidebar() {
           Navigation
         </div>
         {navItems.map((item) => {
-          const isActive = location === item.href;
+          const isActive = location === item.href || item.match?.includes(location);
           return (
             <Link key={item.href} href={item.href}>
               <div
+                onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
+                  "flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
                   isActive
-                    ? "bg-primary/10 text-primary border border-primary/20 glow-box"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
                 )}
               >
-                <item.icon className={cn("w-5 h-5", isActive ? "text-primary" : "text-muted-foreground")} />
-                {item.label}
+                <span>{item.label}</span>
+                {isActive && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
               </div>
             </Link>
           );
@@ -66,9 +62,16 @@ export function Sidebar() {
         <Button
           variant="ghost"
           className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-white/5 border-none"
-          onClick={() => logout()}
+          onClick={async () => {
+            try {
+              await logoutRequest();
+            } finally {
+              queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+              onNavigate?.();
+              setLocation("/login");
+            }
+          }}
         >
-          <LogOut className="mr-2 h-5 w-5" />
           Log Out
         </Button>
       </div>

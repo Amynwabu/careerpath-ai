@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
-import { db, educationTable } from "@workspace/db";
+import { and, db, eq, educationTable } from "@workspace/db";
 import { CreateEducationBody, UpdateEducationParams, UpdateEducationBody } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
+import { toDateString } from "../lib/dates";
 
 const router: IRouter = Router();
 
@@ -17,7 +17,8 @@ router.post("/education", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const [item] = await db.insert(educationTable).values({ ...parsed.data, userId: req.user!.userId }).returning();
+  const data = { ...parsed.data, startDate: toDateString(parsed.data.startDate)!, endDate: toDateString(parsed.data.endDate) };
+  const [item] = await db.insert(educationTable).values({ ...data, userId: req.user!.userId }).returning();
   res.status(201).json({ ...item, createdAt: item.createdAt.toISOString() });
 });
 
@@ -32,8 +33,9 @@ router.patch("/education/:id", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const data = { ...parsed.data, startDate: toDateString(parsed.data.startDate), endDate: toDateString(parsed.data.endDate) };
   const [item] = await db.update(educationTable)
-    .set(parsed.data)
+    .set(data)
     .where(and(eq(educationTable.id, params.data.id), eq(educationTable.userId, req.user!.userId)))
     .returning();
   if (!item) {

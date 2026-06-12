@@ -1,0 +1,11 @@
+[build]
+  command = "pnpm --filter @workspace/careerpath-ai run build"
+  publish = "artifacts/careerpath-ai/dist/public"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,7 +1,8 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, CheckCircle2, Zap, Map, Rocket, Target, Brain, TrendingUp, Star, BarChart3, BookOpen, FolderOpen } from "lucide-react";
+import { Logo } from "@/components/branding/logo";
+import { ArrowRight, CheckCircle2, Map, Rocket, Target, Brain, TrendingUp, BarChart3, BookOpen, FolderOpen } from "lucide-react";
 
 function DashboardMockup() {
   return (
@@ -9,9 +10,9 @@ function DashboardMockup() {
       {/* Glow behind */}
       <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-2xl scale-95 pointer-events-none" />
       {/* Browser chrome */}
-      <div className="relative rounded-2xl border border-white/10 bg-[#0d1117] overflow-hidden shadow-2xl">
+      <div className="relative rounded-2xl border border-white/35 bg-[#0d1117] overflow-hidden shadow-2xl">
         {/* Top bar */}
-        <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/5">
+        <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/35">
           <div className="w-3 h-3 rounded-full bg-red-500/60" />
           <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
           <div className="w-3 h-3 rounded-full bg-green-500/60" />
@@ -40,14 +41,14 @@ function DashboardMockup() {
               { icon: "⚡", label: "What's Missing", value: "Machine Learning" },
               { icon: "🚀", label: "What To Do Next", value: "Build ML project" },
             ].map((card) => (
-              <div key={card.label} className="rounded-lg bg-white/5 border border-white/5 p-2.5">
+              <div key={card.label} className="rounded-lg bg-white/5 border border-white/35 p-2.5">
                 <div className="text-[9px] text-muted-foreground uppercase tracking-wider">{card.icon} {card.label}</div>
                 <div className="text-[10px] font-semibold mt-0.5 text-foreground truncate">{card.value}</div>
               </div>
             ))}
           </div>
           {/* Urgency row */}
-          <div className="rounded-lg bg-white/5 border border-white/5 p-3">
+          <div className="rounded-lg bg-white/5 border border-white/35 p-3">
             <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Time to Goal</div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -133,7 +134,7 @@ const HOW_IT_WORKS = [
 const FEATURES = [
   { icon: BarChart3, title: "Skill Gap Detection", desc: "AI compares your profile to real job requirements and highlights exactly what's missing." },
   { icon: Map, title: "AI Career Roadmap", desc: "Phase-by-phase plan personalised to your timeline, skills, and target role." },
-  { icon: BookOpen, title: "Learning Platform Links", desc: "Curated courses from Coursera, Udemy, YouTube, and more — matched to your gaps." },
+  { icon: BookOpen, title: "Curated Training Links", desc: "Hand-picked learning paths from Coursera, Udemy, YouTube, and more — matched to your gaps." },
   { icon: FolderOpen, title: "Portfolio Guidance", desc: "AI-suggested projects that prove your skills to employers." },
   { icon: TrendingUp, title: "Progress Tracking", desc: "Milestone-based tracking so you know exactly how far you've come." },
   { icon: Target, title: "Real Job Outcomes", desc: "Every recommendation is tied to actual hiring requirements, not guesswork." },
@@ -144,17 +145,11 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden selection:bg-primary/30">
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/35">
         <div className="container mx-auto px-6 h-18 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center glow-box">
-              <div className="w-4 h-4 border-2 border-primary-foreground rounded-sm" />
-            </div>
-            <span className="font-bold text-xl tracking-tight">CareerPath AI</span>
-          </div>
+          <Logo size="lg" />
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="/intelligence" className="hover:text-primary transition-colors">Intelligence</Link>
-            <Link href="/webinar" className="hover:text-primary transition-colors">AI Webinar</Link>
             <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
             <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
           </div>
@@ -214,8 +209,8 @@ export default function Landing() {
                 <Button asChild size="lg" className="text-base h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(0,240,255,0.4)] glow-box">
                   <Link href="/register">Start Your Career Path <ArrowRight className="w-5 h-5 ml-2" /></Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="text-base h-14 px-8 border-white/10 hover:bg-white/5">
-                  <Link href="/webinar">View AI Webinar</Link>
+                <Button asChild variant="outline" size="lg" className="text-base h-14 px-8 border-white/35 hover:bg-white/5">
+                  <Link href="/pricing">View Plans</Link>
                 </Button>
               </div>
 
@@ -226,21 +221,6 @@ export default function Landing() {
             <div className="relative hidden lg:block">
               <DashboardMockup />
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SOCIAL PROOF BAR ── */}
-      <section className="py-8 border-y border-white/5 bg-white/2">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /><span>Built by an AI & Robotics expert</span></div>
-            <div className="w-px h-4 bg-white/10 hidden sm:block" />
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Academic & industry validated</span></div>
-            <div className="w-px h-4 bg-white/10 hidden sm:block" />
-            <div className="flex items-center gap-2"><Zap className="w-4 h-4 text-primary" /><span>AI-powered gap analysis</span></div>
-            <div className="w-px h-4 bg-white/10 hidden sm:block" />
-            <div className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /><span>Personalised milestones</span></div>
           </div>
         </div>
       </section>
@@ -257,18 +237,24 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {HOW_IT_WORKS.map((step) => (
               <div key={step.step} className="relative group">
-                <div className="glass-panel border border-white/5 rounded-2xl p-8 h-full hover:border-primary/20 transition-all duration-300">
-                  <div className="text-5xl font-black text-primary/10 mb-4">{step.step}</div>
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
+                <div className="blue-card-strong relative h-full overflow-hidden rounded-2xl p-8 transition-all duration-300 group-hover:-translate-y-1 group-hover:border-primary/70">
+                  <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
+                  <div className="relative mb-6 flex items-center justify-between">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/60 bg-primary text-2xl font-black text-primary-foreground shadow-[0_0_24px_rgba(0,140,255,0.42)]">
+                      {step.step}
+                    </div>
+                    <div className="h-px flex-1 bg-gradient-to-r from-primary/60 to-transparent ml-5" />
+                  </div>
+                  <div className="relative w-12 h-12 rounded-xl bg-primary/15 border border-primary/35 flex items-center justify-center mb-6 group-hover:bg-primary/25 transition-colors">
                     <step.icon className="w-6 h-6 text-primary" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-6">{step.desc}</p>
-                  <ul className="space-y-2">
+                  <h3 className="relative text-2xl font-bold mb-3 text-white">{step.title}</h3>
+                  <p className="relative text-sm leading-relaxed mb-6 text-slate-200">{step.desc}</p>
+                  <ul className="relative space-y-2">
                     {step.bullets.map(b => (
-                      <li key={b} className="flex items-center gap-2 text-sm">
+                      <li key={b} className="flex items-center gap-2 rounded-lg border border-primary/15 bg-primary/10 px-3 py-2 text-sm">
                         <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                        <span className="text-foreground/80">{b}</span>
+                        <span className="font-medium text-slate-100">{b}</span>
                       </li>
                     ))}
                   </ul>
@@ -280,7 +266,7 @@ export default function Landing() {
       </section>
 
       {/* ── DIFFERENTIATOR ── */}
-      <section className="py-24 px-6 bg-white/2 border-y border-white/5 relative overflow-hidden">
+      <section className="py-24 px-6 bg-white/2 border-y border-white/35 relative overflow-hidden">
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
         <div className="container mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -299,10 +285,12 @@ export default function Landing() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {FEATURES.map((f) => (
-                <div key={f.title} className="glass-panel border border-white/5 rounded-xl p-5 hover:border-primary/20 transition-all">
-                  <f.icon className="w-5 h-5 text-primary mb-3" />
-                  <h4 className="font-semibold text-sm mb-1">{f.title}</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+                <div key={f.title} className="blue-card rounded-xl p-5 transition-all hover:border-primary/55">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg border border-primary/35 bg-primary/15">
+                    <f.icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <h4 className="font-semibold text-sm mb-1 text-foreground">{f.title}</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed">{f.desc}</p>
                 </div>
               ))}
             </div>
@@ -325,16 +313,16 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {TRANSFORMATIONS.map((t) => (
-              <div key={t.from} className="glass-panel border border-white/5 rounded-xl p-6 hover:border-primary/20 transition-all group">
-                <div className="text-sm text-muted-foreground mb-1">From</div>
+              <div key={t.from} className="blue-card rounded-xl p-6 transition-all group hover:-translate-y-1 hover:border-primary/55">
+                <div className="text-sm font-semibold text-primary mb-1">From</div>
                 <div className="font-semibold mb-3">{t.from}</div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-primary/40" />
                   <ArrowRight className="w-4 h-4 text-primary" />
                 </div>
-                <div className="text-sm text-muted-foreground mb-1">To</div>
+                <div className="text-sm font-semibold text-primary mb-1">To</div>
                 <div className="font-bold text-primary mb-4">{t.to}</div>
-                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <div className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-slate-200 flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full bg-primary" />
                   {t.time} with AI guidance
                 </div>
@@ -345,7 +333,7 @@ export default function Landing() {
       </section>
 
       {/* ── PRICING TEASER ── */}
-      <section className="py-24 px-6 bg-white/2 border-y border-white/5">
+      <section className="py-24 px-6 bg-white/2 border-y border-white/35">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">Simple Pricing</Badge>
@@ -355,7 +343,7 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {/* Free */}
-            <div className="glass-panel border border-white/5 rounded-2xl p-8">
+            <div className="blue-card rounded-2xl p-8">
               <div className="text-lg font-bold mb-1">Free</div>
               <div className="text-3xl font-black mb-6">£0 <span className="text-sm font-normal text-muted-foreground">forever</span></div>
               <ul className="space-y-3 mb-8">
@@ -366,13 +354,13 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-              <Button asChild variant="outline" className="w-full border-white/10 hover:bg-white/5">
+              <Button asChild variant="outline" className="w-full border-white/35 hover:bg-white/5">
                 <Link href="/register">Get Started Free</Link>
               </Button>
             </div>
 
             {/* Premium */}
-            <div className="relative rounded-2xl border border-primary/30 bg-primary/5 p-8 overflow-hidden">
+            <div className="blue-card-strong relative rounded-2xl p-8 overflow-hidden">
               <div className="absolute top-4 right-4">
                 <Badge className="bg-primary text-primary-foreground border-0 text-xs">Most Popular</Badge>
               </div>
@@ -381,7 +369,7 @@ export default function Landing() {
                 <div className="text-lg font-bold mb-1">Premium</div>
                 <div className="text-3xl font-black mb-6">£19 <span className="text-sm font-normal text-muted-foreground">/ month</span></div>
                 <ul className="space-y-3 mb-8">
-                  {["Full AI career roadmap", "Unlimited analysis runs", "AI mentor coaching", "Advanced course recommendations", "Portfolio project guidance", "Priority skill gap detection"].map(f => (
+                  {["Full AI career roadmap", "Unlimited analysis runs", "AI mentor coaching", "Curated training recommendations", "Portfolio project guidance", "Priority skill gap detection"].map(f => (
                     <li key={f} className="flex items-center gap-2 text-sm">
                       <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
                       <span>{f}</span>
@@ -416,15 +404,10 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-12">
+      <footer className="border-t border-white/35 py-12">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded bg-primary flex items-center justify-center">
-                <div className="w-3.5 h-3.5 border-2 border-primary-foreground rounded-sm" />
-              </div>
-              <span className="font-bold text-sm">CareerPath AI</span>
-            </div>
+            <Logo size="sm" />
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/intelligence" className="hover:text-primary transition-colors">Features</Link>
               <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>

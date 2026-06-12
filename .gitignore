@@ -1,0 +1,15 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+*.tsbuildinfo
+.netlify/
+.vscode/launch.json
+.vscode/tasks.json
+config.yml
+.env
+.env.*
+.local-postgres/
+.agents/.cache/
+.tools/
+.course-url-report.*

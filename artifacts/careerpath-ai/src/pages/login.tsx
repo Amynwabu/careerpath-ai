@@ -5,6 +5,7 @@ import * as z from "zod";
 import { useLogin } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/branding/logo";
 import {
   Form,
   FormControl,
@@ -15,11 +16,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export default function Login() {
@@ -39,10 +39,10 @@ export default function Login() {
     loginMutation.mutate(
       { data: values },
       {
-        onSuccess: (data) => {
-          login(data.token);
+        onSuccess: async () => {
+          await login();
           toast({
-            title: "Welcome back!",
+            title: "Welcome back",
             description: "You have signed in successfully.",
           });
         },
@@ -53,31 +53,20 @@ export default function Login() {
             variant: "destructive",
           });
         },
-      }
+      },
     );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[100px]" />
-        
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+CjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTAgMTBoNDBNMTAgMHY0ME0wIDIwaDQwTTIwIDB2NDBNMCAzMGg0ME0zMCAwdjQwIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4wMikiIHN0cm9rZS13aWR0aD0iMSIvPgo8L3N2Zz4=')] opacity-50" />
-      </div>
-
+    <div className="auth-screen min-h-screen flex items-center justify-center bg-background p-6 relative overflow-hidden">
       <div className="w-full max-w-md relative z-10">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded bg-primary/10 flex items-center justify-center border border-primary/30 mb-4 glow-box">
-            <div className="w-6 h-6 border-2 border-primary rounded-sm" />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">Sign In</h1>
-          <p className="text-muted-foreground mt-2">Welcome back — sign in to your account.</p>
+        <div className="mb-8 text-center">
+          <Logo size="md" className="mb-8" />
+          <h1 className="text-4xl font-bold tracking-tight">Sign in</h1>
+          <p className="text-muted-foreground mt-3">Continue your career plan.</p>
         </div>
 
-        <div className="glass-panel p-8 rounded-xl">
+        <div className="auth-panel blue-card p-8 rounded-xl">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
@@ -87,7 +76,7 @@ export default function Login() {
                   <FormItem>
                     <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="you@example.com" className="bg-black/20 border-white/10 focus:border-primary/50 focus:ring-primary/20 h-12" {...field} />
+                      <Input placeholder="you@example.com" className="bg-black/20 border-white/35 focus:border-primary/50 focus:ring-primary/20 h-12" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -100,22 +89,18 @@ export default function Login() {
                   <FormItem>
                     <FormLabel className="text-muted-foreground uppercase tracking-wider text-xs">Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" className="bg-black/20 border-white/10 focus:border-primary/50 focus:ring-primary/20 h-12" {...field} />
+                      <Input type="password" placeholder="Enter your password" className="bg-black/20 border-white/35 focus:border-primary/50 focus:ring-primary/20 h-12" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button 
-                type="submit" 
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium tracking-wide shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+              <Button
+                type="submit"
+                className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold tracking-wide"
                 disabled={loginMutation.isPending}
               >
-                {loginMutation.isPending ? (
-                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Authenticating...</>
-                ) : (
-                  "Sign In"
-                )}
+                {loginMutation.isPending ? "Authenticating..." : "Sign In"}
               </Button>
             </form>
           </Form>
@@ -123,8 +108,13 @@ export default function Login() {
 
         <p className="text-center mt-8 text-sm text-muted-foreground">
           Don't have an account?{" "}
-          <Link href="/register" className="text-primary hover:underline glow-text">
+          <Link href="/register" className="text-primary hover:underline">
             Create an account
+          </Link>
+        </p>
+        <p className="text-center mt-3 text-sm text-muted-foreground">
+          <Link href="/forgot-password" className="text-primary hover:underline">
+            Forgot your password?
           </Link>
         </p>
       </div>

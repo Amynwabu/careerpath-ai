@@ -114,6 +114,98 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
 
+  /auth/forgot-password:
+    post:
+      operationId: forgotPassword
+      tags: [auth]
+      summary: Request a password reset email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForgotPasswordBody"
+      responses:
+        "200":
+          description: Reset email queued if account exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/reset-password:
+    post:
+      operationId: resetPassword
+      tags: [auth]
+      summary: Reset password using a signed token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordBody"
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+        "400":
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/verify-email:
+    post:
+      operationId: verifyEmail
+      tags: [auth]
+      summary: Verify email using a signed token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TokenBody"
+      responses:
+        "200":
+          description: Email verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+                required: [user]
+        "400":
+          description: Invalid or expired token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      operationId: verifyEmailLink
+      tags: [auth]
+      summary: Verify email from signed link and redirect to frontend
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirects to frontend login page with verification status
+
   /auth/me:
     get:
       operationId: getMe
@@ -181,6 +273,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProfileCompletion"
+
+  /profile/import-cv:
+    post:
+      operationId: importCv
+      tags: [profile]
+      summary: Parse a CV and return editable profile suggestions
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+              required: [file]
+      responses:
+        "200":
+          description: Parsed CV suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CvImportSuggestion"
+        "400":
+          description: Invalid upload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Could not parse upload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /work-experiences:
     get:
@@ -473,9 +601,11 @@ paths:
         - name: Idempotency-Key
           in: header
           required: false
+          description: Optional key for safely retrying analysis creation without creating duplicate analyses. Reuse the same value for retries of the same request.
           schema:
             type: string
-          description: Optional key used to deduplicate accidental retries for 24 hours.
+            minLength: 1
+            maxLength: 128
       responses:
         "201":
           description: Analysis created
@@ -485,12 +615,6 @@ paths:
                 $ref: "#/components/schemas/CareerAnalysis"
         "400":
           description: Incomplete profile
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "409":
-          description: Analysis already in progress
           content:
             application/json:
               schema:
@@ -660,10 +784,16 @@ components:
       properties:
         name:
           type: string
+          minLength: 1
+          maxLength: 120
         email:
           type: string
+          format: email
+          maxLength: 254
         password:
           type: string
+          minLength: 8
+          maxLength: 72
       required: [name, email, password]
 
     LoginBody:
@@ -671,9 +801,42 @@ components:
       properties:
         email:
           type: string
+          format: email
+          maxLength: 254
         password:
           type: string
+          minLength: 8
+          maxLength: 72
       required: [email, password]
+
+    ForgotPasswordBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+      required: [email]
+
+    ResetPasswordBody:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+      required: [token, password]
+
+    TokenBody:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+      required: [token]
 
     User:
       type: object
@@ -684,20 +847,22 @@ components:
           type: string
         email:
           type: string
+        emailVerified:
+          type: boolean
         role:
           type: string
         createdAt:
           type: string
-      required: [id, name, email, role, createdAt]
+      required: [id, name, email, emailVerified, role, createdAt]
 
     AuthResponse:
       type: object
       properties:
         user:
           $ref: "#/components/schemas/User"
-        token:
+        csrfToken:
           type: string
-      required: [user, token]
+      required: [user, csrfToken]
 
     Profile:
       type: object
@@ -708,7 +873,7 @@ components:
           type: integer
         currentRole:
           type: ["string", "null"]
-        yearsExperience:
+        totalExperienceMonths:
           type: ["integer", "null"]
         industry:
           type: ["string", "null"]
@@ -722,11 +887,13 @@ components:
           type: ["string", "null"]
         preferredLearningStyle:
           type: ["string", "null"]
-        weeklyLearningHours:
+        weeklyLearningMinutes:
           type: ["integer", "null"]
         salaryAspiration:
           type: ["string", "null"]
         careerLevel:
+          type: ["string", "null"]
+        cvImportCompletedAt:
           type: ["string", "null"]
         updatedAt:
           type: string
@@ -737,7 +904,7 @@ components:
       properties:
         currentRole:
           type: string
-        yearsExperience:
+        totalExperienceMonths:
           type: integer
         industry:
           type: string
@@ -751,11 +918,13 @@ components:
           type: string
         preferredLearningStyle:
           type: string
-        weeklyLearningHours:
+        weeklyLearningMinutes:
           type: integer
         salaryAspiration:
           type: string
         careerLevel:
+          type: string
+        cvImportCompletedAt:
           type: string
 
     ProfileCompletion:
@@ -773,6 +942,123 @@ components:
             type: string
       required: [percentage, missingFields, completedSections]
 
+    CvImportSuggestion:
+      type: object
+      properties:
+        fileName:
+          type: string
+        mimeType:
+          type: string
+        profile:
+          $ref: "#/components/schemas/CvProfileSuggestion"
+        workExperiences:
+          type: array
+          items:
+            $ref: "#/components/schemas/CvWorkExperienceSuggestion"
+        education:
+          type: array
+          items:
+            $ref: "#/components/schemas/CvEducationSuggestion"
+        skills:
+          type: array
+          items:
+            $ref: "#/components/schemas/CvSkillSuggestion"
+        certifications:
+          type: array
+          items:
+            $ref: "#/components/schemas/CvCertificationSuggestion"
+        warnings:
+          type: array
+          items:
+            type: string
+      required: [fileName, mimeType, profile, workExperiences, education, skills, certifications, warnings]
+
+    CvProfileSuggestion:
+      type: object
+      properties:
+        currentRole:
+          type: string
+        totalExperienceMonths:
+          type: integer
+        industry:
+          type: string
+        location:
+          type: string
+        phone:
+          type: string
+        linkedinUrl:
+          type: string
+        professionalSummary:
+          type: string
+        careerLevel:
+          type: string
+
+    CvWorkExperienceSuggestion:
+      type: object
+      properties:
+        company:
+          type: string
+        title:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        isCurrent:
+          type: boolean
+        description:
+          type: string
+        skills:
+          type: string
+      required: [company, title, startDate, isCurrent]
+
+    CvEducationSuggestion:
+      type: object
+      properties:
+        institution:
+          type: string
+        degree:
+          type: string
+        fieldOfStudy:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        isCurrent:
+          type: boolean
+      required: [institution, degree, startDate, isCurrent]
+
+    CvSkillSuggestion:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        proficiencyLevel:
+          type: string
+      required: [name, category, proficiencyLevel]
+
+    CvCertificationSuggestion:
+      type: object
+      properties:
+        name:
+          type: string
+        issuingOrganization:
+          type: string
+        issueDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+      required: [name, issuingOrganization]
+
     WorkExperience:
       type: object
       properties:
@@ -786,8 +1072,10 @@ components:
           type: string
         startDate:
           type: string
+          format: date
         endDate:
           type: ["string", "null"]
+          format: date
         isCurrent:
           type: boolean
         description:
@@ -807,8 +1095,10 @@ components:
           type: string
         startDate:
           type: string
+          format: date
         endDate:
           type: string
+          format: date
         isCurrent:
           type: boolean
         description:
@@ -830,15 +1120,17 @@ components:
           type: string
         fieldOfStudy:
           type: ["string", "null"]
-        startYear:
-          type: integer
-        endYear:
-          type: ["integer", "null"]
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: ["string", "null"]
+          format: date
         isCurrent:
           type: boolean
         createdAt:
           type: string
-      required: [id, userId, institution, degree, startYear, isCurrent, createdAt]
+      required: [id, userId, institution, degree, startDate, isCurrent, createdAt]
 
     CreateEducationBody:
       type: object
@@ -849,13 +1141,15 @@ components:
           type: string
         fieldOfStudy:
           type: string
-        startYear:
-          type: integer
-        endYear:
-          type: integer
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
         isCurrent:
           type: boolean
-      required: [institution, degree, startYear, isCurrent]
+      required: [institution, degree, startDate, isCurrent]
 
     Skill:
       type: object
@@ -898,8 +1192,10 @@ components:
           type: string
         issueDate:
           type: ["string", "null"]
+          format: date
         expiryDate:
           type: ["string", "null"]
+          format: date
         credentialId:
           type: ["string", "null"]
         createdAt:
@@ -915,8 +1211,10 @@ components:
           type: string
         issueDate:
           type: string
+          format: date
         expiryDate:
           type: string
+          format: date
         credentialId:
           type: string
       required: [name, issuingOrganization]
@@ -944,7 +1242,7 @@ components:
           type: ["string", "null"]
         areasToImprove:
           type: ["string", "null"]
-        targetYears:
+        targetMonths:
           type: ["integer", "null"]
         updatedAt:
           type: string
@@ -969,89 +1267,11 @@ components:
           type: string
         areasToImprove:
           type: string
-        targetYears:
+        targetMonths:
           type: integer
           minimum: 1
-          maximum: 10
+          maximum: 12
       required: [targetRole]
-
-    ReadinessSubScores:
-      type: object
-      properties:
-        skillsCoverage:
-          type: integer
-          minimum: 0
-          maximum: 100
-        experienceDepth:
-          type: integer
-          minimum: 0
-          maximum: 100
-        qualificationFit:
-          type: integer
-          minimum: 0
-          maximum: 100
-        leadershipReadiness:
-          type: integer
-          minimum: 0
-          maximum: 100
-      required: [skillsCoverage, experienceDepth, qualificationFit, leadershipReadiness]
-
-    StructuredStrength:
-      type: object
-      properties:
-        title:
-          type: string
-        evidence:
-          type: string
-        category:
-          type: string
-      required: [title, evidence, category]
-
-    StructuredSkillGap:
-      type: object
-      properties:
-        skill:
-          type: string
-        priority:
-          type: string
-          enum: [High, Medium, Low]
-        category:
-          type: string
-        currentLevel:
-          type: ["string", "null"]
-        requiredLevel:
-          type: string
-        rationale:
-          type: string
-      required: [skill, priority, category, currentLevel, requiredLevel, rationale]
-
-    StructuredAction:
-      type: object
-      properties:
-        title:
-          type: string
-        timeframe:
-          type: string
-        outcome:
-          type: string
-      required: [title, timeframe, outcome]
-
-    StructuredRoadmapPhase:
-      type: object
-      properties:
-        sequence:
-          type: integer
-        label:
-          type: string
-        timeframeMonths:
-          type: integer
-        focus:
-          type: string
-        actions:
-          type: array
-          items:
-            type: string
-      required: [sequence, label, timeframeMonths, focus, actions]
 
     CareerAnalysis:
       type: object
@@ -1075,13 +1295,13 @@ components:
         currentStrengthsStructured:
           type: array
           items:
-            $ref: "#/components/schemas/StructuredStrength"
+            $ref: "#/components/schemas/StructuredInsight"
         skillGaps:
           type: string
         skillGapsStructured:
           type: array
           items:
-            $ref: "#/components/schemas/StructuredSkillGap"
+            $ref: "#/components/schemas/StructuredInsight"
         experienceGaps:
           type: string
         qualificationGaps:
@@ -1097,7 +1317,7 @@ components:
         immediateActionsStructured:
           type: array
           items:
-            $ref: "#/components/schemas/StructuredAction"
+            $ref: "#/components/schemas/StructuredInsight"
         year1Priorities:
           type: string
         year2To3Plan:
@@ -1107,7 +1327,11 @@ components:
         roadmapPhases:
           type: array
           items:
-            $ref: "#/components/schemas/StructuredRoadmapPhase"
+            $ref: "#/components/schemas/RoadmapPhase"
+        learningRecommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningRecommendationGroup"
         modelName:
           type: string
         promptVersion:
@@ -1119,10 +1343,132 @@ components:
         latencyMs:
           type: integer
         profileSnapshot:
-          type: object
+          $ref: "#/components/schemas/AnalysisProfileSnapshot"
         createdAt:
           type: string
-      required: [id, userId, targetRole, readinessScore, readinessSubScores, profileSummary, currentStrengths, currentStrengthsStructured, skillGaps, skillGapsStructured, experienceGaps, qualificationGaps, certificationRecommendations, suggestedProjects, jobProgressionLadder, immediateActions, immediateActionsStructured, year1Priorities, year2To3Plan, year4To5Plan, roadmapPhases, modelName, promptVersion, inputTokens, outputTokens, latencyMs, profileSnapshot, createdAt]
+      required: [id, userId, targetRole, readinessScore, readinessSubScores, profileSummary, currentStrengths, currentStrengthsStructured, skillGaps, skillGapsStructured, experienceGaps, qualificationGaps, certificationRecommendations, suggestedProjects, jobProgressionLadder, immediateActions, immediateActionsStructured, year1Priorities, year2To3Plan, year4To5Plan, roadmapPhases, learningRecommendations, modelName, promptVersion, inputTokens, outputTokens, latencyMs, profileSnapshot, createdAt]
+
+    ReadinessSubScores:
+      type: object
+      properties:
+        profile:
+          type: integer
+        skills:
+          type: integer
+        experience:
+          type: integer
+        education:
+          type: integer
+        certifications:
+          type: integer
+      required: [profile, skills, experience, education, certifications]
+
+    StructuredInsight:
+      type: object
+      properties:
+        title:
+          type: string
+        detail:
+          type: string
+        priority:
+          type: string
+          enum: [High, Medium, Low]
+        category:
+          type: string
+        skillCode:
+          type: string
+        skillLabel:
+          type: string
+      required: [title, detail]
+
+    LearningRecommendationGroup:
+      type: object
+      properties:
+        sourceType:
+          type: string
+          enum: [skill-gap, roadmap-phase]
+        sourceId:
+          type: string
+        sourceLabel:
+          type: string
+        priority:
+          type: string
+          enum: [High, Medium, Low]
+        timeframe:
+          type: string
+        skillCode:
+          type: string
+        skillLabel:
+          type: string
+        courses:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningCourseRecommendation"
+      required: [sourceType, sourceId, sourceLabel, courses]
+
+    LearningCourseRecommendation:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+          format: uri
+        skills:
+          type: array
+          items:
+            type: string
+        level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        cost:
+          type: string
+          enum: [free, freemium, paid]
+        durationHours:
+          type: integer
+        format:
+          type: string
+          enum: [course, specialization, certificate, tutorial, playlist]
+        description:
+          type: string
+        matchedSkills:
+          type: array
+          items:
+            type: string
+        matchReason:
+          type: string
+        score:
+          type: integer
+      required: [id, provider, title, url, skills, level, cost, durationHours, format, description, matchedSkills, matchReason, score]
+
+    AnalysisProfileSnapshot:
+      type: object
+      properties:
+        currentRole:
+          type: ["string", "null"]
+        totalExperienceMonths:
+          type: ["integer", "null"]
+        industry:
+          type: ["string", "null"]
+        careerLevel:
+          type: ["string", "null"]
+        weeklyLearningMinutes:
+          type: ["integer", "null"]
+        skills:
+          type: array
+          items:
+            type: string
+        workExperienceCount:
+          type: integer
+        educationCount:
+          type: integer
+        certificationCount:
+          type: integer
+      required: [currentRole, totalExperienceMonths, industry, careerLevel, weeklyLearningMinutes, skills, workExperienceCount, educationCount, certificationCount]
 
     AnalysisSummary:
       type: object
@@ -1150,7 +1496,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RoadmapPhase"
-      required: [analysisId, targetRole, readinessScore, phases]
+        learningRecommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningRecommendationGroup"
+      required: [analysisId, targetRole, readinessScore, phases, learningRecommendations]
 
     RoadmapPhase:
       type: object
@@ -1230,8 +1580,6 @@ components:
           type: ["string", "null"]
         requiredLevel:
           type: string
-        rationale:
-          type: string
       required: [skill, priority, category, requiredLevel]
 
     ActivityItem:
@@ -1245,10 +1593,4 @@ components:
           type: string
         timestamp:
           type: string
-        entityType:
-          type: ["string", "null"]
-        entityId:
-          type: ["integer", "null"]
-        metadata:
-          type: object
       required: [id, type, description, timestamp]

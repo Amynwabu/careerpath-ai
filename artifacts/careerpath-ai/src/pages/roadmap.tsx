@@ -1,119 +1,144 @@
-import { useGetRoadmap, useListMilestones } from "@workspace/api-client-react";
+import { useGetRoadmap, type LearningRecommendationGroup, type RoadmapPhase } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { CourseCard } from "@/components/learning/course-recommendations";
+import { ProductEmptyState } from "@/components/product-empty-state";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, CheckCircle2, Circle, Map, Route } from "lucide-react";
+import { BrainCircuit, CheckCircle2, MapIcon, Target } from "lucide-react";
 import { Link } from "wouter";
 
-export default function Roadmap() {
-  const { data: roadmap, isLoading, error } = useGetRoadmap();
-  const { data: milestones } = useListMilestones();
+const FALLBACK_MARKERS = ["Months 0-3", "Months 3-9", "Months 9-18", "Months 18+"];
 
-  const completed = milestones?.filter(m => m.completed).length ?? 0;
-  const total = milestones?.length ?? 0;
-  const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+function PhaseCourses({ group }: { group?: LearningRecommendationGroup }) {
+  if (!group?.courses.length) return null;
+
+  return (
+    <div className="mt-4 border-t border-primary/20 pt-4">
+      <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-widest text-primary/80">Recommended Training</p>
+      <div className="grid gap-3">
+        {group.courses.slice(0, 2).map((course) => (
+          <CourseCard key={`${group.sourceId}-${course.id}`} course={course} compact />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function Roadmap() {
+  const { data: roadmap, isLoading } = useGetRoadmap();
 
   return (
     <AppLayout>
-      <div className="p-8 max-w-6xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="p-8 max-w-5xl mx-auto space-y-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Map className="w-6 h-6 text-primary" />
+              <MapIcon className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Career Roadmap</h1>
-              <p className="text-muted-foreground mt-1">A structured path from your current profile to your target role.</p>
+              <p className="text-muted-foreground mt-1">
+                Your phases, focus areas, and next actions.
+              </p>
             </div>
           </div>
-          {roadmap && (
-            <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="text-sm">{roadmap.targetRole}</Badge>
-              <Badge className="text-sm">{roadmap.readinessScore}% ready</Badge>
-            </div>
-          )}
+          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Link href="/analysis">
+              <BrainCircuit className="w-4 h-4 mr-2" />
+              Run Analysis
+            </Link>
+          </Button>
         </div>
 
         {isLoading && (
-          <div className="grid gap-4">
-            {[1, 2, 3].map(i => <Skeleton key={i} className="h-40 w-full" />)}
+          <div className="space-y-4">
+            <Skeleton className="h-28 w-full" />
+            {[1, 2, 3].map((item) => (
+              <Skeleton key={item} className="h-40 w-full" />
+            ))}
           </div>
         )}
 
-        {!isLoading && error && (
-          <Card className="border-border bg-card">
-            <CardHeader>
-              <CardTitle>No roadmap yet</CardTitle>
-              <CardDescription>Run a career analysis to generate your personalised roadmap and milestones.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link href="/analysis"><Button>Run analysis <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
-            </CardContent>
-          </Card>
+        {!isLoading && !roadmap && (
+          <ProductEmptyState
+            title="Unlock your roadmap"
+            description="Run analysis to generate phases, timelines, and actions for your target role."
+            cta="Generate roadmap"
+            href="/analysis"
+            exampleScore={74}
+          />
         )}
 
         {roadmap && (
           <>
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle>Progress overview</CardTitle>
-                <CardDescription>{completed} of {total} milestones completed for the current analysis.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1 bg-muted/40 rounded-full h-3 overflow-hidden">
-                    <div className="bg-primary h-3 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+            <Card className="blue-card-strong">
+              <CardContent className="pt-6 pb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="md:col-span-2 flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                      <Target className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Target Role</p>
+                      <p className="text-xl font-semibold mt-1">{roadmap.targetRole}</p>
+                    </div>
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">{progress}%</span>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Readiness</p>
+                    <p className="text-3xl font-bold text-primary mt-1">{roadmap.readinessScore}%</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            <div className="space-y-5">
-              {roadmap.phases.map((phase, index) => {
-                const phaseMilestones = milestones?.filter(m => m.phase === phase.label) ?? [];
-                return (
-                  <Card key={`${phase.label}-${index}`} className="border-border bg-card overflow-hidden">
-                    <CardHeader className="border-b border-border/60">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex gap-4">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                            <Route className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <CardTitle>{phase.label}</CardTitle>
-                            <CardDescription className="mt-1">{phase.timeframe}</CardDescription>
-                          </div>
+            <div className="relative">
+              <div className="absolute left-5 top-8 bottom-8 w-px bg-primary/30 md:left-0 md:right-0 md:top-16 md:bottom-auto md:h-px md:w-auto" />
+              <div className="grid gap-5 md:grid-cols-4">
+                {roadmap.phases.map((phase: RoadmapPhase, index: number) => {
+                  const phaseRecommendations = roadmap.learningRecommendations?.find((group) => group.sourceId === `roadmap-phase-${index}`);
+
+                  return (
+                  <div
+                    key={`${phase.label}-${index}`}
+                    className="group relative rounded-xl text-left"
+                  >
+                    <div className="mb-3 ml-0 flex items-center gap-3 md:flex-col md:items-start">
+                      <span className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border border-primary/40 bg-background font-mono text-sm font-bold text-primary shadow-[0_0_20px_hsl(var(--primary)/0.22)]">
+                        {index + 1}
+                      </span>
+                      <span className="font-mono text-xs font-semibold uppercase tracking-widest text-primary/80">
+                        {phase.timeframe || FALLBACK_MARKERS[index] || `Phase ${index + 1}`}
+                      </span>
+                    </div>
+                    <Card
+                      id={`roadmap-phase-${index}`}
+                      className="blue-card min-h-56 transition-all duration-200 group-hover:-translate-y-1 group-hover:border-primary/55 group-hover:shadow-[0_0_34px_hsl(var(--primary)/0.16)]"
+                    >
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">{phase.label}</CardTitle>
+                        <p className="text-sm leading-6 text-muted-foreground">{phase.focus}</p>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <Badge variant="secondary" className="font-mono text-[0.7rem] uppercase tracking-wider">
+                          {FALLBACK_MARKERS[index] ?? phase.timeframe}
+                        </Badge>
+                        <div className="max-h-16 space-y-2 overflow-hidden opacity-75 transition-all duration-200 group-hover:max-h-52 group-hover:opacity-100">
+                          {phase.actions.slice(0, 3).map((action: string) => (
+                            <div key={action} className="flex items-start gap-2 rounded-lg blue-tile p-2.5">
+                              <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
+                              <p className="text-sm leading-6">{action}</p>
+                            </div>
+                          ))}
                         </div>
-                        <Badge variant="outline">Phase {index + 1}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-6 space-y-5">
-                      <div>
-                        <p className="text-sm font-medium mb-2">Focus</p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{phase.focus}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium mb-3">Actions</p>
-                        <div className="space-y-3">
-                          {phase.actions.map((action, actionIndex) => {
-                            const matchingMilestone = phaseMilestones.find(m => m.description === action || m.title === action.replace(/\.$/, ""));
-                            const isDone = Boolean(matchingMilestone?.completed);
-                            return (
-                              <div key={`${phase.label}-${actionIndex}`} className="flex gap-3 text-sm">
-                                {isDone ? <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" /> : <Circle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />}
-                                <span className={isDone ? "text-muted-foreground line-through" : "text-foreground"}>{action}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                        <PhaseCourses group={phaseRecommendations} />
+                      </CardContent>
+                    </Card>
+                  </div>
+                  );
+                })}
+              </div>
             </div>
           </>
         )}

@@ -66,8 +66,74 @@
     @apply border-border;
   }
 
+  html {
+    font-size: 17px;
+  }
+
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-size: 1rem;
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1 {
+    @apply text-foreground;
+    font-size: clamp(2.35rem, 5vw, 4.25rem);
+    line-height: 1.05;
+    font-weight: 850;
+  }
+
+  h2 {
+    font-size: clamp(1.85rem, 3vw, 2.75rem);
+    line-height: 1.12;
+    font-weight: 800;
+  }
+
+  h3 {
+    font-size: clamp(1.35rem, 2vw, 1.8rem);
+    line-height: 1.2;
+    font-weight: 760;
+  }
+
+  label {
+    @apply text-foreground;
+    font-size: 0.98rem;
+  }
+
+  input,
+  textarea,
+  select {
+    @apply text-foreground;
+    min-height: 2.85rem;
+    font-size: 1rem;
+  }
+
+  textarea {
+    line-height: 1.6;
+  }
+
+  button {
+    font-size: 1rem;
+  }
+
+  p,
+  li {
+    font-size: 1rem;
+  }
+
+  .text-xs {
+    font-size: 0.82rem;
+    line-height: 1.35rem;
+  }
+
+  .text-sm {
+    font-size: 0.94rem;
+    line-height: 1.5rem;
+  }
+
+  .text-muted-foreground {
+    color: hsl(215 20% 78%);
   }
 }
 
@@ -111,7 +177,7 @@
   --secondary-foreground: 210 20% 98%;
 
   --muted: 225 25% 12%;
-  --muted-foreground: 215 15% 65%;
+  --muted-foreground: 215 20% 78%;
 
   --accent: 190 90% 45%;
   --accent-foreground: 225 40% 5%;
@@ -143,7 +209,110 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-background/60 backdrop-blur-md border border-white/5 shadow-xl;
+    @apply bg-background/70 backdrop-blur-md border border-white/35 shadow-xl;
+  }
+
+  .auth-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, hsl(var(--primary) / 0.12), transparent 28%),
+      linear-gradient(315deg, hsl(215 95% 62% / 0.08), transparent 26%),
+      hsl(var(--background));
+  }
+
+  .auth-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.14;
+    background-image:
+      linear-gradient(hsl(var(--primary) / 0.24) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.24) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: linear-gradient(to bottom, black, transparent 78%);
+  }
+
+  .auth-panel {
+    border: 1px solid hsl(var(--primary) / 0.16);
+    background:
+      linear-gradient(180deg, hsl(var(--card) / 0.96), hsl(var(--background) / 0.92));
+    box-shadow: 0 24px 80px hsl(220 70% 2% / 0.5);
+    backdrop-filter: blur(18px);
+  }
+
+  .brand-wordmark {
+    @apply font-mono text-xs font-bold uppercase text-primary;
+    letter-spacing: 0.24em;
+  }
+
+  .lucide {
+    display: none !important;
+  }
+
+  .inline-edit-icon {
+    display: block !important;
+  }
+
+  .app-console-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 18% 12%, hsl(var(--primary) / 0.16), transparent 32rem),
+      radial-gradient(circle at 82% 18%, hsl(205 100% 58% / 0.08), transparent 26rem),
+      linear-gradient(hsl(var(--background)), hsl(var(--background)));
+  }
+
+  .app-console-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    background-image: url("data:image/svg+xml,%3Csvg width='48' height='48' viewBox='0 0 48 48' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='rgba(45,212,255,0.34)' stroke-width='1'%3E%3Cpath d='M48 0H0v48'/%3E%3C/g%3E%3C/svg%3E");
+    mask-image: linear-gradient(to bottom, black, transparent 82%);
+  }
+
+  .eyebrow {
+    @apply font-mono text-xs font-semibold uppercase tracking-widest text-primary/80;
+  }
+
+  .signal-card {
+    border-color: transparent;
+    background:
+      linear-gradient(hsl(var(--card) / 0.96), hsl(var(--card) / 0.96)) padding-box,
+      linear-gradient(135deg, hsl(var(--primary) / 0.34), transparent 42%, hsl(205 100% 58% / 0.16)) border-box;
+    box-shadow: 0 18px 60px hsl(220 70% 2% / 0.3);
+  }
+
+  .signal-card-soft {
+    border-color: hsl(var(--border) / 0.78);
+    background:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.08), transparent 18rem),
+      hsl(var(--card) / 0.92);
+  }
+
+  .blue-card {
+    border: 1px solid hsl(var(--primary) / 0.55);
+    background:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.14), transparent 16rem),
+      linear-gradient(135deg, hsl(214 54% 14% / 0.9), hsl(var(--card) / 0.96));
+    box-shadow: 0 18px 48px hsl(205 90% 34% / 0.12);
+  }
+
+  .blue-card-strong {
+    border: 1px solid hsl(var(--primary) / 0.72);
+    background:
+      radial-gradient(circle at top right, hsl(var(--primary) / 0.24), transparent 14rem),
+      linear-gradient(135deg, hsl(var(--primary) / 0.22), hsl(214 54% 12% / 0.96));
+    box-shadow: 0 22px 64px hsl(205 90% 34% / 0.22);
+  }
+
+  .blue-tile {
+    border: 1px solid hsl(var(--primary) / 0.55);
+    background: hsl(var(--primary) / 0.08);
   }
   
   .glow-text {

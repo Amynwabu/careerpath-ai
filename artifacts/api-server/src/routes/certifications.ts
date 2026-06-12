@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
-import { db, certificationsTable } from "@workspace/db";
+import { and, db, eq, certificationsTable } from "@workspace/db";
 import { CreateCertificationBody, DeleteCertificationParams } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
+import { toDateString } from "../lib/dates";
 
 const router: IRouter = Router();
 
@@ -17,7 +17,8 @@ router.post("/certifications", requireAuth, async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const [item] = await db.insert(certificationsTable).values({ ...parsed.data, userId: req.user!.userId }).returning();
+  const data = { ...parsed.data, issueDate: toDateString(parsed.data.issueDate), expiryDate: toDateString(parsed.data.expiryDate) };
+  const [item] = await db.insert(certificationsTable).values({ ...data, userId: req.user!.userId }).returning();
   res.status(201).json({ ...item, createdAt: item.createdAt.toISOString() });
 });
 

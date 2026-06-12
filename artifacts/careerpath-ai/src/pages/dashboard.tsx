@@ -1,12 +1,112 @@
-import { useGetDashboardSummary, useGetSkillGaps, useGetCareerGoal, useGetProfile, useListMilestones, useGetRoadmap } from "@workspace/api-client-react";
+import { useEffect, useState } from "react";
+import { useGetDashboardSummary, useGetSkillGaps, useGetCareerGoal, useGetProfile, useListMilestones, useGetRoadmap, useGetLatestAnalysis } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
-import { CircularProgress } from "@/components/ui/circular-progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { BrainCircuit, AlertTriangle, ArrowRight, Target, CheckCircle2, Zap, Bot, Clock, Rocket, MapPin, ChevronRight, Flag } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+function CountUpNumber({ value, duration = 600, className = "" }: { value: number; duration?: number; className?: string }) {
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+    const started = performance.now();
+    const animate = (now: number) => {
+      const progress = Math.min(1, (now - started) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(value * eased));
+      if (progress < 1) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [duration, value]);
+
+  return <span className={className}>{display}</span>;
+}
+
+function ReadinessHero({
+  readiness,
+  subScores,
+  loading,
+}: {
+  readiness: number;
+  subScores?: Record<string, number>;
+  loading?: boolean;
+}) {
+  const radius = 84;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (Math.max(0, Math.min(100, readiness)) / 100) * circumference;
+  const rows = Object.entries(subScores ?? {
+    profile: readiness ? Math.max(25, readiness - 4) : 0,
+    skills: readiness ? Math.max(20, readiness - 12) : 0,
+    experience: readiness ? Math.max(20, readiness - 8) : 0,
+    education: readiness ? Math.max(20, readiness - 18) : 0,
+    certifications: readiness ? Math.max(15, readiness - 24) : 0,
+  });
+
+  return (
+    <Card className="relative overflow-hidden border-primary/20 bg-card">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.16),transparent_42%)]" />
+      <CardContent className="relative grid gap-8 p-8 lg:grid-cols-[380px_1fr] lg:p-10">
+        <div className="flex items-center justify-center">
+          <div className="relative h-72 w-72 sm:h-80 sm:w-80">
+            <svg className="h-full w-full -rotate-90" viewBox="0 0 200 200" aria-hidden="true">
+              <circle cx="100" cy="100" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
+              <circle
+                cx="100"
+                cy="100"
+                r={radius}
+                fill="none"
+                stroke="hsl(var(--primary))"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+                className="drop-shadow-[0_0_12px_hsl(var(--primary)/0.7)] transition-all duration-700 ease-out"
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+              {loading ? (
+                <Skeleton className="h-24 w-44" />
+              ) : (
+                <div className="font-mono text-[5.5rem] font-black leading-none tracking-tight text-primary sm:text-[7rem]">
+                  <CountUpNumber value={readiness} />
+                </div>
+              )}
+              <p className="mt-2 font-mono text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Readiness</p>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col justify-center space-y-6">
+          <div>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.24em] text-primary/80">Career Signal</p>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight">Your readiness score</h2>
+            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+              A live snapshot of how close your profile is to the target role. The bars below show where the roadmap will focus next.
+            </p>
+          </div>
+          <div className="grid gap-3">
+            {rows.map(([label, value]) => (
+              <div key={label} className="grid grid-cols-[8rem_1fr_3rem] items-center gap-3">
+                <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+                <div className="h-2 overflow-hidden rounded-full bg-white/5">
+                  <div
+                    className="h-full rounded-full bg-primary shadow-[0_0_12px_hsl(var(--primary)/0.45)] transition-all duration-700"
+                    style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+                  />
+                </div>
+                <span className="text-right font-mono text-sm font-semibold text-foreground">{value}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 function InsightCard({ icon, label, value, sub, href, loading }: {
   icon: React.ReactNode;
@@ -17,7 +117,7 @@ function InsightCard({ icon, label, value, sub, href, loading }: {
   loading?: boolean;
 }) {
   const inner = (
-    <Card className="glass-panel border-white/5 hover:border-primary/20 transition-colors cursor-pointer group">
+    <Card className="glass-panel border-white/35 hover:border-primary/20 transition-colors cursor-pointer group">
       <CardContent className="pt-5 pb-5">
         <div className="flex items-start gap-3">
           <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
@@ -52,8 +152,9 @@ export default function Dashboard() {
   const { data: profile, isLoading: loadingProfile } = useGetProfile();
   const { data: milestones, isLoading: loadingMilestones } = useListMilestones();
   const { data: roadmap, isLoading: loadingRoadmap } = useGetRoadmap();
+  const { data: latestAnalysis, isLoading: loadingAnalysis } = useGetLatestAnalysis();
 
-  const targetMonths = (goal as any)?.targetYears ?? 24;
+  const targetMonths = goal?.targetMonths ?? 12;
   const readiness = summary?.readinessScore ?? 0;
   const hasAnalysis = readiness > 0;
 
@@ -64,7 +165,7 @@ export default function Dashboard() {
   const withAI = hasAnalysis
     ? Math.round(targetMonths * 0.56)
     : null;
-  const timeSaved = atCurrentPace && withAI ? Math.round((atCurrentPace - withAI) * 10) / 10 : null;
+  const timeSaved = atCurrentPace && withAI ? atCurrentPace - withAI : null;
 
   // AI Coach tip
   const topGap = skillGaps?.[0];
@@ -89,7 +190,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Your Career Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Everything you need to reach your career goal, faster.</p>
+            <p className="text-muted-foreground mt-1">Your score, focus, and next actions.</p>
           </div>
           <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 glow-box">
             <Link href="/analysis">
@@ -98,6 +199,12 @@ export default function Dashboard() {
             </Link>
           </Button>
         </div>
+
+        <ReadinessHero
+          readiness={readiness}
+          subScores={latestAnalysis?.readinessSubScores as Record<string, number> | undefined}
+          loading={loadingSummary || loadingAnalysis}
+        />
 
         {/* Top 4-card insight strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
@@ -139,7 +246,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
           {/* Urgency widget */}
-          <Card className="glass-panel border-white/5 lg:col-span-3">
+          <Card className="blue-card lg:col-span-3">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Clock className="w-4 h-4 text-primary" />
@@ -161,7 +268,7 @@ export default function Dashboard() {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">⏳ At your current pace</p>
                     <div className="flex items-end gap-2">
                       <span className="text-4xl font-bold text-muted-foreground">{atCurrentPace}</span>
-                      <span className="text-sm text-muted-foreground mb-1.5">years</span>
+                      <span className="text-sm text-muted-foreground mb-1.5">months</span>
                     </div>
                     <div className="w-full bg-white/5 rounded-full h-2">
                       <div
@@ -177,15 +284,15 @@ export default function Dashboard() {
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">⚡ With CareerPath AI</p>
                     <div className="flex items-end gap-2">
                       <span className="text-4xl font-bold text-primary">{withAI}</span>
-                      <span className="text-sm text-muted-foreground mb-1.5">years</span>
+                      <span className="text-sm text-muted-foreground mb-1.5">months</span>
                     </div>
                     <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
                       <div
-                        className="bg-primary h-2 rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(0,240,255,0.5)]"
+                        className="bg-primary h-2 rounded-full transition-all duration-700"
                         style={{ width: `${Math.min(100, (readiness / 100) * 40 + 20)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-primary">→ Save ~{timeSaved} month{timeSaved !== 1 ? "s" : ""} with AI coaching</p>
+                    <p className="text-xs text-primary">Save about {timeSaved} month{timeSaved !== 1 ? "s" : ""} with AI coaching</p>
                   </div>
                 </div>
               )}
@@ -193,7 +300,7 @@ export default function Dashboard() {
           </Card>
 
           {/* AI Coach card */}
-          <Card className="glass-panel border-primary/20 lg:col-span-2 relative overflow-hidden">
+          <Card className="blue-card-strong lg:col-span-2 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -233,7 +340,7 @@ export default function Dashboard() {
         </div>
 
         {/* Career path visual */}
-        <Card className="glass-panel border-white/5">
+        <Card className="blue-card">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -296,7 +403,7 @@ export default function Dashboard() {
                   <div className="flex items-start gap-3 flex-shrink-0">
                     <div className="mt-5 w-6 h-0.5 bg-gradient-to-r from-primary/20 to-primary/40 flex-shrink-0" />
                     <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-primary border-2 border-primary flex items-center justify-center glow-box">
+                      <div className="w-10 h-10 rounded-full bg-primary border-2 border-primary flex items-center justify-center">
                         <Target className="w-4 h-4 text-primary-foreground" />
                       </div>
                       <p className="text-xs text-primary font-medium mt-1.5 text-center w-20 truncate">{targetRole ?? "Your goal"}</p>
@@ -307,14 +414,14 @@ export default function Dashboard() {
             ) : (
               <div className="flex flex-col items-center text-center py-6 gap-3">
                 <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/35 flex items-center justify-center">
                     <MapPin className="w-4 h-4 opacity-40" />
                   </div>
-                  <div className="w-16 h-0.5 border-t-2 border-dashed border-white/10" />
-                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
+                  <div className="w-16 h-0.5 border-t-2 border-dashed border-white/35" />
+                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/35 flex items-center justify-center">
                     <ChevronRight className="w-4 h-4 opacity-40" />
                   </div>
-                  <div className="w-16 h-0.5 border-t-2 border-dashed border-white/10" />
+                  <div className="w-16 h-0.5 border-t-2 border-dashed border-white/35" />
                   <div className="w-10 h-10 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center">
                     <Target className="w-4 h-4 text-primary opacity-50" />
                   </div>
@@ -332,7 +439,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Skill gaps */}
-          <Card className="glass-panel border-white/5 flex flex-col">
+          <Card className="blue-card flex flex-col">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -353,14 +460,14 @@ export default function Dashboard() {
                 <div className="h-full flex flex-col items-center justify-center text-center py-8 gap-3 text-muted-foreground">
                   <AlertTriangle className="w-10 h-10 opacity-20" />
                   <p className="text-sm">No gaps identified yet.</p>
-                  <Button variant="outline" size="sm" className="border-white/10" asChild>
+                  <Button variant="outline" size="sm" className="border-white/35" asChild>
                     <Link href="/analysis">Run Analysis</Link>
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {skillGaps.slice(0, 5).map((gap, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 gap-3">
+                  {skillGaps.slice(0, 3).map((gap, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-lg blue-tile gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate">{gap.skill}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{gap.category} · {gap.currentLevel || "No experience"} → {gap.requiredLevel}</p>
@@ -370,9 +477,9 @@ export default function Dashboard() {
                       </Badge>
                     </div>
                   ))}
-                  {skillGaps.length > 5 && (
+                  {skillGaps.length > 3 && (
                     <Button asChild variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-primary mt-1">
-                      <Link href="/analysis">View all {skillGaps.length} gaps <ArrowRight className="w-3.5 h-3.5 ml-1.5" /></Link>
+                      <Link href="/analysis">View all gaps <ArrowRight className="w-3.5 h-3.5 ml-1.5" /></Link>
                     </Button>
                   )}
                 </div>
@@ -381,7 +488,7 @@ export default function Dashboard() {
           </Card>
 
           {/* Next milestones */}
-          <Card className="glass-panel border-white/5 flex flex-col">
+          <Card className="blue-card flex flex-col">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base">
@@ -404,14 +511,14 @@ export default function Dashboard() {
                 <div className="h-full flex flex-col items-center justify-center text-center py-8 gap-3 text-muted-foreground">
                   <Flag className="w-10 h-10 opacity-20" />
                   <p className="text-sm">No milestones yet.</p>
-                  <Button variant="outline" size="sm" className="border-white/10" asChild>
+                  <Button variant="outline" size="sm" className="border-white/35" asChild>
                     <Link href="/analysis">Run Analysis</Link>
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {milestones.filter(m => !m.completed).slice(0, 4).map((m, idx) => (
-                    <div key={m.id} className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${idx === 0 ? "bg-primary/5 border-primary/20" : "bg-white/5 border-white/5"}`}>
+                  {milestones.filter(m => !m.completed).slice(0, 3).map((m, idx) => (
+                    <div key={m.id} className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${idx === 0 ? "bg-primary/10 border-primary/30" : "blue-tile"}`}>
                       <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${idx === 0 ? "border-primary" : "border-white/20"}`}>
                         {idx === 0 && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
                       </div>
@@ -422,7 +529,7 @@ export default function Dashboard() {
                       {idx === 0 && <Badge className="bg-primary/20 text-primary border-primary/30 text-xs flex-shrink-0">Up next</Badge>}
                     </div>
                   ))}
-                  {milestones.filter(m => !m.completed).length > 4 && (
+                  {milestones.filter(m => !m.completed).length > 3 && (
                     <Button asChild variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-primary mt-1">
                       <Link href="/milestones">View all milestones <ArrowRight className="w-3.5 h-3.5 ml-1.5" /></Link>
                     </Button>

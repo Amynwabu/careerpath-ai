@@ -6,6 +6,9 @@
   "exports": {
     ".": "./src/index.ts"
   },
+  "scripts": {
+    "test": "node -e \"process.exit(0)\""
+  },
   "dependencies": {
     "zod": "catalog:"
   }

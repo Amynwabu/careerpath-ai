@@ -1,8 +1,8 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
-import { db, workExperiencesTable } from "@workspace/db";
+import { and, db, eq, workExperiencesTable } from "@workspace/db";
 import { CreateWorkExperienceBody, UpdateWorkExperienceParams, UpdateWorkExperienceBody } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
+import { toDateString } from "../lib/dates";
 
 const router: IRouter = Router();
 
@@ -17,7 +17,8 @@ router.post("/work-experiences", requireAuth, async (req, res): Promise<void> =>
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const [item] = await db.insert(workExperiencesTable).values({ ...parsed.data, userId: req.user!.userId }).returning();
+  const data = { ...parsed.data, startDate: toDateString(parsed.data.startDate)!, endDate: toDateString(parsed.data.endDate) };
+  const [item] = await db.insert(workExperiencesTable).values({ ...data, userId: req.user!.userId }).returning();
   res.status(201).json({ ...item, createdAt: item.createdAt.toISOString() });
 });
 
@@ -32,8 +33,9 @@ router.patch("/work-experiences/:id", requireAuth, async (req, res): Promise<voi
     res.status(400).json({ error: parsed.error.message });
     return;
   }
+  const data = { ...parsed.data, startDate: toDateString(parsed.data.startDate), endDate: toDateString(parsed.data.endDate) };
   const [item] = await db.update(workExperiencesTable)
-    .set(parsed.data)
+    .set(data)
     .where(and(eq(workExperiencesTable.id, params.data.id), eq(workExperiencesTable.userId, req.user!.userId)))
     .returning();
   if (!item) {

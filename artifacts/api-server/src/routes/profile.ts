@@ -1,10 +1,19 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
-import { db, profilesTable, workExperiencesTable, educationTable, skillsTable, certificationsTable, careerGoalsTable } from "@workspace/db";
+import { db, eq, profilesTable, workExperiencesTable, educationTable, skillsTable, certificationsTable, careerGoalsTable } from "@workspace/db";
 import { UpdateProfileBody } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
+
+type ProfileRow = typeof profilesTable.$inferSelect;
+
+function serializeProfile(profile: ProfileRow) {
+  return {
+    ...profile,
+    cvImportCompletedAt: profile.cvImportCompletedAt?.toISOString() ?? null,
+    updatedAt: profile.updatedAt.toISOString(),
+  };
+}
 
 router.get("/profile", requireAuth, async (req, res): Promise<void> => {
   const [profile] = await db.select().from(profilesTable).where(eq(profilesTable.userId, req.user!.userId));
@@ -12,7 +21,7 @@ router.get("/profile", requireAuth, async (req, res): Promise<void> => {
     res.status(404).json({ error: "Profile not found" });
     return;
   }
-  res.json({ ...profile, updatedAt: profile.updatedAt.toISOString() });
+  res.json(serializeProfile(profile));
 });
 
 router.patch("/profile", requireAuth, async (req, res): Promise<void> => {
@@ -22,15 +31,30 @@ router.patch("/profile", requireAuth, async (req, res): Promise<void> => {
     return;
   }
 
+  const data = Object.fromEntries(
+    Object.entries({
+      ...parsed.data,
+      cvImportCompletedAt:
+        typeof parsed.data.cvImportCompletedAt === "string"
+          ? new Date(parsed.data.cvImportCompletedAt)
+          : parsed.data.cvImportCompletedAt,
+    }).filter(([, value]) => value !== undefined),
+  );
+
   const [existing] = await db.select().from(profilesTable).where(eq(profilesTable.userId, req.user!.userId));
   if (!existing) {
-    const [created] = await db.insert(profilesTable).values({ userId: req.user!.userId, ...parsed.data }).returning();
-    res.json({ ...created, updatedAt: created.updatedAt.toISOString() });
+    const [created] = await db.insert(profilesTable).values({ userId: req.user!.userId, ...data }).returning();
+    res.json(serializeProfile(created));
     return;
   }
 
-  const [updated] = await db.update(profilesTable).set(parsed.data).where(eq(profilesTable.userId, req.user!.userId)).returning();
-  res.json({ ...updated, updatedAt: updated.updatedAt.toISOString() });
+  if (Object.keys(data).length === 0) {
+    res.json(serializeProfile(existing));
+    return;
+  }
+
+  const [updated] = await db.update(profilesTable).set(data).where(eq(profilesTable.userId, req.user!.userId)).returning();
+  res.json(serializeProfile(updated));
 });
 
 router.get("/profile/completion", requireAuth, async (req, res): Promise<void> => {
@@ -47,7 +71,7 @@ router.get("/profile/completion", requireAuth, async (req, res): Promise<void> =
 
   if (profile?.currentRole) completedSections.push("Current Role"); else missingFields.push("Current Role");
   if (profile?.industry) completedSections.push("Industry"); else missingFields.push("Industry");
-  if (profile?.yearsExperience != null) completedSections.push("Years of Experience"); else missingFields.push("Years of Experience");
+  if (profile?.totalExperienceMonths != null) completedSections.push("Experience"); else missingFields.push("Experience");
   if (profile?.professionalSummary) completedSections.push("Professional Summary"); else missingFields.push("Professional Summary");
   if (profile?.location) completedSections.push("Location"); else missingFields.push("Location");
   if (workExp.length > 0) completedSections.push("Work Experience"); else missingFields.push("Work Experience");

@@ -5,11 +5,20 @@
   "scripts": {
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "build:production": "pnpm --filter @workspace/api-server --filter @workspace/careerpath-ai run build",
+    "audit:ci": "pnpm audit --audit-level moderate",
+    "check:course-urls": "node scripts/check-course-urls.mjs",
+    "start:share": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-careerpath.ps1",
+    "test": "pnpm -r run test",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },
   "private": true,
   "devDependencies": {
+    "@esbuild/win32-x64": "0.27.3",
+    "@rollup/rollup-win32-x64-msvc": "4.60.4",
+    "@tailwindcss/oxide-win32-x64-msvc": "4.3.0",
+    "lightningcss-win32-x64-msvc": "1.32.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2"
   },

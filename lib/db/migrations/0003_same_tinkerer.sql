@@ -1,0 +1,1 @@
+ALTER TABLE "career_analyses" ADD COLUMN "learning_recommendations" jsonb DEFAULT '[]'::jsonb NOT NULL;

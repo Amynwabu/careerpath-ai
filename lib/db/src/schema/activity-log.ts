@@ -5,7 +5,7 @@ import { usersTable } from "./users";
 
 export const activityLogTable = pgTable("activity_log", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+  userId: integer("user_id").references(() => usersTable.id, { onDelete: "cascade" }),
   type: text("type").notNull(),
   description: text("description").notNull(),
   entityType: text("entity_type"),

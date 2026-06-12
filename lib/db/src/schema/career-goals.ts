@@ -14,7 +14,7 @@ export const careerGoalsTable = pgTable("career_goals", {
   workModePreference: text("work_mode_preference"),
   strengthsToBuild: text("strengths_to_build"),
   areasToImprove: text("areas_to_improve"),
-  targetYears: integer("target_years").default(5),
+  targetMonths: integer("target_months").default(60),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 

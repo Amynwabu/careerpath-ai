@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "Supabase.vscode-supabase-extension",
+    "mtxr.sqltools",
+    "mtxr.sqltools-driver-pg"
+  ]
+}

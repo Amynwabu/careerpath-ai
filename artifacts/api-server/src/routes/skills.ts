@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, and } from "drizzle-orm";
-import { db, skillsTable } from "@workspace/db";
+import { and, db, eq, skillsTable } from "@workspace/db";
 import { CreateSkillBody, DeleteSkillParams } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/auth";
 
