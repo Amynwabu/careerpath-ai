@@ -34,7 +34,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           </SheetTrigger>
           <SheetContent side="left" className="w-72 border-primary/55 bg-sidebar p-0">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
-            <SheetDescription className="sr-only">CareerPath AI main navigation</SheetDescription>
+            <SheetDescription className="sr-only">CareerpathX main navigation</SheetDescription>
             <Sidebar className="static h-full w-full border-r-0" onNavigate={() => setMobileNavOpen(false)} />
           </SheetContent>
         </Sheet>

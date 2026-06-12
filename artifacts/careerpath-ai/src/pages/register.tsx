@@ -45,7 +45,7 @@ export default function Register() {
           await login();
           toast({
             title: "Account created",
-            description: "Welcome to CareerPath AI.",
+            description: "Welcome to CareerpathX.",
           });
         },
         onError: (error: any) => {

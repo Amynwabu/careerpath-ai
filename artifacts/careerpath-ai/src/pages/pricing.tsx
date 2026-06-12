@@ -282,7 +282,7 @@ export default function Pricing() {
               <Link href="/pricing" className="text-primary">Pricing</Link>
               <Link href="/login" className="hover:text-primary transition-colors">Sign In</Link>
             </div>
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerPath AI. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerpathX. All rights reserved.</p>
           </div>
         </div>
       </footer>

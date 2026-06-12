@@ -47,7 +47,7 @@ export function Logo({ size = "md", variant = "full", href = "/", className }: L
       </span>
       {variant === "full" && (
         <span className="leading-none">
-          <span className={cn("block font-bold tracking-tight text-foreground", styles.wordmark)}>CareerPath AI</span>
+          <span className={cn("block font-bold tracking-tight text-foreground", styles.wordmark)}>CareerpathX</span>
         </span>
       )}
     </Link>

@@ -279,9 +279,9 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground">→ Without structured guidance</p>
                   </div>
 
-                  {/* With CareerPath AI */}
+                  {/* With CareerpathX */}
                   <div className="space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">⚡ With CareerPath AI</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">⚡ With CareerpathX</p>
                     <div className="flex items-end gap-2">
                       <span className="text-4xl font-bold text-primary">{withAI}</span>
                       <span className="text-sm text-muted-foreground mb-1.5">months</span>

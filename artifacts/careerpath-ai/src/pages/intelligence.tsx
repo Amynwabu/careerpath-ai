@@ -99,7 +99,7 @@ export default function Intelligence() {
             Every Feature Built to Get You <span className="text-primary glow-text">There Faster</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            CareerPath AI isn't just a career tool. It's a complete execution system — from where you are today to your dream role, with every step mapped, prioritised, and guided by AI.
+            CareerpathX isn't just a career tool. It's a complete execution system — from where you are today to your dream role, with every step mapped, prioritised, and guided by AI.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(0,240,255,0.4)] glow-box">
@@ -148,8 +148,8 @@ export default function Intelligence() {
       <section className="py-24 px-6">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">Why CareerPath AI</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">CareerPath AI vs Generic Career Advice</h2>
+            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">Why CareerpathX</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">CareerpathX vs Generic Career Advice</h2>
             <p className="text-muted-foreground max-w-lg mx-auto">A quick view of what matters most.</p>
           </div>
 
@@ -158,7 +158,7 @@ export default function Intelligence() {
               <div className="grid grid-cols-3 bg-white/5 border-b border-white/35 text-sm font-semibold">
                 <div className="p-4">Feature</div>
                 <div className="p-4 text-center text-muted-foreground">Generic Tools</div>
-                <div className="p-4 text-center text-primary">CareerPath AI</div>
+                <div className="p-4 text-center text-primary">CareerpathX</div>
               </div>
               {COMPARISON.map((row, i) => (
                 <div key={row.feature} className={`grid grid-cols-3 border-b border-white/35 text-sm ${i % 2 === 0 ? "" : "bg-white/2"}`}>
@@ -201,7 +201,7 @@ export default function Intelligence() {
               <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
               <Link href="/login" className="hover:text-primary transition-colors">Sign In</Link>
             </div>
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerPath AI. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerpathX. All rights reserved.</p>
           </div>
         </div>
       </footer>
