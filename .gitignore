@@ -5,6 +5,7 @@ dist/
 artifacts/api-server/dist-google/
 *.tsbuildinfo
 .netlify/
+.netlify-local-test/
 .vscode/launch.json
 .vscode/tasks.json
 config.yml

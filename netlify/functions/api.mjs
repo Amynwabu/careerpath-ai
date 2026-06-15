@@ -1,10 +1,7 @@
 import { Buffer } from "node:buffer";
 import { ServerResponse } from "node:http";
 import { Readable, Writable } from "node:stream";
-
-const appPromise = import(
-  process.env.API_APP_BUNDLE ?? "../../artifacts/api-server/dist/app.mjs"
-).then((module) => module.default);
+import app from "../../artifacts/api-server/src/app";
 
 function eventBody(event) {
   if (!event.body) return null;
@@ -147,8 +144,6 @@ function parseServerResponse(buffer) {
 }
 
 export async function handler(event) {
-  const app = await appPromise;
-
   return new Promise((resolve, reject) => {
     const req = createRequest(event);
     const res = createResponse(req, resolve, reject);
