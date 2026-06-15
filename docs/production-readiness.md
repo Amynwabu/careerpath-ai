@@ -6,6 +6,8 @@ Do not deploy `.env` from the working directory or a zip export. Production secr
 
 The API rejects the example JWT placeholder and requires a `JWT_SECRET` of at least 32 characters. In `NODE_ENV=production`, `DATABASE_URL` must not point at localhost.
 
+Netlify does not host a raw Postgres database inside the static site itself. Use a Postgres provider connected to Netlify, such as Neon via the Netlify integrations marketplace, then set that provider's pooled Postgres connection string as `DATABASE_URL` in Netlify environment variables.
+
 Password reset and email verification require a transactional email provider. Set `RESEND_API_KEY`, `EMAIL_FROM`, `APP_BASE_URL`, and `API_BASE_URL` from the deployment secret manager. In local development, missing `RESEND_API_KEY` is allowed and the API logs the generated links instead of sending mail.
 
 Google sign-in requires a Google OAuth web client. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and, when the API is not hosted at `API_BASE_URL`, `GOOGLE_REDIRECT_URI`. The default callback is `{API_BASE_URL}/api/auth/google/callback`; register that exact URL in Google Cloud Console as an authorized redirect URI. Local development usually uses `http://localhost:3000/api/auth/google/callback`.
@@ -34,11 +36,11 @@ Generated migration files are committed under `lib/db/migrations/`. `pnpm --filt
 Production deploy order:
 
 1. Install dependencies with the lockfile.
-2. Build the production targets.
-3. Run `pnpm --filter @workspace/db run migrate` against the production `DATABASE_URL`.
-4. Start the API server only after migrations complete successfully.
+2. Run `pnpm --filter @workspace/db run migrate` against the production `DATABASE_URL`.
+3. Build the API server and CareerPath frontend.
+4. Publish the frontend and bundled API function.
 
-The migration step should run once per deploy before the new API process accepts traffic. Do not start the API against an unmigrated schema.
+The Netlify build command runs the migration step before building. Do not deploy without a valid production `DATABASE_URL`; otherwise the API function can start without the expected tables.
 
 ## Deployment Build Target
 
