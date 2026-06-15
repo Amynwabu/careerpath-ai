@@ -59,7 +59,16 @@ function createRequest(event) {
     event.headers?.["x-forwarded-for"]?.split(",")[0]?.trim() ??
     "";
 
-  const socket = { remoteAddress, encrypted: req.headers["x-forwarded-proto"] === "https" };
+  const socket = new Writable({
+    write(_chunk, _encoding, callback) {
+      callback();
+    },
+  });
+  socket.remoteAddress = remoteAddress;
+  socket.encrypted = req.headers["x-forwarded-proto"] === "https";
+  socket.setTimeout = () => {};
+  socket.setNoDelay = () => {};
+  socket.setKeepAlive = () => {};
   Object.defineProperty(req, "socket", { value: socket });
   Object.defineProperty(req, "connection", { value: socket });
 
