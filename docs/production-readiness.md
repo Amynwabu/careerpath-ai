@@ -12,6 +12,8 @@ Google sign-in requires a Google OAuth web client. Set `GOOGLE_CLIENT_ID`, `GOOG
 
 CI rejects production artifacts that contain a literal `.env` file. Deployments should pull environment values from the secret manager, not from a zip export or checked-in file.
 
+Netlify serves the React app and routes `/api/*` to the bundled API function. For a same-domain deploy such as `https://careerpathx.ai`, leave `VITE_API_BASE_URL` unset so browser requests stay on the same origin. Set `APP_BASE_URL`, `API_BASE_URL`, and `FRONTEND_ORIGIN` to the public site URL in Netlify environment variables.
+
 ## Observability
 
 Set `SENTRY_DSN` for the API and `VITE_SENTRY_DSN` for the frontend before production launch. Use `SENTRY_ENVIRONMENT` / `VITE_SENTRY_ENVIRONMENT`, `SENTRY_RELEASE` / `VITE_SENTRY_RELEASE`, and the trace sample-rate variables to keep events grouped by release and environment.

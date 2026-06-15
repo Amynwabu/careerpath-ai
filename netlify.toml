@@ -1,9 +1,20 @@
 [build]
-  command = "pnpm --filter @workspace/careerpath-ai run build"
+  command = "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/careerpath-ai run build"
   publish = "artifacts/careerpath-ai/dist/public"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "24"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["artifacts/api-server/dist/**"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
