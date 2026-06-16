@@ -6,7 +6,10 @@ Do not deploy `.env` from the working directory or a zip export. Production secr
 
 The API rejects the example JWT placeholder and requires a `JWT_SECRET` of at least 32 characters. In `NODE_ENV=production`, `DATABASE_URL` must not point at localhost.
 
-Netlify does not host a raw Postgres database inside the static site itself. Use a Postgres provider connected to Netlify, such as Neon via the Netlify integrations marketplace, then set that provider's pooled Postgres connection string as `DATABASE_URL` in Netlify environment variables.
+Netlify does not host a raw Postgres database inside the static site itself. Use Supabase Postgres as the database. Set two database URLs in Netlify environment variables:
+
+- `DATABASE_URL`: the Supabase transaction pooler connection string on port `6543`, used by the Netlify API function at runtime.
+- `MIGRATION_DATABASE_URL`: the Supabase direct connection string on port `5432`, used by `drizzle-kit migrate` during the build. If the Netlify build network cannot reach the direct IPv6 endpoint, use Supabase shared pooler session mode on port `5432` instead.
 
 Password reset and email verification require a transactional email provider. Set `RESEND_API_KEY`, `EMAIL_FROM`, `APP_BASE_URL`, and `API_BASE_URL` from the deployment secret manager. In local development, missing `RESEND_API_KEY` is allowed and the API logs the generated links instead of sending mail.
 
@@ -36,11 +39,11 @@ Generated migration files are committed under `lib/db/migrations/`. `pnpm --filt
 Production deploy order:
 
 1. Install dependencies with the lockfile.
-2. Run `pnpm --filter @workspace/db run migrate` against the production `DATABASE_URL`.
+2. Run `pnpm --filter @workspace/db run migrate` against the production `MIGRATION_DATABASE_URL`.
 3. Build the API server and CareerPath frontend.
 4. Publish the frontend and bundled API function.
 
-The Netlify build command runs the migration step before building. Do not deploy without a valid production `DATABASE_URL`; otherwise the API function can start without the expected tables.
+The Netlify build command runs the migration step before building. Do not deploy without a valid production `MIGRATION_DATABASE_URL`; otherwise the build will fail before publishing. Do not deploy without a valid production `DATABASE_URL`; otherwise the API function will crash when login, registration, profile, or analysis routes touch the database.
 
 ## Deployment Build Target
 
