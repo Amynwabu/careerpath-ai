@@ -1,5 +1,5 @@
 [build]
-  command = "pnpm --filter @workspace/db run migrate && pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/careerpath-ai run build"
+  command = "node scripts/netlify-build.mjs"
   publish = "artifacts/careerpath-ai/dist/public"
   functions = "netlify/functions"
 

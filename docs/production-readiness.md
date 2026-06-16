@@ -10,6 +10,7 @@ Netlify does not host a raw Postgres database inside the static site itself. Use
 
 - `DATABASE_URL`: the Supabase transaction pooler connection string on port `6543`, used by the Netlify API function at runtime.
 - `MIGRATION_DATABASE_URL`: the Supabase direct connection string on port `5432`, used by `drizzle-kit migrate` during the build. If the Netlify build network cannot reach the direct IPv6 endpoint, use Supabase shared pooler session mode on port `5432` instead.
+- `RUN_DB_MIGRATIONS`: set to `true` only when you intentionally want the Netlify build to apply migrations. Leave it unset or `false` for normal frontend/API deploys.
 
 Password reset and email verification require a transactional email provider. Set `RESEND_API_KEY`, `EMAIL_FROM`, `APP_BASE_URL`, and `API_BASE_URL` from the deployment secret manager. In local development, missing `RESEND_API_KEY` is allowed and the API logs the generated links instead of sending mail.
 
@@ -43,7 +44,7 @@ Production deploy order:
 3. Build the API server and CareerPath frontend.
 4. Publish the frontend and bundled API function.
 
-The Netlify build command runs the migration step before building. Do not deploy without a valid production `MIGRATION_DATABASE_URL`; otherwise the build will fail before publishing. Do not deploy without a valid production `DATABASE_URL`; otherwise the API function will crash when login, registration, profile, or analysis routes touch the database.
+The Netlify build script skips migrations unless `RUN_DB_MIGRATIONS=true`. This prevents normal static/API deploys from failing just because the build environment cannot reach the database. When enabling build-time migrations, do not deploy without a valid production `MIGRATION_DATABASE_URL`; otherwise the build will fail before publishing. Do not deploy without a valid production `DATABASE_URL`; otherwise the API function will crash when login, registration, profile, or analysis routes touch the database.
 
 ## Deployment Build Target
 
