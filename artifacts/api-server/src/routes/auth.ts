@@ -47,8 +47,21 @@ function googleOAuthConfig() {
   const clientSecret = cleanEnv(process.env.GOOGLE_CLIENT_SECRET);
   const redirectUri =
     cleanEnv(process.env.GOOGLE_REDIRECT_URI) ?? `${apiBaseUrl()}/api/auth/google/callback`;
+  const invalidClientId =
+    !clientId ||
+    clientId === "..." ||
+    !clientId.endsWith(".apps.googleusercontent.com");
+  const invalidClientSecret = !clientSecret || clientSecret === "...";
 
-  if (!clientId || !clientSecret || !redirectUri) {
+  if (invalidClientId || invalidClientSecret || !redirectUri) {
+    logger.warn(
+      {
+        hasClientId: Boolean(clientId),
+        hasClientSecret: Boolean(clientSecret),
+        redirectUri,
+      },
+      "Google OAuth is not configured with a valid web client",
+    );
     return null;
   }
 

@@ -27,7 +27,7 @@ function run(command) {
   }
 }
 
-const runMigrations = process.env.RUN_DB_MIGRATIONS === "true";
+const runMigrations = cleanEnv(process.env.RUN_DB_MIGRATIONS)?.toLowerCase() === "true";
 
 if (runMigrations) {
   const migrationDatabaseUrl = cleanEnv(process.env.MIGRATION_DATABASE_URL) || cleanEnv(process.env.DATABASE_URL);

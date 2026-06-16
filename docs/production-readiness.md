@@ -14,7 +14,7 @@ Netlify does not host a raw Postgres database inside the static site itself. Use
 
 Password reset and email verification require a transactional email provider. Set `RESEND_API_KEY`, `EMAIL_FROM`, `APP_BASE_URL`, and `API_BASE_URL` from the deployment secret manager. In local development, missing `RESEND_API_KEY` is allowed and the API logs the generated links instead of sending mail.
 
-Google sign-in requires a Google OAuth web client. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and, when the API is not hosted at `API_BASE_URL`, `GOOGLE_REDIRECT_URI`. The default callback is `{API_BASE_URL}/api/auth/google/callback`; register that exact URL in Google Cloud Console as an authorized redirect URI. Local development usually uses `http://localhost:3000/api/auth/google/callback`.
+Google sign-in requires a Google OAuth web client. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and, when the API is not hosted at `API_BASE_URL`, `GOOGLE_REDIRECT_URI`. The default callback is `{API_BASE_URL}/api/auth/google/callback`; register that exact URL in Google Cloud Console as an authorized redirect URI. Local development usually uses `http://localhost:3000/api/auth/google/callback`. For `https://careerpathx.ai`, the Google web client should include `https://careerpathx.ai` as an authorized JavaScript origin and `https://careerpathx.ai/api/auth/google/callback` as an authorized redirect URI. Do not leave Netlify `GOOGLE_CLIENT_ID` as `...`; it must be the full value ending in `.apps.googleusercontent.com`.
 
 CI rejects production artifacts that contain a literal `.env` file. Deployments should pull environment values from the secret manager, not from a zip export or checked-in file.
 
@@ -45,6 +45,8 @@ Production deploy order:
 4. Publish the frontend and bundled API function.
 
 The Netlify build script skips migrations unless `RUN_DB_MIGRATIONS=true`. This prevents normal static/API deploys from failing just because the build environment cannot reach the database. When enabling build-time migrations, do not deploy without a valid production `MIGRATION_DATABASE_URL`; otherwise the build will fail before publishing. Do not deploy without a valid production `DATABASE_URL`; otherwise the API function will crash when login, registration, profile, or analysis routes touch the database.
+
+Use `/api/healthz/db` after deploy to confirm the production API can reach Supabase and the core `users` table exists.
 
 ## Deployment Build Target
 
