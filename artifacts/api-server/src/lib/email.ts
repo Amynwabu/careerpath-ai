@@ -1,4 +1,5 @@
 import { logger } from "./logger";
+import { cleanEnv } from "./env";
 
 type EmailMessage = {
   to: string;
@@ -9,15 +10,15 @@ type EmailMessage = {
 
 export function appBaseUrl(): string {
   return (
-    process.env.APP_BASE_URL ??
-    process.env.FRONTEND_ORIGIN ??
+    cleanEnv(process.env.APP_BASE_URL) ??
+    cleanEnv(process.env.FRONTEND_ORIGIN) ??
     "http://localhost:5173"
   ).replace(/\/+$/, "");
 }
 
 export async function sendTransactionalEmail(message: EmailMessage): Promise<void> {
-  const resendApiKey = process.env.RESEND_API_KEY?.trim();
-  const from = process.env.EMAIL_FROM?.trim() ?? "CareerPath AI <noreply@careerpath.local>";
+  const resendApiKey = cleanEnv(process.env.RESEND_API_KEY);
+  const from = cleanEnv(process.env.EMAIL_FROM) ?? "CareerPath AI <noreply@careerpath.local>";
 
   if (!resendApiKey) {
     logger.info(

@@ -1,6 +1,19 @@
 import { spawnSync } from "node:child_process";
 
-const pnpmCommand = process.env.PNPM_CMD?.trim() || "pnpm";
+function cleanEnv(value) {
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+
+  const quoteStart = trimmed[0];
+  const quoteEnd = trimmed[trimmed.length - 1];
+  const quoted =
+    (quoteStart === `"` && quoteEnd === `"`) ||
+    (quoteStart === `'` && quoteEnd === `'`);
+
+  return (quoted ? trimmed.slice(1, -1).trim() : trimmed) || undefined;
+}
+
+const pnpmCommand = cleanEnv(process.env.PNPM_CMD) || "pnpm";
 
 function run(command) {
   const result = spawnSync(command, {
@@ -17,7 +30,7 @@ function run(command) {
 const runMigrations = process.env.RUN_DB_MIGRATIONS === "true";
 
 if (runMigrations) {
-  const migrationDatabaseUrl = process.env.MIGRATION_DATABASE_URL?.trim() || process.env.DATABASE_URL?.trim();
+  const migrationDatabaseUrl = cleanEnv(process.env.MIGRATION_DATABASE_URL) || cleanEnv(process.env.DATABASE_URL);
 
   if (!migrationDatabaseUrl) {
     console.error(

@@ -8,6 +8,7 @@ import multer from "multer";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { initObservability, Sentry } from "./lib/observability";
+import { cleanEnv } from "./lib/env";
 import { csrfProtection } from "./middlewares/csrf";
 
 initObservability();
@@ -16,8 +17,8 @@ const app: Express = express();
 
 function parseAllowedOrigins(): Set<string> {
   const configured = [
-    process.env.FRONTEND_ORIGIN,
-    process.env.CORS_ORIGINS,
+    cleanEnv(process.env.FRONTEND_ORIGIN),
+    cleanEnv(process.env.CORS_ORIGINS),
   ]
     .filter(Boolean)
     .flatMap((value) => value!.split(","))

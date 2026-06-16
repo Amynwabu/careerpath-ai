@@ -18,6 +18,7 @@ import {
   sendTransactionalEmail,
   verifyEmailMessage,
 } from "../lib/email";
+import { cleanEnv } from "../lib/env";
 import { logActivity } from "../lib/audit";
 import { logger } from "../lib/logger";
 
@@ -38,13 +39,14 @@ function publicUser(user: typeof usersTable.$inferSelect) {
 }
 
 function apiBaseUrl(): string {
-  return (process.env.API_BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+  return (cleanEnv(process.env.API_BASE_URL) ?? "http://localhost:3000").replace(/\/+$/, "");
 }
 
 function googleOAuthConfig() {
-  const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
-  const redirectUri = (process.env.GOOGLE_REDIRECT_URI ?? `${apiBaseUrl()}/api/auth/google/callback`).trim();
+  const clientId = cleanEnv(process.env.GOOGLE_CLIENT_ID);
+  const clientSecret = cleanEnv(process.env.GOOGLE_CLIENT_SECRET);
+  const redirectUri =
+    cleanEnv(process.env.GOOGLE_REDIRECT_URI) ?? `${apiBaseUrl()}/api/auth/google/callback`;
 
   if (!clientId || !clientSecret || !redirectUri) {
     return null;
@@ -61,7 +63,7 @@ function clearGoogleState(req: Parameters<typeof cookieOptions>[1], res: Paramet
 }
 
 function verificationLink(token: string) {
-  return `${process.env.API_BASE_URL?.replace(/\/+$/, "") ?? appBaseUrl()}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+  return `${cleanEnv(process.env.API_BASE_URL)?.replace(/\/+$/, "") ?? appBaseUrl()}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
 }
 
 function resetLink(token: string) {

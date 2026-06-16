@@ -3,8 +3,22 @@ import pg from "pg";
 import * as schema from "./schema";
 
 const { Pool } = pg;
+
+function cleanEnv(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+
+  const quoteStart = trimmed[0];
+  const quoteEnd = trimmed[trimmed.length - 1];
+  const quoted =
+    (quoteStart === `"` && quoteEnd === `"`) ||
+    (quoteStart === `'` && quoteEnd === `'`);
+
+  return (quoted ? trimmed.slice(1, -1).trim() : trimmed) || undefined;
+}
+
 function requireDatabaseUrl(): string {
-  const value = process.env.DATABASE_URL?.trim();
+  const value = cleanEnv(process.env.DATABASE_URL);
   if (!value) {
     throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
   }
