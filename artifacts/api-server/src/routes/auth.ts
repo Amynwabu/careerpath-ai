@@ -1,14 +1,26 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Response } from "express";
 import bcrypt from "bcryptjs";
-import { randomBytes } from "node:crypto";
-import { eq } from "drizzle-orm";
-import { db, usersTable, profilesTable } from "@workspace/db";
+import { createHash, randomBytes } from "node:crypto";
+import { and, eq, isNull } from "drizzle-orm";
+import {
+  authRefreshTokensTable,
+  db,
+  profilesTable,
+  usersTable,
+} from "@workspace/db";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
-import { AUTH_COOKIE_NAME, signToken, requireAuth } from "../middlewares/auth";
+import {
+  ACCESS_TOKEN_TTL_MS,
+  AUTH_COOKIE_NAME,
+  signToken,
+  requireAuth,
+} from "../middlewares/auth";
 import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 const GOOGLE_STATE_COOKIE = "careerpath_google_oauth_state";
+const REFRESH_COOKIE_NAME = "careerpath_refresh";
+const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const GOOGLE_SCOPES = ["openid", "email", "profile"].join(" ");
 
 function cleanEnv(value: string | undefined): string | null {
@@ -49,6 +61,71 @@ function cookieOptions(maxAge: number) {
     path: "/",
     maxAge,
   };
+}
+
+function refreshCookieOptions(maxAge: number) {
+  return {
+    ...cookieOptions(maxAge),
+    path: "/api/auth",
+  };
+}
+
+function refreshTokenHash(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function createRefreshToken() {
+  const token = randomBytes(48).toString("base64url");
+  return { token, hash: refreshTokenHash(token) };
+}
+
+function setAccessCookie(res: Response, user: typeof usersTable.$inferSelect) {
+  const token = signToken({ userId: user.id, email: user.email, type: "access" });
+  res.cookie(AUTH_COOKIE_NAME, token, cookieOptions(ACCESS_TOKEN_TTL_MS));
+}
+
+async function startSession(res: Response, user: typeof usersTable.$inferSelect) {
+  const refresh = createRefreshToken();
+  const familyId = randomBytes(24).toString("base64url");
+
+  await db.insert(authRefreshTokensTable).values({
+    userId: user.id,
+    tokenHash: refresh.hash,
+    familyId,
+    expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+  });
+
+  setAccessCookie(res, user);
+  res.cookie(
+    REFRESH_COOKIE_NAME,
+    refresh.token,
+    refreshCookieOptions(REFRESH_TOKEN_TTL_MS),
+  );
+}
+
+function clearSessionCookies(res: Response) {
+  res.clearCookie(AUTH_COOKIE_NAME, cookieOptions(0));
+  res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieOptions(0));
+}
+
+async function revokeRefreshFamily(rawToken: string | undefined) {
+  if (!rawToken) return;
+
+  const [stored] = await db
+    .select()
+    .from(authRefreshTokensTable)
+    .where(eq(authRefreshTokensTable.tokenHash, refreshTokenHash(rawToken)));
+  if (!stored) return;
+
+  await db
+    .update(authRefreshTokensTable)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(authRefreshTokensTable.familyId, stored.familyId),
+        isNull(authRefreshTokensTable.revokedAt),
+      ),
+    );
 }
 
 function publicUser(user: typeof usersTable.$inferSelect) {
@@ -160,8 +237,7 @@ router.get("/auth/google/callback", async (req, res): Promise<void> => {
         .returning();
     }
 
-    const token = signToken({ userId: user.id, email: user.email });
-    res.cookie(AUTH_COOKIE_NAME, token, cookieOptions(30 * 24 * 60 * 60 * 1000));
+    await startSession(res, user);
     res.redirect(`${appOrigin()}/start`);
   } catch (oauthError) {
     logger.error({ err: oauthError }, "Google sign-in failed");
@@ -189,12 +265,10 @@ router.post("/auth/register", async (req, res): Promise<void> => {
 
   await db.insert(profilesTable).values({ userId: user.id });
 
-  const token = signToken({ userId: user.id, email: user.email });
-  res.cookie(AUTH_COOKIE_NAME, token, cookieOptions(30 * 24 * 60 * 60 * 1000));
+  await startSession(res, user);
 
   res.status(201).json({
     user: publicUser(user),
-    token,
   });
 });
 
@@ -219,17 +293,102 @@ router.post("/auth/login", async (req, res): Promise<void> => {
     return;
   }
 
-  const token = signToken({ userId: user.id, email: user.email });
-  res.cookie(AUTH_COOKIE_NAME, token, cookieOptions(30 * 24 * 60 * 60 * 1000));
+  await startSession(res, user);
 
   res.json({
     user: publicUser(user),
-    token,
   });
 });
 
-router.post("/auth/logout", (_req, res): void => {
-  res.clearCookie(AUTH_COOKIE_NAME, cookieOptions(0));
+router.post("/auth/refresh", async (req, res): Promise<void> => {
+  const rawToken = req.cookies?.[REFRESH_COOKIE_NAME] as string | undefined;
+  if (!rawToken) {
+    clearSessionCookies(res);
+    res.status(401).json({ error: "Refresh session is missing or expired" });
+    return;
+  }
+
+  const tokenHash = refreshTokenHash(rawToken);
+  const [stored] = await db
+    .select()
+    .from(authRefreshTokensTable)
+    .where(eq(authRefreshTokensTable.tokenHash, tokenHash));
+
+  if (!stored || stored.revokedAt || stored.expiresAt.getTime() <= Date.now()) {
+    if (stored) await revokeRefreshFamily(rawToken);
+    clearSessionCookies(res);
+    res.status(401).json({ error: "Refresh session is invalid or expired" });
+    return;
+  }
+
+  const replacement = createRefreshToken();
+  const rotated = await db.transaction(async (tx) => {
+    const [consumed] = await tx
+      .update(authRefreshTokensTable)
+      .set({
+        revokedAt: new Date(),
+        lastUsedAt: new Date(),
+        replacedByTokenHash: replacement.hash,
+      })
+      .where(
+        and(
+          eq(authRefreshTokensTable.tokenHash, tokenHash),
+          isNull(authRefreshTokensTable.revokedAt),
+        ),
+      )
+      .returning();
+
+    if (!consumed) {
+      await tx
+        .update(authRefreshTokensTable)
+        .set({ revokedAt: new Date() })
+        .where(
+          and(
+            eq(authRefreshTokensTable.familyId, stored.familyId),
+            isNull(authRefreshTokensTable.revokedAt),
+          ),
+        );
+      return false;
+    }
+
+    await tx.insert(authRefreshTokensTable).values({
+      userId: stored.userId,
+      tokenHash: replacement.hash,
+      familyId: stored.familyId,
+      expiresAt: stored.expiresAt,
+    });
+    return true;
+  });
+
+  if (!rotated) {
+    clearSessionCookies(res);
+    res.status(401).json({ error: "Refresh session was already used" });
+    return;
+  }
+
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, stored.userId));
+  if (!user) {
+    await revokeRefreshFamily(replacement.token);
+    clearSessionCookies(res);
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+
+  setAccessCookie(res, user);
+  res.cookie(
+    REFRESH_COOKIE_NAME,
+    replacement.token,
+    refreshCookieOptions(Math.max(0, stored.expiresAt.getTime() - Date.now())),
+  );
+  res.json({ user: publicUser(user) });
+});
+
+router.post("/auth/logout", async (req, res): Promise<void> => {
+  await revokeRefreshFamily(req.cookies?.[REFRESH_COOKIE_NAME]);
+  clearSessionCookies(res);
   res.json({ message: "Logged out successfully" });
 });
 

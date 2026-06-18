@@ -43,7 +43,7 @@ export default function Register() {
       { data: values },
       {
         onSuccess: (data) => {
-          login(data.token);
+          login(data.user);
           toast({
             title: "Account created!",
             description: "Welcome to CareerPath AI.",

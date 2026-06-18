@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/api-request";
+import { fileToBase64, validateCvFile } from "@/lib/cv-file";
 
 interface ExtractedProfile {
   currentRole?: string;
@@ -77,11 +78,18 @@ export default function Onboarding() {
 
     setProcessing(true);
     try {
-      const form = new FormData();
-      if (description.trim()) form.append("description", description.trim());
-      if (targetRole.trim()) form.append("targetRole", targetRole.trim());
-      if (file) form.append("cv", file);
-      const intake = await apiRequest<IntakeResult>("/onboarding/intake", { method: "POST", body: form });
+      const fileType = file ? validateCvFile(file) : undefined;
+      const fileBase64 = file ? await fileToBase64(file) : undefined;
+      const intake = await apiRequest<IntakeResult>("/onboarding/intake", {
+        method: "POST",
+        body: JSON.stringify({
+          description: description.trim() || undefined,
+          targetRole: targetRole.trim() || undefined,
+          fileName: file?.name,
+          fileType,
+          fileBase64,
+        }),
+      });
       setResult(intake);
       setSelectedId(intake.options[0]?.id ?? "");
     } catch (error) {
@@ -218,7 +226,31 @@ export default function Onboarding() {
                   </div>
                 ) : (
                   <div>
-                    <input ref={fileInput} type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" className="hidden" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+                    <input
+                      ref={fileInput}
+                      type="file"
+                      accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                      className="hidden"
+                      onChange={(event) => {
+                        const selected = event.target.files?.[0] ?? null;
+                        if (!selected) {
+                          setFile(null);
+                          return;
+                        }
+                        try {
+                          validateCvFile(selected);
+                          setFile(selected);
+                        } catch (error) {
+                          event.target.value = "";
+                          setFile(null);
+                          toast({
+                            title: "That CV cannot be uploaded",
+                            description: error instanceof Error ? error.message : "Choose a PDF, DOCX, or TXT file up to 5 MB.",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    />
                     <button type="button" onClick={() => fileInput.current?.click()} className="grid min-h-64 w-full place-items-center border border-dashed border-primary/30 bg-primary/[0.03] p-8 text-center transition-colors hover:bg-primary/[0.06]">
                       <span>
                         <span className="mx-auto grid h-12 w-12 place-items-center border border-primary/30 bg-primary/10"><Upload className="h-5 w-5 text-primary" /></span>

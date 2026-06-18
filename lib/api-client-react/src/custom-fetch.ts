@@ -17,6 +17,7 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _refreshPromise: Promise<boolean> | null = null;
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -76,6 +77,36 @@ function resolveUrl(input: RequestInfo | URL): string {
   if (typeof input === "string") return input;
   if (isUrl(input)) return input.toString();
   return input.url;
+}
+
+function isRefreshEligible(url: string): boolean {
+  const path = url.startsWith("http") ? new URL(url).pathname : url.split("?", 1)[0];
+  return ![
+    "/api/auth/login",
+    "/api/auth/register",
+    "/api/auth/refresh",
+    "/api/auth/google",
+  ].some((authPath) => path === authPath || path.startsWith(`${authPath}/`));
+}
+
+async function refreshBrowserSession(): Promise<boolean> {
+  if (_refreshPromise) return _refreshPromise;
+
+  const refreshUrl = _baseUrl
+    ? `${_baseUrl}/api/auth/refresh`
+    : "/api/auth/refresh";
+  _refreshPromise = fetch(refreshUrl, {
+    method: "POST",
+    credentials: "include",
+    headers: { Accept: DEFAULT_JSON_ACCEPT },
+  })
+    .then((response) => response.ok)
+    .catch(() => false)
+    .finally(() => {
+      _refreshPromise = null;
+    });
+
+  return _refreshPromise;
 }
 
 function mergeHeaders(...sources: Array<HeadersInit | undefined>): Headers {
@@ -360,7 +391,22 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const requestInit = {
+    ...init,
+    method,
+    headers,
+    credentials: init.credentials ?? "include",
+  } satisfies RequestInit;
+  let response = await fetch(input, requestInit);
+
+  if (
+    response.status === 401 &&
+    !isRequest(input) &&
+    isRefreshEligible(requestInfo.url) &&
+    await refreshBrowserSession()
+  ) {
+    response = await fetch(input, requestInit);
+  }
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

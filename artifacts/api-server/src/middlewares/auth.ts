@@ -3,10 +3,12 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "careerpath-secret-key-change-in-production";
 export const AUTH_COOKIE_NAME = "careerpath_session";
+export const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000;
 
 export interface AuthPayload {
   userId: number;
   email: string;
+  type: "access";
 }
 
 declare global {
@@ -28,6 +30,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 
   try {
     const payload = jwt.verify(token, JWT_SECRET) as AuthPayload;
+    if (payload.type !== "access") throw new Error("Invalid token type");
     req.user = payload;
     next();
   } catch {
@@ -36,5 +39,5 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 }
 
 export function signToken(payload: AuthPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
 }

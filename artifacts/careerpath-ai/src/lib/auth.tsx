@@ -1,31 +1,27 @@
-import { useEffect, useState, createContext, useContext } from "react";
+import { useEffect, createContext, useContext } from "react";
 import { useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetMeQueryKey,
   logout as logoutRequest,
   useGetMe,
-  setAuthTokenGetter,
+  type User,
 } from "@workspace/api-client-react";
 
 const TOKEN_KEY = "careerpath_token";
 
-// Setup token getter for API client
-setAuthTokenGetter(() => localStorage.getItem(TOKEN_KEY));
-
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (token: string) => void;
+  login: (user: User) => void;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setTokenState] = useState<string | null>(
-    localStorage.getItem(TOKEN_KEY),
-  );
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
   const {
     data: user,
@@ -40,15 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    if (isError) {
-      localStorage.removeItem(TOKEN_KEY);
-      setTokenState(null);
-    }
+    localStorage.removeItem(TOKEN_KEY);
   }, [isError]);
 
-  const login = (newToken: string) => {
-    localStorage.setItem(TOKEN_KEY, newToken);
-    setTokenState(newToken);
+  const login = (authenticatedUser: User) => {
+    queryClient.setQueryData(getGetMeQueryKey(), authenticatedUser);
     setLocation("/start");
   };
 
@@ -57,13 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await logoutRequest();
     } finally {
       localStorage.removeItem(TOKEN_KEY);
-      setTokenState(null);
+      queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
       setLocation("/login");
     }
   };
 
   const isLoading = isUserLoading;
-  const isAuthenticated = !!user;
+  const isAuthenticated = !isError && !!user;
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>

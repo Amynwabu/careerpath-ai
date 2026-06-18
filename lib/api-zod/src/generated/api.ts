@@ -39,7 +39,6 @@ export const LoginResponse = zod.object({
     role: zod.string(),
     createdAt: zod.string(),
   }),
-  token: zod.string(),
 });
 
 /**

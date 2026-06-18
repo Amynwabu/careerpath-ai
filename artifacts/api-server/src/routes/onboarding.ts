@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
 import { and, count, desc, eq } from "drizzle-orm";
-import multer from "multer";
 import mammoth from "mammoth";
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import {
@@ -19,31 +18,20 @@ import { mapCareerText } from "../lib/career-intake";
 import { rankCareerDirections } from "../lib/career-directions";
 
 const router: IRouter = Router();
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
-  fileFilter: (_req, file, callback) => {
-    const allowed = new Set([
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain",
-    ]);
-    if (allowed.has(file.mimetype)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Upload a PDF, DOCX, or TXT CV."));
-    }
-  },
-});
+const allowedFileTypes = new Set([
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+]);
 
-async function extractFileText(file: Express.Multer.File) {
-  if (file.mimetype === "application/pdf") {
-    return (await pdfParse(file.buffer)).text;
+async function extractFileText(buffer: Buffer, fileType: string) {
+  if (fileType === "application/pdf") {
+    return (await pdfParse(buffer)).text;
   }
-  if (file.mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-    return (await mammoth.extractRawText({ buffer: file.buffer })).value;
+  if (fileType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+    return (await mammoth.extractRawText({ buffer })).value;
   }
-  return file.buffer.toString("utf8");
+  return buffer.toString("utf8");
 }
 
 router.get("/onboarding/status", requireAuth, async (req, res): Promise<void> => {
@@ -82,19 +70,45 @@ router.get("/onboarding/status", requireAuth, async (req, res): Promise<void> =>
   });
 });
 
-router.post("/onboarding/intake", requireAuth, (req, res, next) => {
-  upload.single("cv")(req, res, (error) => error ? next(error) : next());
-}, async (req, res): Promise<void> => {
+router.post("/onboarding/intake", requireAuth, async (req, res): Promise<void> => {
   const description = typeof req.body?.description === "string" ? req.body.description.trim() : "";
   const targetRole = typeof req.body?.targetRole === "string" ? req.body.targetRole.trim() : "";
+  const fileName = typeof req.body?.fileName === "string" ? req.body.fileName.trim() : "";
+  const fileType = typeof req.body?.fileType === "string" ? req.body.fileType.trim() : "";
+  const fileBase64 = typeof req.body?.fileBase64 === "string" ? req.body.fileBase64 : "";
 
-  if (!description && !req.file) {
+  if (!description && !fileBase64) {
     res.status(400).json({ error: "Describe your work or upload a CV to continue." });
     return;
   }
 
-  const fileText = req.file ? await extractFileText(req.file) : "";
+  let fileText = "";
+  if (fileBase64) {
+    if (!allowedFileTypes.has(fileType)) {
+      res.status(400).json({ error: "Upload a PDF, DOCX, or TXT CV." });
+      return;
+    }
+    if (!/^[A-Za-z0-9+/]+={0,2}$/.test(fileBase64)) {
+      res.status(400).json({ error: "The uploaded CV data is invalid." });
+      return;
+    }
+    const fileBuffer = Buffer.from(fileBase64, "base64");
+    if (fileBuffer.length === 0 || fileBuffer.length > 5 * 1024 * 1024) {
+      res.status(400).json({ error: "CV files must be between 1 byte and 5 MB." });
+      return;
+    }
+    try {
+      fileText = await extractFileText(fileBuffer, fileType);
+    } catch {
+      res.status(400).json({ error: "That CV could not be read. Try another file or a written description." });
+      return;
+    }
+  }
   const sourceText = [description, fileText].filter(Boolean).join("\n").slice(0, 50_000);
+  if (!sourceText.trim()) {
+    res.status(400).json({ error: "No readable text was found in that CV." });
+    return;
+  }
   const extracted = mapCareerText(sourceText);
   const userId = req.user!.userId;
 
@@ -119,7 +133,7 @@ router.post("/onboarding/intake", requireAuth, (req, res, next) => {
     await tx.insert(activityLogTable).values({
       userId,
       type: "profile",
-      description: `Mapped career profile from ${req.file ? "CV upload" : "work description"}`,
+      description: `Mapped career profile from ${fileBase64 ? "CV upload" : "work description"}`,
     });
   });
 
@@ -135,8 +149,8 @@ router.post("/onboarding/intake", requireAuth, (req, res, next) => {
     : rankCareerDirections(sourceText);
 
   res.json({
-    source: req.file ? "cv" : "description",
-    fileName: req.file?.originalname ?? null,
+    source: fileBase64 ? "cv" : "description",
+    fileName: fileName || null,
     extracted,
     options,
   });

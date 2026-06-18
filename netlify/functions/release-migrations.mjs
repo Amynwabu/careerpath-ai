@@ -5,6 +5,7 @@ import pg from "pg";
 const migrationFiles = [
   "supabase/migrations/20260618090000_journeys_advisors_reminders_certificates.sql",
   "supabase/migrations/20260618091500_add_google_oauth_auth_columns.sql",
+  "supabase/migrations/20260618103000_rotating_refresh_tokens.sql",
 ];
 
 let migrationPromise;

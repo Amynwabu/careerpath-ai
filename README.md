@@ -27,7 +27,8 @@ The production app is hosted at [https://careerpathx.ai](https://careerpathx.ai)
 - **API**: Express 5
 - **Database**: PostgreSQL on Supabase, Drizzle ORM
 - **Validation**: Zod and drizzle-zod
-- **Auth**: JWT bearer tokens, plus Google OAuth configuration in production
+- **Auth**: 15-minute httpOnly access cookies, rotating 30-day refresh sessions,
+  and Google OAuth in production
 - **API contract**: OpenAPI with Orval-generated hooks and schemas
 - **Build**: Vite for the frontend, esbuild for the API bundle
 
@@ -81,6 +82,14 @@ pnpm run typecheck
 
 ```sh
 pnpm run build
+```
+
+### Test
+
+Run all workspace test suites:
+
+```sh
+pnpm run test
 ```
 
 ### Run The API Locally
@@ -184,12 +193,17 @@ Supabase PostgreSQL
 
 ### Main API Areas
 
-Protected API routes require `Authorization: Bearer <token>` unless otherwise
-noted.
+Protected browser routes use same-origin httpOnly cookies. The API rotates the
+refresh token after an expired access session; tokens are never stored in
+browser JavaScript storage.
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
 - `GET /api/auth/me`
+- `GET /api/onboarding/status`
+- `POST /api/onboarding/intake`
 - `GET/PATCH /api/profile`
 - Work experience, education, skills, and certifications CRUD routes
 - `GET/PUT /api/career-goal`
@@ -226,7 +240,12 @@ https://careerpathx.ai/api/auth/google/callback
 Supabase stores the production PostgreSQL data. Keep schema changes reviewed and
 avoid pushing local experiments to the production database.
 
+Release migrations are applied by the Netlify API function from
+`supabase/migrations` and recorded in `careerpath_schema_migrations`.
+
 ## Documentation
 
 `README.md` is the primary project documentation. `replit.md` is retained only
 for Replit-specific notes.
+
+Security reports should follow [SECURITY.md](SECURITY.md).

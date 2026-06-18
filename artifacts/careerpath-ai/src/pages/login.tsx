@@ -61,7 +61,7 @@ export default function Login() {
       { data: values },
       {
         onSuccess: (data) => {
-          login(data.token);
+          login(data.user);
           toast({
             title: "Welcome back!",
             description: "You have signed in successfully.",
