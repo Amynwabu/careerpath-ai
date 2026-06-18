@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (newToken: string) => {
     localStorage.setItem(TOKEN_KEY, newToken);
     setTokenState(newToken);
-    setLocation("/dashboard");
+    setLocation("/start");
   };
 
   const logout = async () => {

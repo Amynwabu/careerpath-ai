@@ -1,317 +1,282 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { useUpdateProfile, useCreateWorkExperience, useCreateEducation, useCreateSkill, useSetCareerGoal, getGetProfileQueryKey } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  Check,
+  FileText,
+  Loader2,
+  Radar,
+  Route,
+  ScanLine,
+  Sparkles,
+  Upload,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, ChevronRight, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/api-request";
 
-const STEPS = [
-  { id: 1, label: "Basics" },
-  { id: 2, label: "Experience" },
-  { id: 3, label: "Education" },
-  { id: 4, label: "Skills" },
-  { id: 5, label: "Career Target" },
+interface ExtractedProfile {
+  currentRole?: string;
+  yearsExperience?: number;
+  industry?: string;
+  careerLevel?: string;
+  skills: string[];
+  professionalSummary: string;
+}
+
+interface CareerOption {
+  id: string;
+  title: string;
+  durationMonths: number;
+  rationale: string;
+  skills: string[];
+  matchScore: number;
+}
+
+interface IntakeResult {
+  source: "cv" | "description";
+  fileName: string | null;
+  extracted: ExtractedProfile;
+  options: CareerOption[];
+}
+
+const BUILD_STEPS = [
+  "Saving your career direction",
+  "Running readiness and gap analysis",
+  "Building your milestone journey",
 ];
-
-const SKILL_SUGGESTIONS = ["Project Management", "Data Analysis", "Python", "Leadership", "Stakeholder Management", "Agile", "Communication", "Microsoft Azure", "Machine Learning", "SQL"];
 
 export default function Onboarding() {
   const [, setLocation] = useLocation();
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [mode, setMode] = useState<"description" | "cv">("description");
+  const [description, setDescription] = useState("");
+  const [targetRole, setTargetRole] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [result, setResult] = useState<IntakeResult | null>(null);
+  const [selectedId, setSelectedId] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const [buildStep, setBuildStep] = useState(0);
 
-  const updateProfile = useUpdateProfile();
-  const createWork = useCreateWorkExperience();
-  const createEdu = useCreateEducation();
-  const createSkill = useCreateSkill();
-  const setGoal = useSetCareerGoal();
-
-  // Form state per step
-  const [basics, setBasics] = useState({ currentRole: "", yearsExperience: "", industry: "", careerLevel: "", location: "", professionalSummary: "" });
-  const [work, setWork] = useState({ company: "", title: "", startDate: "", description: "" });
-  const [edu, setEdu] = useState({ institution: "", degree: "", fieldOfStudy: "", startYear: "", endYear: "" });
-  const [skills, setSkills] = useState<string[]>([]);
-  const [goal, setGoalState] = useState({ targetRole: "", targetIndustry: "", targetLevel: "", workModePreference: "", targetYears: 5 });
-
-  const handleNext = async () => {
-    setLoading(true);
-    try {
-      if (step === 1) {
-        if (!basics.currentRole) { toast({ title: "Current role required", variant: "destructive" }); setLoading(false); return; }
-        await updateProfile.mutateAsync({ data: {
-          currentRole: basics.currentRole,
-          yearsExperience: basics.yearsExperience ? parseInt(basics.yearsExperience) : undefined,
-          industry: basics.industry || undefined,
-          careerLevel: basics.careerLevel || undefined,
-          location: basics.location || undefined,
-          professionalSummary: basics.professionalSummary || undefined,
-        } });
-        qc.invalidateQueries({ queryKey: getGetProfileQueryKey() });
-      } else if (step === 2) {
-        if (work.company && work.title && work.startDate) {
-          await createWork.mutateAsync({ data: { company: work.company, title: work.title, startDate: work.startDate, description: work.description || undefined, isCurrent: true } });
-        }
-      } else if (step === 3) {
-        if (edu.institution && edu.degree && edu.startYear) {
-          await createEdu.mutateAsync({ data: { institution: edu.institution, degree: edu.degree, fieldOfStudy: edu.fieldOfStudy || undefined, startYear: parseInt(edu.startYear), endYear: edu.endYear ? parseInt(edu.endYear) : undefined, isCurrent: false } });
-        }
-      } else if (step === 4) {
-        for (const s of skills) {
-          await createSkill.mutateAsync({ data: { name: s, category: "Technical", proficiencyLevel: "Intermediate" } });
-        }
-      } else if (step === 5) {
-        if (!goal.targetRole) { toast({ title: "Career target required", variant: "destructive" }); setLoading(false); return; }
-        await setGoal.mutateAsync({ data: { targetRole: goal.targetRole, targetIndustry: goal.targetIndustry || undefined, targetLevel: goal.targetLevel || undefined, workModePreference: goal.workModePreference || undefined, targetYears: goal.targetYears } });
-        setLocation("/dashboard");
-        return;
-      }
-      setStep(s => s + 1);
-    } catch {
-      toast({ title: "Something went wrong", variant: "destructive" });
+  const analyseIntake = async () => {
+    if (mode === "description" && description.trim().length < 40) {
+      toast({ title: "Add a little more detail", description: "Use at least 40 characters so the mapping has enough career evidence.", variant: "destructive" });
+      return;
     }
-    setLoading(false);
+    if (mode === "cv" && !file) {
+      toast({ title: "Choose your CV", description: "Upload a PDF, DOCX, or TXT file up to 5 MB.", variant: "destructive" });
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const form = new FormData();
+      if (description.trim()) form.append("description", description.trim());
+      if (targetRole.trim()) form.append("targetRole", targetRole.trim());
+      if (file) form.append("cv", file);
+      const intake = await apiRequest<IntakeResult>("/onboarding/intake", { method: "POST", body: form });
+      setResult(intake);
+      setSelectedId(intake.options[0]?.id ?? "");
+    } catch (error) {
+      toast({ title: "We could not read that career evidence", description: error instanceof Error ? error.message : "Try another file or use a written description.", variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        {/* Progress steps */}
-        <div className="w-full max-w-2xl mb-8">
-          <div className="flex items-center gap-2 justify-center">
-            {STEPS.map((s, idx) => (
-              <div key={s.id} className="flex items-center gap-2">
-                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  step === s.id ? "bg-primary text-primary-foreground" :
-                  step > s.id ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
-                }`}>
-                  {step > s.id ? <CheckCircle2 className="w-4 h-4" /> : <span>{s.id}</span>}
-                  <span className="hidden sm:inline">{s.label}</span>
+  const buildJourney = async () => {
+    const selected = result?.options.find((option) => option.id === selectedId);
+    if (!selected) return;
+
+    setProcessing(true);
+    try {
+      setBuildStep(0);
+      await apiRequest("/career-goal", {
+        method: "PUT",
+        body: JSON.stringify({
+          targetRole: selected.title,
+          targetYears: Math.max(1, Math.ceil(selected.durationMonths / 12)),
+        }),
+      });
+
+      setBuildStep(1);
+      await apiRequest("/analysis", {
+        method: "POST",
+        body: JSON.stringify({ skipMilestones: true }),
+      });
+
+      setBuildStep(2);
+      await apiRequest("/journey/build", {
+        method: "POST",
+        body: JSON.stringify({ selectedDirectionId: selected.id }),
+      });
+
+      await queryClient.invalidateQueries();
+      setLocation("/dashboard");
+    } catch (error) {
+      toast({ title: "Journey build stopped", description: error instanceof Error ? error.message : "Your saved progress is safe. Please try again.", variant: "destructive" });
+      setProcessing(false);
+    }
+  };
+
+  if (processing && result) {
+    return (
+      <main className="min-h-screen bg-background grid place-items-center px-6">
+        <section className="w-full max-w-xl border border-primary/20 bg-card p-8 shadow-[0_0_60px_rgba(0,240,255,0.08)]">
+          <div className="flex items-center gap-4 border-b border-white/10 pb-6">
+            <div className="grid h-12 w-12 place-items-center bg-primary/10 border border-primary/30">
+              <ScanLine className="h-6 w-6 text-primary animate-pulse" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase text-primary">Career engine active</p>
+              <h1 className="mt-1 text-2xl font-semibold">Building your route</h1>
+            </div>
+          </div>
+          <div className="mt-7 space-y-3">
+            {BUILD_STEPS.map((label, index) => (
+              <div key={label} className="flex items-center gap-3 border border-white/10 bg-white/[0.02] p-4">
+                <div className={`grid h-7 w-7 place-items-center border ${index < buildStep ? "border-primary bg-primary text-primary-foreground" : index === buildStep ? "border-primary text-primary" : "border-white/10 text-muted-foreground"}`}>
+                  {index < buildStep ? <Check className="h-4 w-4" /> : index === buildStep ? <Loader2 className="h-4 w-4 animate-spin" /> : <span className="text-xs">{index + 1}</span>}
                 </div>
-                {idx < STEPS.length - 1 && <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+                <span className={index <= buildStep ? "text-foreground" : "text-muted-foreground"}>{label}</span>
               </div>
             ))}
           </div>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-white/10 px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center border border-primary/30 bg-primary/10">
+              <Radar className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="font-semibold">CareerPath AI</p>
+              <p className="text-xs text-muted-foreground">Career signal intake</p>
+            </div>
+          </div>
+          <Badge variant="outline" className="border-primary/20 text-primary">Private workspace</Badge>
         </div>
+      </header>
 
-        <div className="w-full max-w-2xl">
-          {/* Step 1: Basics */}
-          {step === 1 && (
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-2xl">Your Professional Basics</CardTitle>
-                <CardDescription>Tell us about your current role and experience level.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Current Job Title <span className="text-primary">*</span></label>
-                  <Input placeholder="e.g. Project Manager, Data Analyst, Software Engineer" value={basics.currentRole} onChange={e => setBasics(p => ({ ...p, currentRole: e.target.value }))} className="bg-background border-border" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Years of Experience</label>
-                    <Input type="number" placeholder="e.g. 5" value={basics.yearsExperience} onChange={e => setBasics(p => ({ ...p, yearsExperience: e.target.value }))} className="bg-background border-border" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Career Level</label>
-                    <select value={basics.careerLevel} onChange={e => setBasics(p => ({ ...p, careerLevel: e.target.value }))} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm h-10">
-                      <option value="">Select...</option>
-                      {["Entry-level", "Mid-level", "Senior", "Lead/Principal", "Manager", "Director", "VP", "C-Suite"].map(o => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Industry</label>
-                    <Input placeholder="e.g. Technology, Finance" value={basics.industry} onChange={e => setBasics(p => ({ ...p, industry: e.target.value }))} className="bg-background border-border" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Location</label>
-                    <Input placeholder="e.g. London, UK" value={basics.location} onChange={e => setBasics(p => ({ ...p, location: e.target.value }))} className="bg-background border-border" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Professional Summary</label>
-                  <Textarea rows={3} placeholder="Brief overview of your background and expertise..." value={basics.professionalSummary} onChange={e => setBasics(p => ({ ...p, professionalSummary: e.target.value }))} className="bg-background border-border resize-none" />
-                </div>
-              </CardContent>
-            </Card>
-          )}
+      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[280px_1fr] lg:py-16">
+        <aside className="min-w-0 space-y-8">
+          <div>
+            <p className="text-xs font-semibold uppercase text-primary">First-use calibration</p>
+            <h1 className="mt-3 break-words text-3xl font-bold leading-tight">Turn your experience into a realistic next move.</h1>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">Share what you do now. The career engine maps your evidence, measures readiness, and builds the first milestone route.</p>
+          </div>
+          <ol className="space-y-4 border-l border-white/10 pl-5">
+            {[
+              [BriefcaseBusiness, "Understand", "Extract roles, skills, and experience"],
+              [Sparkles, "Map", "Rank credible career directions"],
+              [Route, "Build", "Create analysis and milestones"],
+            ].map(([Icon, title, copy], index) => {
+              const StepIcon = Icon as typeof BriefcaseBusiness;
+              return (
+                <li key={String(title)} className="relative flex gap-3">
+                  <span className="absolute -left-[27px] top-1 grid h-4 w-4 place-items-center border border-primary/40 bg-background text-[9px] text-primary">{index + 1}</span>
+                  <StepIcon className="mt-0.5 h-4 w-4 text-primary" />
+                  <div><p className="text-sm font-medium">{String(title)}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{String(copy)}</p></div>
+                </li>
+              );
+            })}
+          </ol>
+        </aside>
 
-          {/* Step 2: Work Experience */}
-          {step === 2 && (
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-2xl">Most Recent Work Experience</CardTitle>
-                <CardDescription>Add your current or most recent role. You can add more later in your profile.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Company</label>
-                    <Input placeholder="Company name" value={work.company} onChange={e => setWork(p => ({ ...p, company: e.target.value }))} className="bg-background border-border" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Job Title</label>
-                    <Input placeholder="Your role" value={work.title} onChange={e => setWork(p => ({ ...p, title: e.target.value }))} className="bg-background border-border" />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Start Date</label>
-                  <Input type="month" value={work.startDate} onChange={e => setWork(p => ({ ...p, startDate: e.target.value }))} className="bg-background border-border" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Key Responsibilities & Achievements</label>
-                  <Textarea rows={4} placeholder="Describe what you did and the impact you made..." value={work.description} onChange={e => setWork(p => ({ ...p, description: e.target.value }))} className="bg-background border-border resize-none" />
-                </div>
-                <p className="text-sm text-muted-foreground">You can skip this step and add work experience later in your profile.</p>
-              </CardContent>
-            </Card>
-          )}
+        <section className="min-w-0">
+          {!result ? (
+            <div className="border border-white/10 bg-card/70 p-6 sm:p-8">
+              <div className="flex flex-wrap gap-1 border-b border-white/10 pb-5">
+                <Button type="button" variant={mode === "description" ? "default" : "ghost"} onClick={() => setMode("description")} className="min-w-0 rounded-none">
+                  <FileText className="mr-2 h-4 w-4" /> Describe my work
+                </Button>
+                <Button type="button" variant={mode === "cv" ? "default" : "ghost"} onClick={() => setMode("cv")} className="min-w-0 rounded-none">
+                  <Upload className="mr-2 h-4 w-4" /> Upload CV
+                </Button>
+              </div>
 
-          {/* Step 3: Education */}
-          {step === 3 && (
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-2xl">Education</CardTitle>
-                <CardDescription>Add your highest qualification. You can add more later.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Institution</label>
-                  <Input placeholder="University, college, or school name" value={edu.institution} onChange={e => setEdu(p => ({ ...p, institution: e.target.value }))} className="bg-background border-border" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Degree / Qualification</label>
-                  <Input placeholder="e.g. BSc Computer Science, MBA, BTEC" value={edu.degree} onChange={e => setEdu(p => ({ ...p, degree: e.target.value }))} className="bg-background border-border" />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Field of Study</label>
-                  <Input placeholder="e.g. Business Administration" value={edu.fieldOfStudy} onChange={e => setEdu(p => ({ ...p, fieldOfStudy: e.target.value }))} className="bg-background border-border" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="mt-6 space-y-6">
+                {mode === "description" ? (
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block">Start Year</label>
-                    <Input type="number" placeholder="e.g. 2018" value={edu.startYear} onChange={e => setEdu(p => ({ ...p, startYear: e.target.value }))} className="bg-background border-border" />
+                    <label className="text-sm font-medium" htmlFor="career-description">What do you do today?</label>
+                    <p className="mt-1 text-xs text-muted-foreground">Include responsibilities, tools, strengths, and work you enjoy.</p>
+                    <Textarea id="career-description" value={description} onChange={(event) => setDescription(event.target.value)} rows={9} className="mt-3 resize-none rounded-none border-white/10 bg-black/20 text-base leading-7" placeholder="I currently work in operations for a healthcare company. I coordinate projects, improve processes, build Excel reports, and work with senior stakeholders..." />
+                    <p className="mt-2 text-right text-xs text-muted-foreground">{description.length} characters</p>
                   </div>
+                ) : (
                   <div>
-                    <label className="text-sm font-medium mb-1.5 block">End Year</label>
-                    <Input type="number" placeholder="e.g. 2021" value={edu.endYear} onChange={e => setEdu(p => ({ ...p, endYear: e.target.value }))} className="bg-background border-border" />
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground">You can skip this step and add education later.</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Step 4: Skills */}
-          {step === 4 && (
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-2xl">Your Key Skills</CardTitle>
-                <CardDescription>Select or type your main professional skills. You can add more later.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {SKILL_SUGGESTIONS.map(s => (
-                    <button key={s} onClick={() => setSkills(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])} className={`px-3 py-1.5 rounded-full text-sm border transition-all ${skills.includes(s) ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:border-primary hover:text-foreground"}`}>
-                      {s}
+                    <input ref={fileInput} type="file" accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" className="hidden" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+                    <button type="button" onClick={() => fileInput.current?.click()} className="grid min-h-64 w-full place-items-center border border-dashed border-primary/30 bg-primary/[0.03] p-8 text-center transition-colors hover:bg-primary/[0.06]">
+                      <span>
+                        <span className="mx-auto grid h-12 w-12 place-items-center border border-primary/30 bg-primary/10"><Upload className="h-5 w-5 text-primary" /></span>
+                        <span className="mt-4 block font-medium">{file ? file.name : "Choose your CV"}</span>
+                        <span className="mt-2 block text-sm text-muted-foreground">PDF, DOCX, or TXT up to 5 MB</span>
+                      </span>
                     </button>
-                  ))}
-                </div>
-                {skills.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium mb-2">Selected skills:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {skills.map(s => (
-                        <Badge key={s} variant="secondary" className="gap-1">
-                          {s}
-                          <button onClick={() => setSkills(prev => prev.filter(x => x !== s))} className="ml-1 text-muted-foreground hover:text-foreground">×</button>
-                        </Badge>
-                      ))}
-                    </div>
                   </div>
                 )}
-                <p className="text-sm text-muted-foreground">You can skip this and add skills in your profile.</p>
-              </CardContent>
-            </Card>
-          )}
 
-          {/* Step 5: Career Goal */}
-          {step === 5 && (
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="text-2xl">Your {goal.targetYears}-Year Career Target</CardTitle>
-                <CardDescription>Where do you want to be? This powers your entire roadmap.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Years to achieve this goal</label>
-                  <div className="flex flex-wrap gap-2">
-                    {[1,2,3,4,5,6,7,8,9,10].map(y => (
-                      <button
-                        key={y}
-                        type="button"
-                        onClick={() => setGoalState(p => ({ ...p, targetYears: y }))}
-                        className={`w-10 h-10 rounded-lg text-sm font-semibold border transition-all ${
-                          goal.targetYears === y
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "border-border text-muted-foreground hover:border-primary hover:text-foreground bg-background"
-                        }`}
-                      >
-                        {y}
+                <div className="border-t border-white/10 pt-6">
+                  <label className="text-sm font-medium" htmlFor="target-role">Target role <span className="font-normal text-muted-foreground">(optional)</span></label>
+                  <p className="mt-1 text-xs text-muted-foreground">Leave this blank and the engine will recommend realistic options.</p>
+                  <Input id="target-role" value={targetRole} onChange={(event) => setTargetRole(event.target.value)} className="mt-3 h-11 rounded-none border-white/10 bg-black/20" placeholder="e.g. Product Manager" />
+                </div>
+
+                <Button onClick={analyseIntake} disabled={processing} className="h-12 w-full rounded-none text-base">
+                  {processing ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Extracting career signals</> : <>Map my career options <ArrowRight className="ml-2 h-4 w-4" /></>}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="border border-white/10 bg-card/70 p-6">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div><p className="text-xs font-semibold uppercase text-primary">Profile mapped</p><h2 className="mt-2 text-xl font-semibold">We found your strongest career signals</h2></div>
+                  <Button variant="ghost" size="sm" onClick={() => setResult(null)}>Edit input</Button>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  {[result.extracted.currentRole ?? "Role not detected", result.extracted.industry ?? "Cross-industry", result.extracted.yearsExperience != null ? `${result.extracted.yearsExperience} years` : result.extracted.careerLevel].map((value) => (
+                    <div key={value} className="border border-white/10 bg-black/20 px-4 py-3 text-sm">{value}</div>
+                  ))}
+                </div>
+                {result.extracted.skills.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{result.extracted.skills.map((skill) => <Badge key={skill} variant="secondary">{skill}</Badge>)}</div>}
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase text-primary">Recommended directions</p>
+                <h2 className="mt-2 text-2xl font-semibold">Choose the route that fits your ambition</h2>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  {result.options.map((option) => {
+                    const selected = selectedId === option.id;
+                    return (
+                      <button key={option.id} type="button" onClick={() => setSelectedId(option.id)} className={`min-h-48 border p-5 text-left transition-colors ${selected ? "border-primary bg-primary/[0.06]" : "border-white/10 bg-card/50 hover:border-primary/40"}`}>
+                        <div className="flex items-start justify-between gap-3"><h3 className="font-semibold">{option.title}</h3><span className={`grid h-6 w-6 place-items-center border ${selected ? "border-primary bg-primary text-primary-foreground" : "border-white/20"}`}>{selected && <Check className="h-4 w-4" />}</span></div>
+                        <p className="mt-3 text-sm leading-6 text-muted-foreground">{option.rationale}</p>
+                        <p className="mt-4 text-xs font-medium text-primary">Estimated route: {option.durationMonths} months</p>
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Desired Role in {goal.targetYears} Years <span className="text-primary">*</span></label>
-                  <Input placeholder="e.g. Head of AI Engineering, Senior Product Manager, Director of Technology" value={goal.targetRole} onChange={e => setGoalState(p => ({ ...p, targetRole: e.target.value }))} className="bg-background border-border text-base" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Target Industry</label>
-                    <Input placeholder="e.g. FinTech, AI, Healthcare" value={goal.targetIndustry} onChange={e => setGoalState(p => ({ ...p, targetIndustry: e.target.value }))} className="bg-background border-border" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium mb-1.5 block">Target Level</label>
-                    <select value={goal.targetLevel} onChange={e => setGoalState(p => ({ ...p, targetLevel: e.target.value }))} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm h-10">
-                      <option value="">Select...</option>
-                      {["Senior", "Lead/Principal", "Manager", "Senior Manager", "Director", "VP", "C-Suite"].map(o => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Work Mode Preference</label>
-                  <select value={goal.workModePreference} onChange={e => setGoalState(p => ({ ...p, workModePreference: e.target.value }))} className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm h-10">
-                    <option value="">Select...</option>
-                    {["Remote", "Hybrid", "On-site", "No preference"].map(o => <option key={o}>{o}</option>)}
-                  </select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
 
-          <div className="flex justify-between mt-6">
-            <Button variant="ghost" onClick={() => step > 1 ? setStep(s => s - 1) : setLocation("/dashboard")} className="text-muted-foreground">
-              {step > 1 ? "Back" : "Skip to Dashboard"}
-            </Button>
-            <Button onClick={handleNext} disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90 px-8">
-              {loading ? "Saving..." : step === 5 ? (
-                <><ArrowRight className="w-4 h-4 mr-2" /> Complete Setup</>
-              ) : (
-                <>Next <ChevronRight className="w-4 h-4 ml-1" /></>
-              )}
-            </Button>
-          </div>
-        </div>
+              <Button onClick={buildJourney} disabled={!selectedId} className="h-12 w-full rounded-none text-base">Run analysis and build my journey <ArrowRight className="ml-2 h-4 w-4" /></Button>
+            </div>
+          )}
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

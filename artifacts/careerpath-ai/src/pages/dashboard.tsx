@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { BrainCircuit, AlertTriangle, ArrowRight, Target, CheckCircle2, Zap, Bot, Clock, Rocket, MapPin, ChevronRight, Flag } from "lucide-react";
+import { BrainCircuit, AlertTriangle, ArrowRight, Target, CheckCircle2, Zap, Bot, Clock, Rocket, MapPin, ChevronRight, Flag, Gauge, ListChecks } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function InsightCard({ icon, label, value, sub, href, loading }: {
@@ -52,6 +52,11 @@ export default function Dashboard() {
   const { data: profile, isLoading: loadingProfile } = useGetProfile();
   const { data: milestones, isLoading: loadingMilestones } = useListMilestones();
   const { data: roadmap, isLoading: loadingRoadmap } = useGetRoadmap();
+  const liveSummary = summary as (typeof summary & {
+    userStatus?: string;
+    journeyProgress?: number;
+    nextAction?: string;
+  });
 
   const targetYears = (goal as any)?.targetYears ?? 5;
   const readiness = summary?.readinessScore ?? 0;
@@ -86,7 +91,7 @@ export default function Dashboard() {
       <div className="p-8 max-w-7xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Your Career Dashboard</h1>
             <p className="text-muted-foreground mt-1">Everything you need to reach your career goal, faster.</p>
@@ -99,11 +104,36 @@ export default function Dashboard() {
           </Button>
         </div>
 
+        <section className="grid gap-5 border-y border-primary/20 bg-primary/[0.03] px-5 py-5 md:grid-cols-[1fr_1.5fr_auto] md:items-center">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-items-center border border-primary/30 bg-primary/10">
+              <Gauge className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase text-muted-foreground">Current status</p>
+              <p className="mt-1 font-semibold">{loadingSummary ? "Updating status" : liveSummary?.userStatus ?? "Profile ready"}</p>
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Journey progress</span>
+              <span className="font-semibold text-primary">{liveSummary?.journeyProgress ?? 0}%</span>
+            </div>
+            <div className="mt-2 h-2 overflow-hidden bg-white/5">
+              <div className="h-full bg-primary transition-all duration-500" style={{ width: `${liveSummary?.journeyProgress ?? 0}%` }} />
+            </div>
+          </div>
+          <div className="flex min-w-0 items-center gap-3 md:max-w-xs">
+            <ListChecks className="h-5 w-5 flex-shrink-0 text-primary" />
+            <div className="min-w-0"><p className="text-xs text-muted-foreground">Next action</p><p className="mt-1 truncate text-sm font-medium">{liveSummary?.nextAction ?? nextMilestone?.title ?? "Run your first analysis"}</p></div>
+          </div>
+        </section>
+
         {/* Top 4-card insight strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <InsightCard
             icon={<Target className="w-4 h-4 text-primary" />}
-            label="🎯 Your Target Role"
+            label="Your Target Role"
             value={targetRole ?? null}
             sub={targetYears ? `${targetYears}-year goal` : undefined}
             href="/career-goal"
@@ -111,7 +141,7 @@ export default function Dashboard() {
           />
           <InsightCard
             icon={<MapPin className="w-4 h-4 text-primary" />}
-            label="📍 Where You Are"
+            label="Where You Are"
             value={(profile as any)?.currentRole ?? null}
             sub={hasAnalysis ? `${readiness}% ready` : (profile as any)?.careerLevel ?? undefined}
             href="/profile"
@@ -119,7 +149,7 @@ export default function Dashboard() {
           />
           <InsightCard
             icon={<Zap className="w-4 h-4 text-yellow-400" />}
-            label="⚡ What's Missing"
+            label="What's Missing"
             value={topMissing ?? (loadingGaps ? null : "Run analysis to find gaps")}
             sub={skillGaps && skillGaps.length > 1 ? `+${skillGaps.length - 1} more gaps identified` : undefined}
             href="/analysis"
@@ -127,7 +157,7 @@ export default function Dashboard() {
           />
           <InsightCard
             icon={<Rocket className="w-4 h-4 text-primary" />}
-            label="🚀 What To Do Next"
+            label="What To Do Next"
             value={nextMilestone?.title ?? (loadingMilestones ? null : "Run analysis to generate milestones")}
             sub={nextMilestone?.phase ?? undefined}
             href="/milestones"

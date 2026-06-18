@@ -14,6 +14,7 @@ import dashboardRouter from "./dashboard";
 import journeyRouter from "./journey";
 import advisorsRouter from "./advisors";
 import remindersRouter from "./reminders";
+import onboardingRouter from "./onboarding";
 import certificatesRouter from "./certificates";
 
 const router: IRouter = Router();
@@ -33,6 +34,7 @@ router.use(dashboardRouter);
 router.use(journeyRouter);
 router.use(advisorsRouter);
 router.use(remindersRouter);
+router.use(onboardingRouter);
 router.use(certificatesRouter);
 
 export default router;

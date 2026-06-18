@@ -83,12 +83,12 @@ router.post("/analysis", requireAuth, async (req, res): Promise<void> => {
     })
     .returning();
 
-  // Auto-create milestones if none exist
+  // Journey onboarding creates stage-linked milestones after analysis.
   const existingMilestones = await db
     .select()
     .from(milestonesTable)
     .where(eq(milestonesTable.userId, userId));
-  if (existingMilestones.length === 0) {
+  if (req.body?.skipMilestones !== true && existingMilestones.length === 0) {
     const milestones = generateCareerMilestones(goal.targetRole, targetYears);
     for (const m of milestones) {
       await db

@@ -22,6 +22,7 @@ import Roadmap from "@/pages/roadmap";
 import Milestones from "@/pages/milestones";
 import AnalysisHistory from "@/pages/history";
 import Onboarding from "@/pages/onboarding";
+import Start from "@/pages/start";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/register" component={Register} />
 
       {/* Protected Routes */}
+      <Route path="/start"><ProtectedRoute component={Start} /></Route>
       <Route path="/dashboard"><ProtectedRoute component={Dashboard} /></Route>
       <Route path="/onboarding"><ProtectedRoute component={Onboarding} /></Route>
       <Route path="/profile"><ProtectedRoute component={Profile} /></Route>

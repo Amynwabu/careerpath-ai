@@ -162,7 +162,7 @@ router.get("/auth/google/callback", async (req, res): Promise<void> => {
 
     const token = signToken({ userId: user.id, email: user.email });
     res.cookie(AUTH_COOKIE_NAME, token, cookieOptions(30 * 24 * 60 * 60 * 1000));
-    res.redirect(`${appOrigin()}/dashboard`);
+    res.redirect(`${appOrigin()}/start`);
   } catch (oauthError) {
     logger.error({ err: oauthError }, "Google sign-in failed");
     res.redirect(`${appOrigin()}/login?google=failed`);

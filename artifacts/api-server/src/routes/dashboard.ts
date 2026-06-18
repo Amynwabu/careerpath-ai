@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, desc, count } from "drizzle-orm";
-import { db, profilesTable, careerGoalsTable, careerAnalysesTable, skillsTable, certificationsTable, workExperiencesTable, milestonesTable, activityLogTable } from "@workspace/db";
+import { and, eq, desc, count } from "drizzle-orm";
+import { db, profilesTable, careerGoalsTable, careerAnalysesTable, skillsTable, certificationsTable, workExperiencesTable, milestonesTable, activityLogTable, journeysTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
@@ -23,6 +23,11 @@ router.get("/dashboard/summary", requireAuth, async (req, res): Promise<void> =>
 
   const allMilestones = await db.select().from(milestonesTable).where(eq(milestonesTable.userId, userId));
   const completedMilestones = allMilestones.filter(m => m.completed);
+  const nextMilestone = allMilestones.find(m => !m.completed);
+  const [activeJourney] = await db.select().from(journeysTable)
+    .where(and(eq(journeysTable.userId, userId), eq(journeysTable.status, "active")))
+    .orderBy(desc(journeysTable.createdAt))
+    .limit(1);
 
   // Calculate profile completion
   let completedFields = 0;
@@ -51,6 +56,16 @@ router.get("/dashboard/summary", requireAuth, async (req, res): Promise<void> =>
     milestonesTotal: allMilestones.length,
     analysisCount: Number(analysisCount.value ?? 0),
     lastAnalysisDate: latestAnalysis?.createdAt.toISOString() ?? null,
+    userStatus: activeJourney
+      ? "Journey in progress"
+      : latestAnalysis
+        ? "Ready to build journey"
+        : profile?.currentRole
+          ? "Profile ready"
+          : "Setup required",
+    journeyProgress: activeJourney?.progress ?? 0,
+    nextAction: nextMilestone?.title
+      ?? (latestAnalysis ? "Build your milestone journey" : profile?.currentRole ? "Run your first analysis" : "Complete your career profile"),
   });
 });
 

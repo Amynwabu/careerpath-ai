@@ -13,46 +13,9 @@ import {
   type JourneyChecklistItem,
 } from "@workspace/db";
 import { requireAuth } from "../middlewares/auth";
+import { careerDirections, rankCareerDirections } from "../lib/career-directions";
 
 const router: IRouter = Router();
-
-const directionOptions = [
-  {
-    id: "data-science",
-    title: "Data Scientist",
-    durationMonths: 9,
-    rationale: "Add Python, statistics, and a portfolio to existing business judgement.",
-    skills: ["Python", "Pandas", "SQL", "Model evaluation"],
-  },
-  {
-    id: "ai-product",
-    title: "AI Product Manager",
-    durationMonths: 12,
-    rationale: "Turn communication and domain knowledge into AI product strategy.",
-    skills: ["Product discovery", "AI literacy", "User research", "Roadmapping"],
-  },
-  {
-    id: "software",
-    title: "Software Engineer",
-    durationMonths: 8,
-    rationale: "Build core engineering skills, ship proof, and prepare for interviews.",
-    skills: ["JavaScript", "React", "APIs", "Testing"],
-  },
-  {
-    id: "ux-research",
-    title: "UX Researcher",
-    durationMonths: 6,
-    rationale: "Translate audience insight into research methods and case studies.",
-    skills: ["Research plans", "Interviewing", "Synthesis", "Case studies"],
-  },
-  {
-    id: "cybersecurity",
-    title: "Cybersecurity Analyst",
-    durationMonths: 12,
-    rationale: "Combine process discipline with technical security foundations.",
-    skills: ["Networks", "Threat analysis", "Linux", "Incident response"],
-  },
-];
 
 const stageTemplates = [
   {
@@ -116,6 +79,12 @@ router.post("/journey/generate", requireAuth, async (req, res): Promise<void> =>
     return;
   }
 
+  const rankedOptions = rankCareerDirections([
+    description,
+    profile?.currentRole,
+    profile?.professionalSummary,
+    profile?.industry,
+  ].filter(Boolean).join(" "));
   const options = goal?.targetRole
     ? [
         {
@@ -125,9 +94,9 @@ router.post("/journey/generate", requireAuth, async (req, res): Promise<void> =>
           rationale: "Continue from your saved career goal and latest analysis.",
           skills: ["Role fundamentals", "Portfolio evidence", "Interview readiness"],
         },
-        ...directionOptions.filter((option) => option.title !== goal.targetRole),
+        ...rankedOptions.filter((option) => option.title !== goal.targetRole),
       ]
-    : directionOptions;
+    : rankedOptions;
 
   res.json({
     source: description ? "description" : goal?.targetRole ? "career-goal" : "profile",
@@ -156,7 +125,7 @@ router.post("/journey/build", requireAuth, async (req, res): Promise<void> => {
         title: goal.targetRole,
         durationMonths: Math.max(6, Math.min(60, (goal.targetYears ?? 1) * 12)),
       }
-    : directionOptions.find((option) => option.id === directionId);
+    : careerDirections.find((option) => option.id === directionId);
 
   if (!selectedDirection) {
     res.status(400).json({ error: "Select a valid journey direction." });
