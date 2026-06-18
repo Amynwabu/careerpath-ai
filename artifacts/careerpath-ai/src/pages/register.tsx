@@ -5,6 +5,7 @@ import * as z from "zod";
 import { useRegister } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import {
   Form,
   FormControl,
@@ -80,6 +81,12 @@ export default function Register() {
         </div>
 
         <div className="glass-panel p-8 rounded-xl">
+          <GoogleSignInButton mode="register" />
+          <div className="my-5 flex items-center gap-3">
+            <div className="h-px flex-1 bg-white/15" />
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-white/15" />
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField

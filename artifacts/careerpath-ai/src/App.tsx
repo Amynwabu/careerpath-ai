@@ -9,6 +9,9 @@ import { AuthProvider, ProtectedRoute } from "@/lib/auth";
 import Landing from "@/pages/landing";
 import Intelligence from "@/pages/intelligence";
 import Pricing from "@/pages/pricing";
+import JourneyBuilder from "@/pages/journey-builder";
+import Advisors from "@/pages/advisors";
+import VerifyCertificate from "@/pages/verify-certificate";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
@@ -38,6 +41,7 @@ function Router() {
       <Route path="/" component={Landing} />
       <Route path="/intelligence" component={Intelligence} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/verify/:token" component={VerifyCertificate} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
 
@@ -48,7 +52,9 @@ function Router() {
       <Route path="/career-goal"><ProtectedRoute component={CareerGoal} /></Route>
       <Route path="/analysis"><ProtectedRoute component={Analysis} /></Route>
       <Route path="/roadmap"><ProtectedRoute component={Roadmap} /></Route>
+      <Route path="/journey-builder"><ProtectedRoute component={JourneyBuilder} /></Route>
       <Route path="/milestones"><ProtectedRoute component={Milestones} /></Route>
+      <Route path="/advisors"><ProtectedRoute component={Advisors} /></Route>
       <Route path="/history"><ProtectedRoute component={AnalysisHistory} /></Route>
 
       {/* 404 */}

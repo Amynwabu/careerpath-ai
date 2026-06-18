@@ -11,6 +11,10 @@ import analysisRouter from "./analysis";
 import roadmapRouter from "./roadmap";
 import milestonesRouter from "./milestones";
 import dashboardRouter from "./dashboard";
+import journeyRouter from "./journey";
+import advisorsRouter from "./advisors";
+import remindersRouter from "./reminders";
+import certificatesRouter from "./certificates";
 
 const router: IRouter = Router();
 
@@ -26,5 +30,9 @@ router.use(analysisRouter);
 router.use(roadmapRouter);
 router.use(milestonesRouter);
 router.use(dashboardRouter);
+router.use(journeyRouter);
+router.use(advisorsRouter);
+router.use(remindersRouter);
+router.use(certificatesRouter);
 
 export default router;

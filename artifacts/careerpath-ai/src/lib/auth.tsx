@@ -1,6 +1,11 @@
 import { useEffect, useState, createContext, useContext } from "react";
 import { useLocation } from "wouter";
-import { useGetMe, setAuthTokenGetter } from "@workspace/api-client-react";
+import {
+  getGetMeQueryKey,
+  logout as logoutRequest,
+  useGetMe,
+  setAuthTokenGetter,
+} from "@workspace/api-client-react";
 
 const TOKEN_KEY = "careerpath_token";
 
@@ -11,18 +16,25 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (token: string) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setTokenState] = useState<string | null>(localStorage.getItem(TOKEN_KEY));
+  const [token, setTokenState] = useState<string | null>(
+    localStorage.getItem(TOKEN_KEY),
+  );
   const [, setLocation] = useLocation();
 
-  const { data: user, isLoading: isUserLoading, isError } = useGetMe({
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    isError,
+  } = useGetMe({
     query: {
-      enabled: !!token,
+      queryKey: getGetMeQueryKey(),
+      enabled: true,
       retry: false,
     },
   });
@@ -40,14 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLocation("/dashboard");
   };
 
-  const logout = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    setTokenState(null);
-    setLocation("/login");
+  const logout = async () => {
+    try {
+      await logoutRequest();
+    } finally {
+      localStorage.removeItem(TOKEN_KEY);
+      setTokenState(null);
+      setLocation("/login");
+    }
   };
 
-  const isLoading = isUserLoading && !!token;
-  const isAuthenticated = !!user && !!token;
+  const isLoading = isUserLoading;
+  const isAuthenticated = !!user;
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, isLoading, login, logout }}>

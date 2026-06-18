@@ -1,0 +1,22 @@
+node_modules/
+dist/
+build/
+*.map
+*.tsbuildinfo
+.vite/
+.cache/
+.pnpm-store/
+.vscode/
+.claude/
+
+# Local environment files may contain credentials.
+.env
+.env.*
+!.env.example
+
+# Local Netlify folder
+.netlify/
+
+# Supabase CLI state
+supabase/.branches/
+supabase/.temp/

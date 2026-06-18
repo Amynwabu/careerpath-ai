@@ -2,10 +2,13 @@ import { pgTable, text, serial, timestamp, integer, boolean } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { usersTable } from "./users";
+import { journeyStagesTable } from "./journeys";
 
 export const milestonesTable = pgTable("milestones", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => usersTable.id, { onDelete: "cascade" }),
+  journeyStageId: integer("journey_stage_id").references(() => journeyStagesTable.id, { onDelete: "set null" }),
+  checklistItemKey: text("checklist_item_key"),
   title: text("title").notNull(),
   description: text("description"),
   phase: text("phase").notNull(),

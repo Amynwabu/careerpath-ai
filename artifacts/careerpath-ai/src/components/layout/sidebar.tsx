@@ -6,6 +6,8 @@ import {
   LayoutDashboard,
   User,
   Target,
+  Compass,
+  Users,
   BrainCircuit,
   Map as MapIcon,
   Flag,
@@ -21,9 +23,11 @@ export function Sidebar() {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/profile", label: "My Profile", icon: User },
     { href: "/career-goal", label: "Career Goal", icon: Target },
+    { href: "/journey-builder", label: "Journey Builder", icon: Compass },
     { href: "/analysis", label: "Career Analysis", icon: BrainCircuit },
     { href: "/roadmap", label: "Career Roadmap", icon: MapIcon },
     { href: "/milestones", label: "Milestones", icon: Flag },
+    { href: "/advisors", label: "Advisors", icon: Users },
     { href: "/history", label: "History", icon: History },
   ];
 

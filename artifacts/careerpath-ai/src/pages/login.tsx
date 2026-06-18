@@ -1,10 +1,12 @@
 import { Link } from "wouter";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useLogin } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import {
   Form,
   FormControl,
@@ -26,6 +28,25 @@ export default function Login() {
   const { login } = useAuth();
   const { toast } = useToast();
   const loginMutation = useLogin();
+
+  useEffect(() => {
+    const status = new URLSearchParams(window.location.search).get("google");
+    if (!status) return;
+
+    const descriptions: Record<string, string> = {
+      "not-configured": "Google sign-in is not configured on the API server.",
+      cancelled: "Google sign-in was cancelled.",
+      "invalid-state": "Google sign-in could not be verified. Please try again.",
+      unverified: "Google did not return a verified email address.",
+      failed: "Google sign-in failed. Please try again or use email and password.",
+    };
+
+    toast({
+      title: "Google sign-in unavailable",
+      description: descriptions[status] ?? "Google sign-in could not be completed.",
+      variant: "destructive",
+    });
+  }, [toast]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -78,6 +99,12 @@ export default function Login() {
         </div>
 
         <div className="glass-panel p-8 rounded-xl">
+          <GoogleSignInButton mode="login" />
+          <div className="my-5 flex items-center gap-3">
+            <div className="h-px flex-1 bg-white/15" />
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">or</span>
+            <div className="h-px flex-1 bg-white/15" />
+          </div>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
