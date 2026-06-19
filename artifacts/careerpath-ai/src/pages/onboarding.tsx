@@ -10,6 +10,7 @@ import {
   Radar,
   Route,
   ScanLine,
+  ShieldCheck,
   Sparkles,
   Upload,
 } from "lucide-react";
@@ -172,104 +173,133 @@ export default function Onboarding() {
             </div>
             <div>
               <p className="font-semibold">CareerPath AI</p>
-              <p className="text-xs text-muted-foreground">Career signal intake</p>
+              <p className="text-xs text-muted-foreground">Profile mapping</p>
             </div>
           </div>
-          <Badge variant="outline" className="border-primary/20 text-primary">Private workspace</Badge>
+          <Badge variant="outline" className="border-white/15 text-muted-foreground">First-time setup</Badge>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[280px_1fr] lg:py-16">
-        <aside className="min-w-0 space-y-8">
-          <div>
-            <p className="text-xs font-semibold uppercase text-primary">First-use calibration</p>
-            <h1 className="mt-3 break-words text-3xl font-bold leading-tight">Turn your experience into a realistic next move.</h1>
-            <p className="mt-4 text-sm leading-6 text-muted-foreground">Share what you do now. The career engine maps your evidence, measures readiness, and builds the first milestone route.</p>
-          </div>
-          <ol className="space-y-4 border-l border-white/10 pl-5">
-            {[
-              [BriefcaseBusiness, "Understand", "Extract roles, skills, and experience"],
-              [Sparkles, "Map", "Rank credible career directions"],
-              [Route, "Build", "Create analysis and milestones"],
-            ].map(([Icon, title, copy], index) => {
-              const StepIcon = Icon as typeof BriefcaseBusiness;
-              return (
-                <li key={String(title)} className="relative flex gap-3">
-                  <span className="absolute -left-[27px] top-1 grid h-4 w-4 place-items-center border border-primary/40 bg-background text-[9px] text-primary">{index + 1}</span>
-                  <StepIcon className="mt-0.5 h-4 w-4 text-primary" />
-                  <div><p className="text-sm font-medium">{String(title)}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{String(copy)}</p></div>
-                </li>
-              );
-            })}
-          </ol>
-        </aside>
-
+      <div className="mx-auto max-w-5xl px-6 py-10 sm:py-14">
         <section className="min-w-0">
           {!result ? (
-            <div className="border border-white/10 bg-card/70 p-6 sm:p-8">
-              <div className="flex flex-wrap gap-1 border-b border-white/10 pb-5">
-                <Button type="button" variant={mode === "description" ? "default" : "ghost"} onClick={() => setMode("description")} className="min-w-0 rounded-none">
-                  <FileText className="mr-2 h-4 w-4" /> Describe my work
-                </Button>
-                <Button type="button" variant={mode === "cv" ? "default" : "ghost"} onClick={() => setMode("cv")} className="min-w-0 rounded-none">
-                  <Upload className="mr-2 h-4 w-4" /> Upload CV
-                </Button>
-              </div>
+            <div>
+              <div className="border-b border-white/10 pb-9 sm:pb-11">
+                <p className="text-xs font-semibold uppercase text-primary">Career signal intake</p>
+                <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
+                  Map your experience to a realistic next career move.
+                </h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+                  Describe your current work or upload your CV to start your profile map.
+                </p>
 
-              <div className="mt-6 space-y-6">
-                {mode === "description" ? (
-                  <div>
-                    <label className="text-sm font-medium" htmlFor="career-description">What do you do today?</label>
-                    <p className="mt-1 text-xs text-muted-foreground">Include responsibilities, tools, strengths, and work you enjoy.</p>
-                    <Textarea id="career-description" value={description} onChange={(event) => setDescription(event.target.value)} rows={9} className="mt-3 resize-none rounded-none border-white/10 bg-black/20 text-base leading-7" placeholder="I currently work in operations for a healthcare company. I coordinate projects, improve processes, build Excel reports, and work with senior stakeholders..." />
-                    <p className="mt-2 text-right text-xs text-muted-foreground">{description.length} characters</p>
-                  </div>
-                ) : (
-                  <div>
-                    <input
-                      ref={fileInput}
-                      type="file"
-                      accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-                      className="hidden"
-                      onChange={(event) => {
-                        const selected = event.target.files?.[0] ?? null;
-                        if (!selected) {
-                          setFile(null);
-                          return;
-                        }
-                        try {
-                          validateCvFile(selected);
-                          setFile(selected);
-                        } catch (error) {
-                          event.target.value = "";
-                          setFile(null);
-                          toast({
-                            title: "That CV cannot be uploaded",
-                            description: error instanceof Error ? error.message : "Choose a PDF, DOCX, or TXT file up to 5 MB.",
-                            variant: "destructive",
-                          });
-                        }
-                      }}
-                    />
-                    <button type="button" onClick={() => fileInput.current?.click()} className="grid min-h-64 w-full place-items-center border border-dashed border-primary/30 bg-primary/[0.03] p-8 text-center transition-colors hover:bg-primary/[0.06]">
-                      <span>
-                        <span className="mx-auto grid h-12 w-12 place-items-center border border-primary/30 bg-primary/10"><Upload className="h-5 w-5 text-primary" /></span>
-                        <span className="mt-4 block font-medium">{file ? file.name : "Choose your CV"}</span>
-                        <span className="mt-2 block text-sm text-muted-foreground">PDF, DOCX, or TXT up to 5 MB</span>
-                      </span>
-                    </button>
-                  </div>
-                )}
-
-                <div className="border-t border-white/10 pt-6">
-                  <label className="text-sm font-medium" htmlFor="target-role">Target role <span className="font-normal text-muted-foreground">(optional)</span></label>
-                  <p className="mt-1 text-xs text-muted-foreground">Leave this blank and the engine will recommend realistic options.</p>
-                  <Input id="target-role" value={targetRole} onChange={(event) => setTargetRole(event.target.value)} className="mt-3 h-11 rounded-none border-white/10 bg-black/20" placeholder="e.g. Product Manager" />
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                  <Button type="button" onClick={() => setMode("description")} className="h-12 rounded-none px-6 text-base sm:min-w-52">
+                    <FileText className="mr-2 h-4 w-4" /> Describe what I do
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setMode("cv")} className="h-12 rounded-none border-white/15 px-6 text-base sm:min-w-52">
+                    <Upload className="mr-2 h-4 w-4" /> Upload my CV
+                  </Button>
                 </div>
 
-                <Button onClick={analyseIntake} disabled={processing} className="h-12 w-full rounded-none text-base">
-                  {processing ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Extracting career signals</> : <>Map my career options <ArrowRight className="ml-2 h-4 w-4" /></>}
-                </Button>
+                <p className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
+                  Private workspace. Review and edit before analysis.
+                </p>
+              </div>
+
+              <ol className="grid border-b border-white/10 sm:grid-cols-3">
+                {[
+                  [BriefcaseBusiness, "Understand"],
+                  [Sparkles, "Map"],
+                  [Route, "Build"],
+                ].map(([Icon, title], index) => {
+                  const StepIcon = Icon as typeof BriefcaseBusiness;
+                  return (
+                    <li key={String(title)} className="flex min-h-20 items-center gap-3 border-b border-white/10 py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:px-5 sm:first:pl-0 sm:last:border-r-0">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center border border-primary/30 bg-primary/[0.06] text-primary">
+                        <StepIcon className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-[11px] font-semibold text-muted-foreground">0{index + 1}</p>
+                        <p className="text-sm font-medium">{String(title)}</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+
+              <div className="py-8 sm:py-10">
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase text-primary">Your starting point</p>
+                    <h2 className="mt-2 text-xl font-semibold">{mode === "description" ? "Describe your current work" : "Upload your CV"}</h2>
+                  </div>
+                  <div className="flex border border-white/10 p-1">
+                    <Button type="button" size="sm" variant={mode === "description" ? "secondary" : "ghost"} onClick={() => setMode("description")} className="rounded-none" aria-label="Use work description">
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                    <Button type="button" size="sm" variant={mode === "cv" ? "secondary" : "ghost"} onClick={() => setMode("cv")} className="rounded-none" aria-label="Use CV upload">
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {mode === "description" ? (
+                    <div>
+                      <label className="text-sm font-medium" htmlFor="career-description">What do you do today?</label>
+                      <p className="mt-1 text-xs text-muted-foreground">Include responsibilities, tools, strengths, and work you enjoy.</p>
+                      <Textarea id="career-description" value={description} onChange={(event) => setDescription(event.target.value)} rows={9} className="mt-3 resize-none rounded-none border-white/10 bg-black/20 text-base leading-7" placeholder="I currently work in operations for a healthcare company. I coordinate projects, improve processes, build Excel reports, and work with senior stakeholders..." />
+                      <p className="mt-2 text-right text-xs text-muted-foreground">{description.length} characters</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        ref={fileInput}
+                        type="file"
+                        accept=".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                        className="hidden"
+                        onChange={(event) => {
+                          const selected = event.target.files?.[0] ?? null;
+                          if (!selected) {
+                            setFile(null);
+                            return;
+                          }
+                          try {
+                            validateCvFile(selected);
+                            setFile(selected);
+                          } catch (error) {
+                            event.target.value = "";
+                            setFile(null);
+                            toast({
+                              title: "That CV cannot be uploaded",
+                              description: error instanceof Error ? error.message : "Choose a PDF, DOCX, or TXT file up to 5 MB.",
+                              variant: "destructive",
+                            });
+                          }
+                        }}
+                      />
+                      <button type="button" onClick={() => fileInput.current?.click()} className="grid min-h-64 w-full place-items-center border border-dashed border-primary/30 bg-primary/[0.03] p-8 text-center transition-colors hover:bg-primary/[0.06]">
+                        <span>
+                          <span className="mx-auto grid h-12 w-12 place-items-center border border-primary/30 bg-primary/10"><Upload className="h-5 w-5 text-primary" /></span>
+                          <span className="mt-4 block font-medium">{file ? file.name : "Choose your CV"}</span>
+                          <span className="mt-2 block text-sm text-muted-foreground">PDF, DOCX, or TXT up to 5 MB</span>
+                        </span>
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="border-t border-white/10 pt-6">
+                    <label className="text-sm font-medium" htmlFor="target-role">Target role <span className="font-normal text-muted-foreground">(optional)</span></label>
+                    <p className="mt-1 text-xs text-muted-foreground">Leave this blank and the engine will recommend realistic options.</p>
+                    <Input id="target-role" value={targetRole} onChange={(event) => setTargetRole(event.target.value)} className="mt-3 h-11 rounded-none border-white/10 bg-black/20" placeholder="e.g. Product Manager" />
+                  </div>
+
+                  <Button onClick={analyseIntake} disabled={processing} className="h-12 w-full rounded-none text-base">
+                    {processing ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Extracting career signals</> : <>Map my career options <ArrowRight className="ml-2 h-4 w-4" /></>}
+                  </Button>
+                </div>
               </div>
             </div>
           ) : (
