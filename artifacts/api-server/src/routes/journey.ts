@@ -256,6 +256,12 @@ router.post("/journey/build", requireAuth, async (req, res): Promise<void> => {
         ),
       );
 
+    // A rebuilt journey replaces the active roadmap. The archived journey keeps
+    // its stage checklist, while dashboard milestones follow the new journey.
+    await tx
+      .delete(milestonesTable)
+      .where(eq(milestonesTable.userId, userId));
+
     const [journey] = await tx
       .insert(journeysTable)
       .values({

@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { and, eq, desc, count } from "drizzle-orm";
 import { db, profilesTable, careerGoalsTable, careerAnalysesTable, skillsTable, certificationsTable, workExperiencesTable, milestonesTable, activityLogTable, journeysTable } from "@workspace/db";
 import { requireAuth } from "../middlewares/auth";
+import { getProfessionCluster } from "../lib/profession-mapping";
 
 const router: IRouter = Router();
 
@@ -85,7 +86,23 @@ router.get("/dashboard/skill-gaps", requireAuth, async (req, res): Promise<void>
   const [goal] = await db.select().from(careerGoalsTable).where(eq(careerGoalsTable.userId, userId));
   const targetRole = goal?.targetRole ?? "Target Role";
 
-  const gaps = [
+  const [profile] = await db.select().from(profilesTable).where(eq(profilesTable.userId, userId));
+  const professionCluster = getProfessionCluster([
+    profile?.currentRole,
+    profile?.industry,
+    profile?.professionalSummary,
+    targetRole,
+  ].filter(Boolean).join(" "));
+
+  const gaps = professionCluster ? professionCluster.gaps.map((gap, index) => ({
+    skill: gap.replace(/\b\w/g, letter => letter.toUpperCase()),
+    priority: index < 2 ? "High" : index < 4 ? "Medium" : "Low",
+    category: /accreditation|certification|competenc|compliance|regulat/.test(gap)
+      ? "Qualification"
+      : "Professional capability",
+    currentLevel: null,
+    requiredLevel: index < 2 ? "Expert" : "Advanced",
+  })) : [
     { skill: "Strategic Leadership", priority: "High", category: "Leadership", currentLevel: null, requiredLevel: "Expert" },
     { skill: "Executive Stakeholder Management", priority: "High", category: "Communication", currentLevel: null, requiredLevel: "Advanced" },
     { skill: `${targetRole.includes("AI") || targetRole.includes("Data") ? "AI/ML Engineering" : "Domain Expertise"}`, priority: "High", category: "Technical", currentLevel: "Intermediate", requiredLevel: "Expert" },
