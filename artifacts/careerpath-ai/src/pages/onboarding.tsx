@@ -1,19 +1,7 @@
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import {
-  ArrowRight,
-  BriefcaseBusiness,
-  Check,
-  FileText,
-  Loader2,
-  Radar,
-  Route,
-  ScanLine,
-  ShieldCheck,
-  Sparkles,
-  Upload,
-} from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -140,9 +128,7 @@ export default function Onboarding() {
       <main className="min-h-screen bg-background grid place-items-center px-6">
         <section className="w-full max-w-xl border border-primary/20 bg-card p-8 shadow-[0_0_60px_rgba(0,240,255,0.08)]">
           <div className="flex items-center gap-4 border-b border-white/10 pb-6">
-            <div className="grid h-12 w-12 place-items-center bg-primary/10 border border-primary/30">
-              <ScanLine className="h-6 w-6 text-primary animate-pulse" />
-            </div>
+            <BrandMark size="lg" className="animate-pulse" />
             <div>
               <p className="text-xs font-semibold uppercase text-primary">Career engine active</p>
               <h1 className="mt-1 text-2xl font-semibold">Building your route</h1>
@@ -152,7 +138,7 @@ export default function Onboarding() {
             {BUILD_STEPS.map((label, index) => (
               <div key={label} className="flex items-center gap-3 border border-white/10 bg-white/[0.02] p-4">
                 <div className={`grid h-7 w-7 place-items-center border ${index < buildStep ? "border-primary bg-primary text-primary-foreground" : index === buildStep ? "border-primary text-primary" : "border-white/10 text-muted-foreground"}`}>
-                  {index < buildStep ? <Check className="h-4 w-4" /> : index === buildStep ? <Loader2 className="h-4 w-4 animate-spin" /> : <span className="text-xs">{index + 1}</span>}
+                  <span className="text-xs">{index < buildStep ? "Done" : index + 1}</span>
                 </div>
                 <span className={index <= buildStep ? "text-foreground" : "text-muted-foreground"}>{label}</span>
               </div>
@@ -168,9 +154,7 @@ export default function Onboarding() {
       <header className="border-b border-white/10 px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center border border-primary/30 bg-primary/10">
-              <Radar className="h-5 w-5 text-primary" />
-            </div>
+            <BrandMark />
             <div>
               <p className="font-semibold">CareerPath AI</p>
               <p className="text-xs text-muted-foreground">Profile mapping</p>
@@ -195,38 +179,25 @@ export default function Onboarding() {
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                   <Button type="button" onClick={() => setMode("description")} className="h-12 rounded-none px-6 text-base sm:min-w-52">
-                    <FileText className="mr-2 h-4 w-4" /> Describe what I do
+                    Describe what I do
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setMode("cv")} className="h-12 rounded-none border-white/15 px-6 text-base sm:min-w-52">
-                    <Upload className="mr-2 h-4 w-4" /> Upload my CV
+                    Upload my CV
                   </Button>
                 </div>
 
-                <p className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
-                  <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
-                  Private workspace. Review and edit before analysis.
-                </p>
+                <p className="mt-5 text-sm text-muted-foreground">Private workspace. Review and edit before analysis.</p>
               </div>
 
               <ol className="grid border-b border-white/10 sm:grid-cols-3">
-                {[
-                  [BriefcaseBusiness, "Understand"],
-                  [Sparkles, "Map"],
-                  [Route, "Build"],
-                ].map(([Icon, title], index) => {
-                  const StepIcon = Icon as typeof BriefcaseBusiness;
-                  return (
-                    <li key={String(title)} className="flex min-h-20 items-center gap-3 border-b border-white/10 py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:px-5 sm:first:pl-0 sm:last:border-r-0">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center border border-primary/30 bg-primary/[0.06] text-primary">
-                        <StepIcon className="h-4 w-4" />
-                      </span>
+                {["Understand", "Map", "Build"].map((title, index) => (
+                    <li key={title} className="flex min-h-20 items-center gap-3 border-b border-white/10 py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:px-5 sm:first:pl-0 sm:last:border-r-0">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center border border-primary/30 bg-primary/[0.06] text-xs text-primary">0{index + 1}</span>
                       <div>
-                        <p className="text-[11px] font-semibold text-muted-foreground">0{index + 1}</p>
-                        <p className="text-sm font-medium">{String(title)}</p>
+                        <p className="text-sm font-medium">{title}</p>
                       </div>
                     </li>
-                  );
-                })}
+                ))}
               </ol>
 
               <div className="py-8 sm:py-10">
@@ -237,10 +208,10 @@ export default function Onboarding() {
                   </div>
                   <div className="flex border border-white/10 p-1">
                     <Button type="button" size="sm" variant={mode === "description" ? "secondary" : "ghost"} onClick={() => setMode("description")} className="rounded-none" aria-label="Use work description">
-                      <FileText className="h-4 w-4" />
+                      Description
                     </Button>
                     <Button type="button" size="sm" variant={mode === "cv" ? "secondary" : "ghost"} onClick={() => setMode("cv")} className="rounded-none" aria-label="Use CV upload">
-                      <Upload className="h-4 w-4" />
+                      CV upload
                     </Button>
                   </div>
                 </div>
@@ -282,7 +253,6 @@ export default function Onboarding() {
                       />
                       <button type="button" onClick={() => fileInput.current?.click()} className="grid min-h-64 w-full place-items-center border border-dashed border-primary/30 bg-primary/[0.03] p-8 text-center transition-colors hover:bg-primary/[0.06]">
                         <span>
-                          <span className="mx-auto grid h-12 w-12 place-items-center border border-primary/30 bg-primary/10"><Upload className="h-5 w-5 text-primary" /></span>
                           <span className="mt-4 block font-medium">{file ? file.name : "Choose your CV"}</span>
                           <span className="mt-2 block text-sm text-muted-foreground">PDF, DOCX, or TXT up to 5 MB</span>
                         </span>
@@ -297,7 +267,7 @@ export default function Onboarding() {
                   </div>
 
                   <Button onClick={analyseIntake} disabled={processing} className="h-12 w-full rounded-none text-base">
-                    {processing ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Extracting career signals</> : <>Map my career options <ArrowRight className="ml-2 h-4 w-4" /></>}
+                    {processing ? "Extracting career signals..." : "Map my career options"}
                   </Button>
                 </div>
               </div>
@@ -325,7 +295,7 @@ export default function Onboarding() {
                     const selected = selectedId === option.id;
                     return (
                       <button key={option.id} type="button" onClick={() => setSelectedId(option.id)} className={`min-h-48 border p-5 text-left transition-colors ${selected ? "border-primary bg-primary/[0.06]" : "border-white/10 bg-card/50 hover:border-primary/40"}`}>
-                        <div className="flex items-start justify-between gap-3"><h3 className="font-semibold">{option.title}</h3><span className={`grid h-6 w-6 place-items-center border ${selected ? "border-primary bg-primary text-primary-foreground" : "border-white/20"}`}>{selected && <Check className="h-4 w-4" />}</span></div>
+                        <div className="flex items-start justify-between gap-3"><h3 className="font-semibold">{option.title}</h3><span className={`border px-2 py-1 text-[10px] font-semibold uppercase ${selected ? "border-primary bg-primary text-primary-foreground" : "border-white/20 text-muted-foreground"}`}>{selected ? "Selected" : "Select"}</span></div>
                         <p className="mt-3 text-sm leading-6 text-muted-foreground">{option.rationale}</p>
                         <p className="mt-4 text-xs font-medium text-primary">Estimated route: {option.durationMonths} months</p>
                       </button>
@@ -334,7 +304,7 @@ export default function Onboarding() {
                 </div>
               </div>
 
-              <Button onClick={buildJourney} disabled={!selectedId} className="h-12 w-full rounded-none text-base">Run analysis and build my journey <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button onClick={buildJourney} disabled={!selectedId} className="h-12 w-full rounded-none text-base">Run analysis and build my journey</Button>
             </div>
           )}
         </section>

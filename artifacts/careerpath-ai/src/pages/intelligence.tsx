@@ -1,63 +1,51 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  ArrowRight, Brain, Map, Rocket, BarChart3, BookOpen, FolderOpen,
-  TrendingUp, Target, CheckCircle2, Zap, Clock, Bot, Flag, Star,
-  ChevronRight, Layers, Search, GitBranch,
-} from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 const FEATURE_GROUPS = [
   {
     badge: "Profile Intelligence",
     headline: "Know Exactly Where You Stand",
     desc: "Our AI reads your CV, work history, skills, and certifications — then maps them against real job requirements for your target role.",
-    icon: Brain,
-    color: "primary",
     features: [
-      { icon: Search, title: "CV Analysis", desc: "Automatically extracts skills, experience, and qualifications from your profile." },
-      { icon: Target, title: "Role Gap Mapping", desc: "Compares your profile against live requirements for your target role." },
-      { icon: BarChart3, title: "Readiness Score", desc: "A single percentage that shows how close you are to being job-ready." },
-      { icon: TrendingUp, title: "Career Level Assessment", desc: "Understands where you sit in the job market today." },
+      { title: "CV Analysis", desc: "Automatically extracts skills, experience, and qualifications from your profile." },
+      { title: "Role Gap Mapping", desc: "Compares your profile against live requirements for your target role." },
+      { title: "Readiness Score", desc: "A single percentage that shows how close you are to being job-ready." },
+      { title: "Career Level Assessment", desc: "Understands where you sit in the job market today." },
     ],
   },
   {
     badge: "Roadmap Engine",
     headline: "Your Personalised Career Path",
     desc: "Not a generic template. A phase-by-phase plan built around your specific skills, your target role, and your chosen timeline.",
-    icon: Map,
-    color: "cyan-500",
     features: [
-      { icon: GitBranch, title: "Phase-by-Phase Roadmap", desc: "Structured phases with clear focus areas and timelines." },
-      { icon: Clock, title: "Timeline Optimisation", desc: "Set your target years and the AI builds a path that fits." },
-      { icon: Flag, title: "Milestone Tracking", desc: "Bite-sized milestones that keep you accountable and on track." },
-      { icon: Zap, title: "Urgency Intelligence", desc: "See how much faster you'll reach your goal with structured AI guidance." },
+      { title: "Phase-by-Phase Roadmap", desc: "Structured phases with clear focus areas and timelines." },
+      { title: "Timeline Optimisation", desc: "Set your target years and the AI builds a path that fits." },
+      { title: "Milestone Tracking", desc: "Bite-sized milestones that keep you accountable and on track." },
+      { title: "Urgency Intelligence", desc: "See how much faster you'll reach your goal with structured AI guidance." },
     ],
   },
   {
     badge: "AI Coach",
     headline: "A Mentor That Knows Your Profile",
     desc: "Your AI coach gives personalised, actionable advice based on your actual data — not generic career tips.",
-    icon: Bot,
-    color: "purple-500",
     features: [
-      { icon: Bot, title: "Weekly Focus Tips", desc: "Tells you exactly which skill to work on this week for maximum progress." },
-      { icon: Layers, title: "Priority Ranking", desc: "Ranks your skill gaps by impact — so you work on what matters most first." },
-      { icon: TrendingUp, title: "Progress Insights", desc: "Tracks your profile completion and readiness score over time." },
-      { icon: Star, title: "Goal Adaptation", desc: "Adjusts recommendations as your profile evolves." },
+      { title: "Weekly Focus Tips", desc: "Tells you exactly which skill to work on this week for maximum progress." },
+      { title: "Priority Ranking", desc: "Ranks your skill gaps by impact — so you work on what matters most first." },
+      { title: "Progress Insights", desc: "Tracks your profile completion and readiness score over time." },
+      { title: "Goal Adaptation", desc: "Adjusts recommendations as your profile evolves." },
     ],
   },
   {
     badge: "Learning System",
     headline: "Exact Resources. No Guessing.",
     desc: "Every skill gap comes with curated learning resources, recommended projects, and certification paths — matched specifically to your needs.",
-    icon: BookOpen,
-    color: "amber-500",
     features: [
-      { icon: BookOpen, title: "Course Recommendations", desc: "Curated courses from top platforms matched to each skill gap." },
-      { icon: FolderOpen, title: "Portfolio Projects", desc: "AI-suggested projects that prove your skills to hiring managers." },
-      { icon: Layers, title: "Certification Paths", desc: "Recommended certifications that unlock your target role." },
-      { icon: CheckCircle2, title: "Experience Guidance", desc: "Actionable steps to build real-world experience." },
+      { title: "Course Recommendations", desc: "Curated courses from top platforms matched to each skill gap." },
+      { title: "Portfolio Projects", desc: "AI-suggested projects that prove your skills to hiring managers." },
+      { title: "Certification Paths", desc: "Recommended certifications that unlock your target role." },
+      { title: "Experience Guidance", desc: "Actionable steps to build real-world experience." },
     ],
   },
 ];
@@ -83,9 +71,7 @@ export default function Intelligence() {
       <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center glow-box">
-              <div className="w-4 h-4 border-2 border-primary-foreground rounded-sm" />
-            </div>
+            <BrandMark />
             <span className="font-bold text-xl tracking-tight">CareerPath AI</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
@@ -96,7 +82,7 @@ export default function Intelligence() {
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden sm:block">Sign In</Link>
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_rgba(0,240,255,0.3)]">
-              <Link href="/register">Start Free <ArrowRight className="w-4 h-4 ml-1.5" /></Link>
+              <Link href="/register">Start Free</Link>
             </Button>
           </div>
         </div>
@@ -115,7 +101,7 @@ export default function Intelligence() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(0,240,255,0.4)] glow-box">
-              <Link href="/register">Get Started Free <ArrowRight className="w-5 h-5 ml-2" /></Link>
+              <Link href="/register">Get Started Free</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="h-14 px-8 border-white/10 hover:bg-white/5">
               <Link href="/pricing">See Pricing</Link>
@@ -137,15 +123,12 @@ export default function Intelligence() {
                 <h2 className="text-3xl md:text-4xl font-bold mb-5">{group.headline}</h2>
                 <p className="text-muted-foreground leading-relaxed mb-8 text-lg">{group.desc}</p>
                 <Button asChild className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20">
-                  <Link href="/register">Try It Free <ChevronRight className="w-4 h-4 ml-1" /></Link>
+                  <Link href="/register">Try It Free</Link>
                 </Button>
               </div>
               <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${gIdx % 2 === 1 ? "lg:order-1" : ""}`}>
                 {group.features.map((f) => (
                   <div key={f.title} className="glass-panel border border-white/5 rounded-xl p-5 hover:border-primary/20 transition-all group">
-                    <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <f.icon className="w-4 h-4 text-primary" />
-                    </div>
                     <h4 className="font-semibold mb-2">{f.title}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
                   </div>
@@ -176,14 +159,10 @@ export default function Intelligence() {
                 <div key={row.feature} className={`grid grid-cols-3 border-b border-white/5 text-sm ${i % 2 === 0 ? "" : "bg-white/2"}`}>
                   <div className="p-4 text-foreground/80">{row.feature}</div>
                   <div className="p-4 flex items-center justify-center">
-                    {row.generic
-                      ? <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
-                      : <span className="text-muted-foreground/30 text-lg">—</span>}
+                    <span className={row.generic ? "text-muted-foreground" : "text-muted-foreground/30"}>{row.generic ? "Included" : "Not included"}</span>
                   </div>
                   <div className="p-4 flex items-center justify-center">
-                    {row.us
-                      ? <CheckCircle2 className="w-4 h-4 text-primary" />
-                      : <span className="text-muted-foreground/30 text-lg">—</span>}
+                    <span className={row.us ? "text-primary" : "text-muted-foreground/30"}>{row.us ? "Included" : "Not included"}</span>
                   </div>
                 </div>
               ))}
@@ -198,7 +177,7 @@ export default function Intelligence() {
           <h2 className="text-3xl md:text-4xl font-bold mb-5">Ready to Build Your Career Path?</h2>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">Start free. Get your personalised roadmap in minutes.</p>
           <Button asChild size="lg" className="h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(0,240,255,0.4)] glow-box">
-            <Link href="/register">Start Your Career Path <ArrowRight className="w-5 h-5 ml-2" /></Link>
+            <Link href="/register">Start Your Career Path</Link>
           </Button>
         </div>
       </section>
@@ -208,9 +187,7 @@ export default function Intelligence() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded bg-primary flex items-center justify-center">
-                <div className="w-3.5 h-3.5 border-2 border-primary-foreground rounded-sm" />
-              </div>
+              <BrandMark size="sm" />
               <span className="font-bold text-sm">CareerPath AI</span>
             </Link>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">

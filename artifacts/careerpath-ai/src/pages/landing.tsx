@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, CheckCircle2, Zap, Map, Rocket, Target, Brain, TrendingUp, Star, BarChart3, BookOpen, FolderOpen } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 function DashboardMockup() {
   return (
@@ -35,13 +35,13 @@ function DashboardMockup() {
           {/* 4 insight cards */}
           <div className="grid grid-cols-2 gap-2">
             {[
-              { icon: "🎯", label: "Target Role", value: "AI Engineer" },
-              { icon: "📍", label: "Where You Are", value: "Data Analyst" },
-              { icon: "⚡", label: "What's Missing", value: "Machine Learning" },
-              { icon: "🚀", label: "What To Do Next", value: "Build ML project" },
+              { label: "Target Role", value: "AI Engineer" },
+              { label: "Where You Are", value: "Data Analyst" },
+              { label: "What's Missing", value: "Machine Learning" },
+              { label: "What To Do Next", value: "Build ML project" },
             ].map((card) => (
               <div key={card.label} className="rounded-lg bg-white/5 border border-white/5 p-2.5">
-                <div className="text-[9px] text-muted-foreground uppercase tracking-wider">{card.icon} {card.label}</div>
+                <div className="text-[9px] text-muted-foreground uppercase tracking-wider">{card.label}</div>
                 <div className="text-[10px] font-semibold mt-0.5 text-foreground truncate">{card.value}</div>
               </div>
             ))}
@@ -51,14 +51,14 @@ function DashboardMockup() {
             <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Time to Goal</div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <div className="text-[9px] text-muted-foreground">⏳ At current pace</div>
+                <div className="text-[9px] text-muted-foreground">At current pace</div>
                 <div className="text-base font-bold text-muted-foreground">8.2 <span className="text-[9px]">yrs</span></div>
                 <div className="h-1 rounded-full bg-white/5 mt-1 overflow-hidden">
                   <div className="h-full w-3/4 bg-muted-foreground/30 rounded-full" />
                 </div>
               </div>
               <div>
-                <div className="text-[9px] text-primary">⚡ With CareerPath AI</div>
+                <div className="text-[9px] text-primary">With CareerPath AI</div>
                 <div className="text-base font-bold text-primary">2.8 <span className="text-[9px]">yrs</span></div>
                 <div className="h-1 rounded-full bg-white/5 mt-1 overflow-hidden">
                   <div className="h-full w-1/3 bg-primary rounded-full shadow-[0_0_6px_rgba(0,240,255,0.6)]" />
@@ -108,21 +108,18 @@ const TRANSFORMATIONS = [
 
 const HOW_IT_WORKS = [
   {
-    icon: Brain,
     step: "01",
     title: "Analyse",
     desc: "Upload your CV and tell us your target role. Our AI breaks down your current skills, experience, and qualifications against real job requirements.",
     bullets: ["CV skill extraction", "Role requirement mapping", "Gap identification"],
   },
   {
-    icon: Map,
     step: "02",
     title: "Map",
     desc: "Get a personalised, phase-by-phase career roadmap built around your timeline — not a generic template.",
     bullets: ["Custom milestone plan", "Priority skill ordering", "Timeline optimisation"],
   },
   {
-    icon: Rocket,
     step: "03",
     title: "Execute",
     desc: "Every gap comes with curated courses, tools, and project ideas — so you always know exactly what to do next.",
@@ -131,12 +128,12 @@ const HOW_IT_WORKS = [
 ];
 
 const FEATURES = [
-  { icon: BarChart3, title: "Skill Gap Detection", desc: "AI compares your profile to real job requirements and highlights exactly what's missing." },
-  { icon: Map, title: "AI Career Roadmap", desc: "Phase-by-phase plan personalised to your timeline, skills, and target role." },
-  { icon: BookOpen, title: "Learning Platform Links", desc: "Curated courses from Coursera, Udemy, YouTube, and more — matched to your gaps." },
-  { icon: FolderOpen, title: "Portfolio Guidance", desc: "AI-suggested projects that prove your skills to employers." },
-  { icon: TrendingUp, title: "Progress Tracking", desc: "Milestone-based tracking so you know exactly how far you've come." },
-  { icon: Target, title: "Real Job Outcomes", desc: "Every recommendation is tied to actual hiring requirements, not guesswork." },
+  { title: "Skill Gap Detection", desc: "AI compares your profile to real job requirements and highlights exactly what's missing." },
+  { title: "AI Career Roadmap", desc: "Phase-by-phase plan personalised to your timeline, skills, and target role." },
+  { title: "Learning Platform Links", desc: "Curated courses from Coursera, Udemy, YouTube, and more — matched to your gaps." },
+  { title: "Portfolio Guidance", desc: "AI-suggested projects that prove your skills to employers." },
+  { title: "Progress Tracking", desc: "Milestone-based tracking so you know exactly how far you've come." },
+  { title: "Real Job Outcomes", desc: "Every recommendation is tied to actual hiring requirements, not guesswork." },
 ];
 
 export default function Landing() {
@@ -147,9 +144,7 @@ export default function Landing() {
       <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
         <div className="container mx-auto px-6 h-18 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center glow-box">
-              <div className="w-4 h-4 border-2 border-primary-foreground rounded-sm" />
-            </div>
+            <BrandMark />
             <span className="font-bold text-xl tracking-tight">CareerPath AI</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
@@ -162,7 +157,7 @@ export default function Landing() {
               Sign In
             </Link>
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_rgba(0,240,255,0.3)]">
-              <Link href="/register">Start Free <ArrowRight className="w-4 h-4 ml-1.5" /></Link>
+              <Link href="/register">Start Free</Link>
             </Button>
           </div>
         </div>
@@ -211,7 +206,7 @@ export default function Landing() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button asChild size="lg" className="text-base h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(0,240,255,0.4)] glow-box">
-                  <Link href="/register">Start Your Career Path <ArrowRight className="w-5 h-5 ml-2" /></Link>
+                  <Link href="/register">Start Your Career Path</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="text-base h-14 px-8 border-white/10 hover:bg-white/5">
                   <Link href="/pricing">View Plans</Link>
@@ -233,13 +228,13 @@ export default function Landing() {
       <section className="py-8 border-y border-white/5 bg-white/2">
         <div className="container mx-auto px-6">
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2"><Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /><span>Built by an AI & Robotics expert</span></div>
+            <div>Built by an AI & Robotics expert</div>
             <div className="w-px h-4 bg-white/10 hidden sm:block" />
-            <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-primary" /><span>Academic & industry validated</span></div>
+            <div>Academic & industry validated</div>
             <div className="w-px h-4 bg-white/10 hidden sm:block" />
-            <div className="flex items-center gap-2"><Zap className="w-4 h-4 text-primary" /><span>AI-powered gap analysis</span></div>
+            <div>AI-powered gap analysis</div>
             <div className="w-px h-4 bg-white/10 hidden sm:block" />
-            <div className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /><span>Personalised milestones</span></div>
+            <div>Personalised milestones</div>
           </div>
         </div>
       </section>
@@ -258,17 +253,11 @@ export default function Landing() {
               <div key={step.step} className="relative group">
                 <div className="glass-panel border border-white/5 rounded-2xl p-8 h-full hover:border-primary/20 transition-all duration-300">
                   <div className="text-5xl font-black text-primary/10 mb-4">{step.step}</div>
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-6 group-hover:bg-primary/20 transition-colors">
-                    <step.icon className="w-6 h-6 text-primary" />
-                  </div>
                   <h3 className="text-xl font-bold mb-3">{step.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed mb-6">{step.desc}</p>
                   <ul className="space-y-2">
                     {step.bullets.map(b => (
-                      <li key={b} className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                        <span className="text-foreground/80">{b}</span>
-                      </li>
+                      <li key={b} className="border-l border-primary/40 pl-3 text-sm text-foreground/80">{b}</li>
                     ))}
                   </ul>
                 </div>
@@ -293,13 +282,12 @@ export default function Landing() {
                 Most career tools tell you what's wrong. We tell you exactly how to fix it — with a step-by-step plan, curated learning resources, and AI-guided milestones that adapt to your progress.
               </p>
               <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Link href="/intelligence">Explore All Features <ArrowRight className="w-4 h-4 ml-2" /></Link>
+                <Link href="/intelligence">Explore All Features</Link>
               </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {FEATURES.map((f) => (
                 <div key={f.title} className="glass-panel border border-white/5 rounded-xl p-5 hover:border-primary/20 transition-all">
-                  <f.icon className="w-5 h-5 text-primary mb-3" />
                   <h4 className="font-semibold text-sm mb-1">{f.title}</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
                 </div>
@@ -315,7 +303,7 @@ export default function Landing() {
           <div className="text-center mb-16">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">Real Transformations</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              From Where You Are → To Where You Want To Be
+              From Where You Are To Where You Want To Be
             </h2>
             <p className="text-muted-foreground max-w-lg mx-auto">
               CareerPath AI has helped professionals make career transitions that felt impossible — with a clear, AI-generated plan.
@@ -329,7 +317,6 @@ export default function Landing() {
                 <div className="font-semibold mb-3">{t.from}</div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="flex-1 h-px bg-gradient-to-r from-white/10 to-primary/40" />
-                  <ArrowRight className="w-4 h-4 text-primary" />
                 </div>
                 <div className="text-sm text-muted-foreground mb-1">To</div>
                 <div className="font-bold text-primary mb-4">{t.to}</div>
@@ -359,10 +346,7 @@ export default function Landing() {
               <div className="text-3xl font-black mb-6">£0 <span className="text-sm font-normal text-muted-foreground">forever</span></div>
               <ul className="space-y-3 mb-8">
                 {["Basic career roadmap", "Skill gap overview", "3 AI analysis runs", "Core milestone tracking"].map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                    <span>{f}</span>
-                  </li>
+                  <li key={f} className="border-l border-primary/40 pl-3 text-sm">{f}</li>
                 ))}
               </ul>
               <Button asChild variant="outline" className="w-full border-white/10 hover:bg-white/5">
@@ -381,14 +365,11 @@ export default function Landing() {
                 <div className="text-3xl font-black mb-6">£19 <span className="text-sm font-normal text-muted-foreground">/ month</span></div>
                 <ul className="space-y-3 mb-8">
                   {["Full AI career roadmap", "Unlimited analysis runs", "AI mentor coaching", "Advanced course recommendations", "Portfolio project guidance", "Priority skill gap detection"].map(f => (
-                    <li key={f} className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                      <span>{f}</span>
-                    </li>
+                    <li key={f} className="border-l border-primary/40 pl-3 text-sm">{f}</li>
                   ))}
                 </ul>
                 <Button asChild className="w-full bg-primary hover:bg-primary/90 text-primary-foreground glow-box">
-                  <Link href="/pricing">See Full Plan <ArrowRight className="w-4 h-4 ml-1.5" /></Link>
+                  <Link href="/pricing">See Full Plan</Link>
                 </Button>
               </div>
             </div>
@@ -408,7 +389,7 @@ export default function Landing() {
             Start your AI-powered career path today. It takes less than 5 minutes to get your personalised roadmap.
           </p>
           <Button asChild size="lg" className="text-base h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_rgba(0,240,255,0.5)] glow-box">
-            <Link href="/register">Start Your Career Path <ArrowRight className="w-5 h-5 ml-2" /></Link>
+            <Link href="/register">Start Your Career Path</Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-4">Free to start · No credit card required</p>
         </div>
@@ -419,9 +400,7 @@ export default function Landing() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded bg-primary flex items-center justify-center">
-                <div className="w-3.5 h-3.5 border-2 border-primary-foreground rounded-sm" />
-              </div>
+              <BrandMark size="sm" />
               <span className="font-bold text-sm">CareerPath AI</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">

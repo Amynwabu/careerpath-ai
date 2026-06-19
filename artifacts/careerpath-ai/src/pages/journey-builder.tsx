@@ -14,16 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/api-request";
-import {
-  ArrowRight,
-  Award,
-  Bell,
-  BookOpen,
-  CheckCircle2,
-  Compass,
-  Loader2,
-  Route,
-} from "lucide-react";
 
 type Direction = {
   id: string;
@@ -189,10 +179,7 @@ export default function JourneyBuilder() {
     <AppLayout>
       <div className="p-8 max-w-6xl mx-auto space-y-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Compass className="w-6 h-6 text-primary" />
-            </div>
+          <div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Journey Builder</h1>
               <p className="text-muted-foreground mt-1">Turn your profile and analysis into a staged career pathway.</p>
@@ -211,7 +198,7 @@ export default function JourneyBuilder() {
           <TabsContent value="describe">
             <Card className="border-border bg-card">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><BookOpen className="w-5 h-5 text-primary" /> Describe your next move</CardTitle>
+                <CardTitle>Describe your next move</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground max-w-2xl">Use a few sentences about your experience, strengths, and the work you want to move toward. Your saved profile and career goal are included automatically.</p>
@@ -222,8 +209,7 @@ export default function JourneyBuilder() {
                   placeholder="I work in operations and enjoy solving problems with data. I want to move into a technical role but need a practical path."
                 />
                 <Button onClick={generateDirections} disabled={isGenerating}>
-                  {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ArrowRight className="w-4 h-4 mr-2" />}
-                  Generate directions
+                  {isGenerating ? "Generating directions..." : "Generate directions"}
                 </Button>
               </CardContent>
             </Card>
@@ -240,11 +226,7 @@ export default function JourneyBuilder() {
                     onClick={() => setSelectedDirectionId(direction.id)}
                     className={`rounded-lg border p-5 text-left transition-colors ${selected ? "border-primary/50 bg-primary/10" : "border-border bg-card hover:border-primary/30"}`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <Route className="w-5 h-5 text-primary" />
-                      {selected && <Badge>Selected</Badge>}
-                    </div>
-                    <h2 className="font-semibold text-lg mt-4">{direction.title}</h2>
+                    <div className="flex items-start justify-between gap-3"><h2 className="font-semibold text-lg">{direction.title}</h2>{selected && <Badge>Selected</Badge>}</div>
                     <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{direction.rationale}</p>
                     <div className="flex flex-wrap gap-2 mt-4">
                       {direction.skills.map((skill) => <Badge key={skill} variant="secondary">{skill}</Badge>)}
@@ -255,8 +237,7 @@ export default function JourneyBuilder() {
               })}
             </div>
             <Button onClick={buildJourney} disabled={isBuilding || !selectedDirection}>
-              {isBuilding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Route className="w-4 h-4 mr-2" />}
-              Build selected journey
+              {isBuilding ? "Building selected journey..." : "Build selected journey"}
             </Button>
           </TabsContent>
 
@@ -305,7 +286,7 @@ export default function JourneyBuilder() {
                             disabled={updatingKey === item.key}
                             className="w-full flex items-center gap-3 rounded-lg border border-border p-3 text-left text-sm hover:border-primary/30"
                           >
-                            {item.completed ? <CheckCircle2 className="w-5 h-5 text-primary" /> : <span className="w-5 h-5 rounded-full border border-muted-foreground" />}
+                            <span className={`min-w-14 text-xs font-semibold ${item.completed ? "text-primary" : "text-muted-foreground"}`}>{item.completed ? "Done" : "Mark done"}</span>
                             <span className={item.completed ? "line-through text-muted-foreground" : ""}>{item.title}</span>
                           </button>
                         ))}
@@ -316,12 +297,9 @@ export default function JourneyBuilder() {
 
                 <Card className="border-border bg-card">
                   <CardContent className="pt-5 flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <Bell className="w-5 h-5 text-primary mt-0.5" />
-                      <div><p className="font-medium">Weekly reminders are active</p><p className="text-sm text-muted-foreground">One focus task, one training tip, and one thing to skip.</p></div>
-                    </div>
+                    <div><p className="font-medium">Weekly reminders are active</p><p className="text-sm text-muted-foreground">One focus task, one training tip, and one thing to skip.</p></div>
                     <Button onClick={generateCertificate} disabled={progress !== 100} variant={progress === 100 ? "default" : "outline"}>
-                      <Award className="w-4 h-4 mr-2" /> Generate certificate
+                      Generate certificate
                     </Button>
                   </CardContent>
                 </Card>

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -73,9 +73,7 @@ export default function Register() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded bg-primary/10 flex items-center justify-center border border-primary/30 mb-4 glow-box">
-            <div className="w-6 h-6 border-2 border-primary rounded-sm" />
-          </div>
+          <BrandMark size="lg" variant="outline" className="mb-4" />
           <h1 className="text-3xl font-bold tracking-tight">Create Account</h1>
           <p className="text-muted-foreground mt-2">Start building your career path.</p>
         </div>
@@ -134,7 +132,7 @@ export default function Register() {
                 disabled={registerMutation.isPending}
               >
                 {registerMutation.isPending ? (
-                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creating account...</>
+                  "Creating account..."
                 ) : (
                   "Create Account"
                 )}

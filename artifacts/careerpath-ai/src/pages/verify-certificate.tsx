@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiRequest } from "@/lib/api-request";
-import { Award, CheckCircle2, CircleX, Download, Route } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 type Verification = {
   valid: boolean;
@@ -34,7 +34,7 @@ export default function VerifyCertificate() {
       <nav className="border-b border-border">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 font-semibold">
-            <span className="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center"><Route className="w-4 h-4" /></span>
+            <BrandMark />
             CareerPath AI
           </Link>
           <Button asChild variant="outline"><Link href="/login">Sign in</Link></Button>
@@ -47,8 +47,7 @@ export default function VerifyCertificate() {
         {error && (
           <Card className="border-destructive/40 bg-card">
             <CardContent className="py-14 text-center">
-              <CircleX className="w-12 h-12 text-destructive mx-auto" />
-              <h1 className="text-2xl font-bold mt-5">Certificate not verified</h1>
+              <h1 className="text-2xl font-bold">Certificate not verified</h1>
               <p className="text-muted-foreground mt-2">{error}</p>
             </CardContent>
           </Card>
@@ -59,13 +58,10 @@ export default function VerifyCertificate() {
             <CardContent className="p-8">
               <div className="flex flex-wrap items-start justify-between gap-5">
                 <div>
-                  <Badge className="gap-1.5 bg-primary/20 text-primary border-primary/30">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Verified certificate
-                  </Badge>
+                  <Badge className="bg-primary/20 text-primary border-primary/30">Verified certificate</Badge>
                   <h1 className="text-3xl font-bold mt-4">Certificate of Completion</h1>
                   <p className="text-sm text-muted-foreground mt-2 break-all">Verification token: {token}</p>
                 </div>
-                <span className="w-16 h-16 rounded-full border border-primary/30 bg-primary/10 flex items-center justify-center"><Award className="w-8 h-8 text-primary" /></span>
               </div>
 
               <div className="mt-8 rounded-lg border border-border bg-background/40 p-6">
@@ -80,7 +76,7 @@ export default function VerifyCertificate() {
               </div>
 
               {verification.pdfUrl && (
-                <Button asChild className="mt-6"><a href={verification.pdfUrl} target="_blank" rel="noreferrer"><Download className="w-4 h-4 mr-2" />Download PDF</a></Button>
+                <Button asChild className="mt-6"><a href={verification.pdfUrl} target="_blank" rel="noreferrer">Download PDF</a></Button>
               )}
             </CardContent>
           </Card>

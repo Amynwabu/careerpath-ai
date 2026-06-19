@@ -6,17 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BrainCircuit, Zap, TrendingUp, AlertTriangle, CheckCircle, BookOpen, FolderOpen, Layers } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CircularProgress } from "@/components/ui/circular-progress";
 
-function AnalysisSection({ title, icon: Icon, content }: { title: string; icon: any; content: string }) {
+function AnalysisSection({ title, content }: { title: string; content: string }) {
   return (
     <Card className="border-border bg-card">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Icon className="w-4 h-4 text-primary" />{title}
-        </CardTitle>
+        <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">{content}</p>
@@ -62,7 +59,6 @@ export default function Analysis() {
             <p className="text-muted-foreground mt-1">AI-powered assessment of your current position and gap analysis.</p>
           </div>
           <Button onClick={handleRun} disabled={running} className="bg-primary text-primary-foreground hover:bg-primary/90">
-            <BrainCircuit className="w-4 h-4 mr-2" />
             {running ? "Analysing..." : analysis ? "Re-run Analysis" : "Run Analysis"}
           </Button>
         </div>
@@ -90,9 +86,6 @@ export default function Analysis() {
         {noAnalysis && !running && (
           <Card className="border-border bg-card">
             <CardContent className="pt-12 pb-12 flex flex-col items-center text-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Zap className="w-10 h-10 text-primary" />
-              </div>
               <div>
                 <h2 className="text-2xl font-bold">No Analysis Yet</h2>
                 <p className="text-muted-foreground mt-2 max-w-md">
@@ -100,7 +93,7 @@ export default function Analysis() {
                 </p>
               </div>
               <Button onClick={handleRun} size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <BrainCircuit className="w-5 h-5 mr-2" /> Run Analysis
+                Run Analysis
               </Button>
             </CardContent>
           </Card>
@@ -132,15 +125,15 @@ export default function Analysis() {
 
             {/* Analysis Sections */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <AnalysisSection title="Current Strengths" icon={CheckCircle} content={analysis.currentStrengths} />
-              <AnalysisSection title="Skill Gaps" icon={AlertTriangle} content={analysis.skillGaps} />
-              <AnalysisSection title="Experience Gaps" icon={TrendingUp} content={analysis.experienceGaps} />
-              <AnalysisSection title="Qualification Gaps" icon={BookOpen} content={analysis.qualificationGaps} />
-              <AnalysisSection title="Certification Recommendations" icon={Layers} content={analysis.certificationRecommendations} />
-              <AnalysisSection title="Suggested Projects & Portfolio" icon={FolderOpen} content={analysis.suggestedProjects} />
+              <AnalysisSection title="Current Strengths" content={analysis.currentStrengths} />
+              <AnalysisSection title="Skill Gaps" content={analysis.skillGaps} />
+              <AnalysisSection title="Experience Gaps" content={analysis.experienceGaps} />
+              <AnalysisSection title="Qualification Gaps" content={analysis.qualificationGaps} />
+              <AnalysisSection title="Certification Recommendations" content={analysis.certificationRecommendations} />
+              <AnalysisSection title="Suggested Projects & Portfolio" content={analysis.suggestedProjects} />
             </div>
 
-            <AnalysisSection title="Job Progression Ladder" icon={TrendingUp} content={analysis.jobProgressionLadder} />
+            <AnalysisSection title="Job Progression Ladder" content={analysis.jobProgressionLadder} />
           </>
         )}
       </div>

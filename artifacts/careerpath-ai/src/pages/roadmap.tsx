@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, CheckCircle2, Map, Target } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Roadmap() {
@@ -15,10 +14,7 @@ export default function Roadmap() {
     <AppLayout>
       <div className="p-8 max-w-5xl mx-auto space-y-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Map className="w-6 h-6 text-primary" />
-            </div>
+          <div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
                 Career Roadmap
@@ -34,10 +30,7 @@ export default function Roadmap() {
               <Badge className="bg-primary/20 text-primary border-primary/30">
                 {roadmap.readinessScore}% ready
               </Badge>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Target className="w-4 h-4 text-primary" />
-                <span>{roadmap.targetRole}</span>
-              </div>
+              <div className="text-sm text-muted-foreground">{roadmap.targetRole}</div>
             </div>
           )}
         </div>
@@ -53,9 +46,6 @@ export default function Roadmap() {
         {noRoadmap && (
           <Card className="border-border bg-card">
             <CardContent className="pt-12 pb-12 flex flex-col items-center text-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Map className="w-10 h-10 text-primary" />
-              </div>
               <div>
                 <h2 className="text-2xl font-bold">No Roadmap Yet</h2>
                 <p className="text-muted-foreground mt-2 max-w-md">
@@ -68,7 +58,6 @@ export default function Roadmap() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Link href="/analysis">
-                  <ArrowRight className="w-4 h-4 mr-2" />
                   Run Career Analysis
                 </Link>
               </Button>
@@ -106,7 +95,6 @@ export default function Roadmap() {
                         key={action}
                         className="flex items-start gap-3 rounded-lg border border-border bg-background/40 p-3"
                       >
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
                         <p className="text-sm leading-relaxed text-foreground/85">
                           {action}
                         </p>

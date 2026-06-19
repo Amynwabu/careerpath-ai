@@ -5,11 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { BrainCircuit, AlertTriangle, ArrowRight, Target, CheckCircle2, Zap, Bot, Clock, Rocket, MapPin, ChevronRight, Flag, Gauge, ListChecks } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-function InsightCard({ icon, label, value, sub, href, loading }: {
-  icon: React.ReactNode;
+function InsightCard({ label, value, sub, href, loading }: {
   label: string;
   value: string | null;
   sub?: string;
@@ -20,9 +18,6 @@ function InsightCard({ icon, label, value, sub, href, loading }: {
     <Card className="glass-panel border-white/5 hover:border-primary/20 transition-colors cursor-pointer group">
       <CardContent className="pt-5 pb-5">
         <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-            {icon}
-          </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
             {loading ? (
@@ -36,7 +31,6 @@ function InsightCard({ icon, label, value, sub, href, loading }: {
               <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>
             )}
           </div>
-          {href && <ArrowRight className="w-4 h-4 text-muted-foreground mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />}
         </div>
       </CardContent>
     </Card>
@@ -98,17 +92,13 @@ export default function Dashboard() {
           </div>
           <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 glow-box">
             <Link href="/analysis">
-              <BrainCircuit className="w-4 h-4 mr-2" />
               Run Analysis
             </Link>
           </Button>
         </div>
 
         <section className="grid gap-5 border-y border-primary/20 bg-primary/[0.03] px-5 py-5 md:grid-cols-[1fr_1.5fr_auto] md:items-center">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center border border-primary/30 bg-primary/10">
-              <Gauge className="h-5 w-5 text-primary" />
-            </div>
+          <div>
             <div>
               <p className="text-xs font-medium uppercase text-muted-foreground">Current status</p>
               <p className="mt-1 font-semibold">{loadingSummary ? "Updating status" : liveSummary?.userStatus ?? "Profile ready"}</p>
@@ -123,8 +113,7 @@ export default function Dashboard() {
               <div className="h-full bg-primary transition-all duration-500" style={{ width: `${liveSummary?.journeyProgress ?? 0}%` }} />
             </div>
           </div>
-          <div className="flex min-w-0 items-center gap-3 md:max-w-xs">
-            <ListChecks className="h-5 w-5 flex-shrink-0 text-primary" />
+          <div className="min-w-0 md:max-w-xs">
             <div className="min-w-0"><p className="text-xs text-muted-foreground">Next action</p><p className="mt-1 truncate text-sm font-medium">{liveSummary?.nextAction ?? nextMilestone?.title ?? "Run your first analysis"}</p></div>
           </div>
         </section>
@@ -132,7 +121,6 @@ export default function Dashboard() {
         {/* Top 4-card insight strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <InsightCard
-            icon={<Target className="w-4 h-4 text-primary" />}
             label="Your Target Role"
             value={targetRole ?? null}
             sub={targetYears ? `${targetYears}-year goal` : undefined}
@@ -140,7 +128,6 @@ export default function Dashboard() {
             loading={loadingGoal || loadingSummary}
           />
           <InsightCard
-            icon={<MapPin className="w-4 h-4 text-primary" />}
             label="Where You Are"
             value={(profile as any)?.currentRole ?? null}
             sub={hasAnalysis ? `${readiness}% ready` : (profile as any)?.careerLevel ?? undefined}
@@ -148,7 +135,6 @@ export default function Dashboard() {
             loading={loadingProfile}
           />
           <InsightCard
-            icon={<Zap className="w-4 h-4 text-yellow-400" />}
             label="What's Missing"
             value={topMissing ?? (loadingGaps ? null : "Run analysis to find gaps")}
             sub={skillGaps && skillGaps.length > 1 ? `+${skillGaps.length - 1} more gaps identified` : undefined}
@@ -156,7 +142,6 @@ export default function Dashboard() {
             loading={loadingGaps}
           />
           <InsightCard
-            icon={<Rocket className="w-4 h-4 text-primary" />}
             label="What To Do Next"
             value={nextMilestone?.title ?? (loadingMilestones ? null : "Run analysis to generate milestones")}
             sub={nextMilestone?.phase ?? undefined}
@@ -171,24 +156,21 @@ export default function Dashboard() {
           {/* Urgency widget */}
           <Card className="glass-panel border-white/5 lg:col-span-3">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Clock className="w-4 h-4 text-primary" />
-                Time to Goal
-              </CardTitle>
+              <CardTitle className="text-base">Time to Goal</CardTitle>
             </CardHeader>
             <CardContent>
               {!hasAnalysis ? (
                 <div className="flex flex-col items-center text-center py-4 gap-3">
                   <p className="text-sm text-muted-foreground">Run your first analysis to see how long your journey will take — and how much time AI coaching can save you.</p>
                   <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href="/analysis"><BrainCircuit className="w-3.5 h-3.5 mr-1.5" />Run Analysis</Link>
+                    <Link href="/analysis">Run Analysis</Link>
                   </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-6">
                   {/* At current pace */}
                   <div className="space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">⏳ At your current pace</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">At your current pace</p>
                     <div className="flex items-end gap-2">
                       <span className="text-4xl font-bold text-muted-foreground">{atCurrentPace}</span>
                       <span className="text-sm text-muted-foreground mb-1.5">years</span>
@@ -199,12 +181,12 @@ export default function Dashboard() {
                         style={{ width: `${Math.min(100, (readiness / 100) * 60 + 10)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground">→ Without structured guidance</p>
+                    <p className="text-xs text-muted-foreground">Without structured guidance</p>
                   </div>
 
                   {/* With CareerPath AI */}
                   <div className="space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">⚡ With CareerPath AI</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">With CareerPath AI</p>
                     <div className="flex items-end gap-2">
                       <span className="text-4xl font-bold text-primary">{withAI}</span>
                       <span className="text-sm text-muted-foreground mb-1.5">years</span>
@@ -215,7 +197,7 @@ export default function Dashboard() {
                         style={{ width: `${Math.min(100, (readiness / 100) * 40 + 20)}%` }}
                       />
                     </div>
-                    <p className="text-xs text-primary">→ Save ~{timeSaved} year{timeSaved !== 1 ? "s" : ""} with AI coaching</p>
+                    <p className="text-xs text-primary">Save about {timeSaved} year{timeSaved !== 1 ? "s" : ""} with AI coaching</p>
                   </div>
                 </div>
               )}
@@ -226,13 +208,7 @@ export default function Dashboard() {
           <Card className="glass-panel border-primary/20 lg:col-span-2 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <div className="relative">
-                  <Bot className="w-4 h-4 text-primary" />
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full animate-pulse" />
-                </div>
-                AI Coach
-              </CardTitle>
+              <CardTitle className="text-base">AI Coach</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -254,7 +230,7 @@ export default function Dashboard() {
                 )}
                 {!topGap && (
                   <Button asChild size="sm" variant="outline" className="w-full border-primary/20 hover:bg-primary/5 text-primary">
-                    <Link href="/analysis">Unlock personalised tips <ArrowRight className="w-3.5 h-3.5 ml-1.5" /></Link>
+                    <Link href="/analysis">Unlock personalised tips</Link>
                   </Button>
                 )}
               </div>
@@ -266,12 +242,9 @@ export default function Dashboard() {
         <Card className="glass-panel border-white/5">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Rocket className="w-4 h-4 text-primary" />
-                Your Career Path
-              </CardTitle>
+              <CardTitle className="text-base">Your Career Path</CardTitle>
               <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary">
-                <Link href="/roadmap">View full roadmap <ChevronRight className="w-3.5 h-3.5 ml-1" /></Link>
+                <Link href="/roadmap">View full roadmap</Link>
               </Button>
             </div>
           </CardHeader>
@@ -285,9 +258,7 @@ export default function Dashboard() {
                 <div className="flex items-start gap-3 overflow-x-auto pb-2">
                   {/* Start node */}
                   <div className="flex flex-col items-center flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center">
-                      <MapPin className="w-4 h-4 text-primary" />
-                    </div>
+                    <div className="grid h-10 w-10 place-items-center border-2 border-primary bg-primary/20 text-[10px] font-semibold text-primary">Now</div>
                     <p className="text-xs text-muted-foreground mt-1.5 text-center w-16">Now</p>
                   </div>
 
@@ -326,9 +297,7 @@ export default function Dashboard() {
                   <div className="flex items-start gap-3 flex-shrink-0">
                     <div className="mt-5 w-6 h-0.5 bg-gradient-to-r from-primary/20 to-primary/40 flex-shrink-0" />
                     <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full bg-primary border-2 border-primary flex items-center justify-center glow-box">
-                        <Target className="w-4 h-4 text-primary-foreground" />
-                      </div>
+                      <div className="grid h-10 w-10 place-items-center border-2 border-primary bg-primary text-[10px] font-semibold text-primary-foreground glow-box">Goal</div>
                       <p className="text-xs text-primary font-medium mt-1.5 text-center w-20 truncate">{targetRole ?? "Your goal"}</p>
                     </div>
                   </div>
@@ -336,22 +305,10 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="flex flex-col items-center text-center py-6 gap-3">
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
-                    <MapPin className="w-4 h-4 opacity-40" />
-                  </div>
-                  <div className="w-16 h-0.5 border-t-2 border-dashed border-white/10" />
-                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
-                    <ChevronRight className="w-4 h-4 opacity-40" />
-                  </div>
-                  <div className="w-16 h-0.5 border-t-2 border-dashed border-white/10" />
-                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-primary/30 flex items-center justify-center">
-                    <Target className="w-4 h-4 text-primary opacity-50" />
-                  </div>
-                </div>
+                <p className="text-xs font-semibold uppercase text-primary">Career route not generated</p>
                 <p className="text-sm text-muted-foreground">Run your career analysis to generate a personalised roadmap.</p>
                 <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Link href="/analysis"><BrainCircuit className="w-3.5 h-3.5 mr-1.5" />Generate Roadmap</Link>
+                  <Link href="/analysis">Generate Roadmap</Link>
                 </Button>
               </div>
             )}
@@ -365,10 +322,7 @@ export default function Dashboard() {
           <Card className="glass-panel border-white/5 flex flex-col">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                  Priority Skill Gaps
-                </CardTitle>
+                <CardTitle className="text-base">Priority Skill Gaps</CardTitle>
                 {skillGaps && skillGaps.length > 0 && (
                   <Badge variant="secondary" className="text-xs">{skillGaps.length} gap{skillGaps.length !== 1 ? "s" : ""}</Badge>
                 )}
@@ -381,7 +335,6 @@ export default function Dashboard() {
                 </div>
               ) : !skillGaps || skillGaps.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center py-8 gap-3 text-muted-foreground">
-                  <AlertTriangle className="w-10 h-10 opacity-20" />
                   <p className="text-sm">No gaps identified yet.</p>
                   <Button variant="outline" size="sm" className="border-white/10" asChild>
                     <Link href="/analysis">Run Analysis</Link>
@@ -393,7 +346,7 @@ export default function Dashboard() {
                     <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-sm truncate">{gap.skill}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{gap.category} · {gap.currentLevel || "No experience"} → {gap.requiredLevel}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{gap.category} · {gap.currentLevel || "No experience"} to {gap.requiredLevel}</p>
                       </div>
                       <Badge variant={gap.priority === "High" ? "destructive" : "secondary"} className="text-xs flex-shrink-0">
                         {gap.priority}
@@ -402,7 +355,7 @@ export default function Dashboard() {
                   ))}
                   {skillGaps.length > 5 && (
                     <Button asChild variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-primary mt-1">
-                      <Link href="/analysis">View all {skillGaps.length} gaps <ArrowRight className="w-3.5 h-3.5 ml-1.5" /></Link>
+                      <Link href="/analysis">View all {skillGaps.length} gaps</Link>
                     </Button>
                   )}
                 </div>
@@ -414,10 +367,7 @@ export default function Dashboard() {
           <Card className="glass-panel border-white/5 flex flex-col">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Flag className="w-4 h-4 text-primary" />
-                  Next Actions
-                </CardTitle>
+                <CardTitle className="text-base">Next Actions</CardTitle>
                 {milestones && milestones.length > 0 && (
                   <div className="text-xs text-muted-foreground">
                     {milestones.filter(m => m.completed).length} / {milestones.length} done
@@ -432,7 +382,6 @@ export default function Dashboard() {
                 </div>
               ) : !milestones || milestones.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center py-8 gap-3 text-muted-foreground">
-                  <Flag className="w-10 h-10 opacity-20" />
                   <p className="text-sm">No milestones yet.</p>
                   <Button variant="outline" size="sm" className="border-white/10" asChild>
                     <Link href="/analysis">Run Analysis</Link>
@@ -454,14 +403,11 @@ export default function Dashboard() {
                   ))}
                   {milestones.filter(m => !m.completed).length > 4 && (
                     <Button asChild variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-primary mt-1">
-                      <Link href="/milestones">View all milestones <ArrowRight className="w-3.5 h-3.5 ml-1.5" /></Link>
+                      <Link href="/milestones">View all milestones</Link>
                     </Button>
                   )}
                   {milestones.filter(m => !m.completed).length === 0 && (
-                    <div className="flex items-center gap-2 text-primary p-3 rounded-lg bg-primary/5 border border-primary/20">
-                      <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                      <p className="text-sm font-medium">All milestones complete! 🎉</p>
-                    </div>
+                    <div className="text-primary p-3 rounded-lg bg-primary/5 border border-primary/20"><p className="text-sm font-medium">All milestones complete.</p></div>
                   )}
                 </div>
               )}

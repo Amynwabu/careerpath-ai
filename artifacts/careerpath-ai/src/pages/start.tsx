@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { ScanLine } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { apiRequest } from "@/lib/api-request";
 
 interface OnboardingStatus {
@@ -28,9 +28,7 @@ export default function Start() {
   return (
     <main className="min-h-screen bg-background grid place-items-center px-6">
       <div className="w-full max-w-md border border-primary/20 bg-card/80 p-8 text-center shadow-[0_0_50px_rgba(0,240,255,0.08)]">
-        <div className="mx-auto mb-5 grid h-14 w-14 place-items-center border border-primary/30 bg-primary/10">
-          <ScanLine className="h-7 w-7 text-primary animate-pulse" />
-        </div>
+        <BrandMark size="lg" variant="outline" className="mx-auto mb-5 animate-pulse" />
         <p className="text-xs font-semibold uppercase text-primary">Career signal check</p>
         <h1 className="mt-3 text-xl font-semibold">{message}</h1>
         <div className="mt-6 h-1 overflow-hidden bg-white/5">

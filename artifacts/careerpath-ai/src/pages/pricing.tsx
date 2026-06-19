@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, CheckCircle2, X, Zap, HelpCircle } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 const PLANS = [
   {
@@ -109,9 +109,7 @@ export default function Pricing() {
       <nav className="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded bg-primary flex items-center justify-center glow-box">
-              <div className="w-4 h-4 border-2 border-primary-foreground rounded-sm" />
-            </div>
+            <BrandMark />
             <span className="font-bold text-xl tracking-tight">CareerPath AI</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
@@ -122,7 +120,7 @@ export default function Pricing() {
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden sm:block">Sign In</Link>
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_15px_rgba(0,240,255,0.3)]">
-              <Link href="/register">Start Free <ArrowRight className="w-4 h-4 ml-1.5" /></Link>
+              <Link href="/register">Start Free</Link>
             </Button>
           </div>
         </div>
@@ -175,12 +173,7 @@ export default function Pricing() {
 
                   <ul className="space-y-3 mb-8 flex-1">
                     {plan.features.map((f) => (
-                      <li key={f.text} className="flex items-start gap-2.5 text-sm">
-                        {f.included
-                          ? <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                          : <X className="w-4 h-4 text-muted-foreground/40 flex-shrink-0 mt-0.5" />}
-                        <span className={f.included ? "text-foreground/90" : "text-muted-foreground/50 line-through"}>{f.text}</span>
-                      </li>
+                      <li key={f.text} className={`border-l pl-3 text-sm ${f.included ? "border-primary/40 text-foreground/90" : "border-white/10 text-muted-foreground/50 line-through"}`}>{f.text}</li>
                     ))}
                   </ul>
 
@@ -193,9 +186,7 @@ export default function Pricing() {
                     }`}
                     variant={plan.highlight ? "default" : "outline"}
                   >
-                    <Link href={plan.href}>
-                      {plan.cta} {plan.highlight && <Zap className="w-4 h-4 ml-1.5" />}
-                    </Link>
+                    <Link href={plan.href}>{plan.cta}</Link>
                   </Button>
                 </div>
               </div>
@@ -240,9 +231,9 @@ export default function Pricing() {
                     {row.values.map((val, vi) => (
                       <td key={vi} className="py-3.5 px-4 text-center">
                         {val === true ? (
-                          <CheckCircle2 className="w-4 h-4 text-primary mx-auto" />
+                          <span className="text-primary">Included</span>
                         ) : val === false ? (
-                          <span className="text-muted-foreground/30">—</span>
+                          <span className="text-muted-foreground/30">Not included</span>
                         ) : (
                           <span className={vi === 1 ? "text-primary font-medium" : "text-muted-foreground"}>{val}</span>
                         )}
@@ -266,12 +257,9 @@ export default function Pricing() {
           <div className="space-y-4">
             {FAQ.map((item) => (
               <div key={item.q} className="glass-panel border border-white/5 rounded-xl p-6">
-                <div className="flex items-start gap-3">
-                  <HelpCircle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <div>
+                <div>
                     <h4 className="font-semibold mb-2">{item.q}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
-                  </div>
                 </div>
               </div>
             ))}
@@ -286,7 +274,7 @@ export default function Pricing() {
           <h2 className="text-3xl md:text-4xl font-bold mb-5">Start Your Career Path Today</h2>
           <p className="text-muted-foreground mb-8 max-w-md mx-auto">Free to start. Your personalised roadmap is ready in minutes.</p>
           <Button asChild size="lg" className="h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_rgba(0,240,255,0.5)] glow-box">
-            <Link href="/register">Create Free Account <ArrowRight className="w-5 h-5 ml-2" /></Link>
+            <Link href="/register">Create Free Account</Link>
           </Button>
           <p className="text-xs text-muted-foreground mt-4">No credit card required · Cancel anytime</p>
         </div>
@@ -297,9 +285,7 @@ export default function Pricing() {
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <Link href="/" className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded bg-primary flex items-center justify-center">
-                <div className="w-3.5 h-3.5 border-2 border-primary-foreground rounded-sm" />
-              </div>
+              <BrandMark size="sm" />
               <span className="font-bold text-sm">CareerPath AI</span>
             </Link>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">

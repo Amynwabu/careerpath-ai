@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, Circle, Flag, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
@@ -44,10 +43,7 @@ export default function Milestones() {
     <AppLayout>
       <div className="p-8 max-w-4xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <Flag className="w-6 h-6 text-primary" />
-            </div>
+          <div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">Milestones</h1>
               <p className="text-muted-foreground mt-1">Track your progress through each phase of your career journey.</p>
@@ -79,9 +75,6 @@ export default function Milestones() {
         {noMilestones && (
           <Card className="border-border bg-card">
             <CardContent className="pt-12 pb-12 flex flex-col items-center text-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <Flag className="w-10 h-10 text-primary" />
-              </div>
               <div>
                 <h2 className="text-2xl font-bold">No Milestones Yet</h2>
                 <p className="text-muted-foreground mt-2 max-w-md">
@@ -89,7 +82,7 @@ export default function Milestones() {
                 </p>
               </div>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/analysis"><ArrowRight className="w-4 h-4 mr-2" /> Run Career Analysis</Link>
+                <Link href="/analysis">Run Career Analysis</Link>
               </Button>
             </CardContent>
           </Card>
@@ -108,16 +101,7 @@ export default function Milestones() {
               {items.map(m => (
                 <Card key={m.id} className={`border transition-all ${m.completed ? "border-primary/30 bg-primary/5" : "border-border bg-card"}`}>
                   <CardContent className="pt-4 pb-4 flex items-start gap-4">
-                    <button
-                      onClick={() => !m.completed && handleComplete(m.id)}
-                      disabled={m.completed}
-                      className="mt-0.5 flex-shrink-0"
-                    >
-                      {m.completed
-                        ? <CheckCircle2 className="w-5 h-5 text-primary" />
-                        : <Circle className="w-5 h-5 text-muted-foreground hover:text-primary transition-colors" />
-                      }
-                    </button>
+                    {m.completed && <span className="mt-0.5 flex-shrink-0 text-xs font-semibold text-primary">Done</span>}
                     <div className="flex-1 min-w-0">
                       <p className={`font-medium ${m.completed ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
                       {m.description && <p className="text-sm text-muted-foreground mt-1">{m.description}</p>}

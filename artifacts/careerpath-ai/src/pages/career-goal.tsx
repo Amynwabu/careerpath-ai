@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Target, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const LEADERSHIP_OPTIONS = ["Individual Contributor", "Team Lead", "Manager", "Senior Manager", "Director", "VP", "C-Suite"];
@@ -56,10 +55,7 @@ export default function CareerGoal() {
   return (
     <AppLayout>
       <div className="p-8 max-w-3xl mx-auto space-y-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <Target className="w-6 h-6 text-primary" />
-          </div>
+        <div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Your {years}-Year Career Target</h1>
             <p className="text-muted-foreground mt-1">Define where you want to be — your AI roadmap will be built around this goal.</p>
@@ -138,7 +134,7 @@ export default function CareerGoal() {
               </div>
 
               <Button onClick={handleSave} disabled={saving} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11">
-                <Save className="w-4 h-4 mr-2" />{saving ? "Saving..." : "Save Career Target"}
+                {saving ? "Saving..." : "Save Career Target"}
               </Button>
             </CardContent>
           </Card>

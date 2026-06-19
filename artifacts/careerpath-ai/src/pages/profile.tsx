@@ -15,7 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Save, User, Briefcase, GraduationCap, Star, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Profile() {
@@ -85,11 +84,11 @@ export default function Profile() {
 
         <Tabs defaultValue="personal" className="space-y-6">
           <TabsList className="bg-card border border-border">
-            <TabsTrigger value="personal"><User className="w-4 h-4 mr-2" />Personal</TabsTrigger>
-            <TabsTrigger value="work"><Briefcase className="w-4 h-4 mr-2" />Work History</TabsTrigger>
-            <TabsTrigger value="education"><GraduationCap className="w-4 h-4 mr-2" />Education</TabsTrigger>
-            <TabsTrigger value="skills"><Star className="w-4 h-4 mr-2" />Skills</TabsTrigger>
-            <TabsTrigger value="certifications"><Award className="w-4 h-4 mr-2" />Certifications</TabsTrigger>
+            <TabsTrigger value="personal">Personal</TabsTrigger>
+            <TabsTrigger value="work">Work History</TabsTrigger>
+            <TabsTrigger value="education">Education</TabsTrigger>
+            <TabsTrigger value="skills">Skills</TabsTrigger>
+            <TabsTrigger value="certifications">Certifications</TabsTrigger>
           </TabsList>
 
           {/* Personal Tab */}
@@ -135,7 +134,7 @@ export default function Profile() {
                       />
                     </div>
                     <Button onClick={handleSaveProfile} disabled={savingProfile} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                      <Save className="w-4 h-4 mr-2" />{savingProfile ? "Saving..." : "Save Profile"}
+                      {savingProfile ? "Saving..." : "Save Profile"}
                     </Button>
                   </>
                 )}
@@ -162,7 +161,7 @@ export default function Profile() {
                   setNewWork({ company: "", title: "", startDate: "", endDate: "", isCurrent: false, description: "", skills: "" });
                   toast({ title: "Work experience added" });
                 }} className="bg-primary text-primary-foreground">
-                  <Plus className="w-4 h-4 mr-2" /> Add Entry
+                  Add Entry
                 </Button>
               </CardContent>
             </Card>
@@ -178,7 +177,7 @@ export default function Profile() {
                     await deleteWorkExp.mutateAsync({ id: exp.id });
                     qc.invalidateQueries({ queryKey: getListWorkExperiencesQueryKey() });
                     toast({ title: "Entry removed" });
-                  }}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                  }} className="text-destructive">Remove</Button>
                 </CardContent>
               </Card>
             ))}
@@ -203,7 +202,7 @@ export default function Profile() {
                   setNewEdu({ institution: "", degree: "", fieldOfStudy: "", startYear: "", endYear: "", isCurrent: false });
                   toast({ title: "Education added" });
                 }} className="bg-primary text-primary-foreground">
-                  <Plus className="w-4 h-4 mr-2" /> Add Education
+                  Add Education
                 </Button>
               </CardContent>
             </Card>
@@ -219,7 +218,7 @@ export default function Profile() {
                     await deleteEdu.mutateAsync({ id: edu.id });
                     qc.invalidateQueries({ queryKey: getListEducationQueryKey() });
                     toast({ title: "Education removed" });
-                  }}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                  }} className="text-destructive">Remove</Button>
                 </CardContent>
               </Card>
             ))}
@@ -246,7 +245,7 @@ export default function Profile() {
                   setNewSkill({ name: "", category: "Technical", proficiencyLevel: "Intermediate" });
                   toast({ title: "Skill added" });
                 }} className="bg-primary text-primary-foreground">
-                  <Plus className="w-4 h-4 mr-2" /> Add Skill
+                  Add Skill
                 </Button>
               </CardContent>
             </Card>
@@ -259,7 +258,7 @@ export default function Profile() {
                     <button onClick={async () => {
                       await deleteSkill.mutateAsync({ id: skill.id });
                       qc.invalidateQueries({ queryKey: getListSkillsQueryKey() });
-                    }} className="ml-1 text-muted-foreground hover:text-destructive"><Trash2 className="w-3 h-3" /></button>
+                    }} className="ml-1 text-xs text-muted-foreground hover:text-destructive">Remove</button>
                   </Badge>
                 ))}
               </div>
@@ -284,7 +283,7 @@ export default function Profile() {
                   setNewCert({ name: "", issuingOrganization: "", issueDate: "", expiryDate: "" });
                   toast({ title: "Certification added" });
                 }} className="bg-primary text-primary-foreground">
-                  <Plus className="w-4 h-4 mr-2" /> Add Certification
+                  Add Certification
                 </Button>
               </CardContent>
             </Card>
@@ -299,7 +298,7 @@ export default function Profile() {
                     await deleteCert.mutateAsync({ id: cert.id });
                     qc.invalidateQueries({ queryKey: getListCertificationsQueryKey() });
                     toast({ title: "Certification removed" });
-                  }}><Trash2 className="w-4 h-4 text-destructive" /></Button>
+                  }} className="text-destructive">Remove</Button>
                 </CardContent>
               </Card>
             ))}

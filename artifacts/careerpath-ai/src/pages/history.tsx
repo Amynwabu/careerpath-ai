@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { History, TrendingUp, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 
 export default function AnalysisHistory() {
@@ -14,10 +13,7 @@ export default function AnalysisHistory() {
   return (
     <AppLayout>
       <div className="p-8 max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <History className="w-6 h-6 text-primary" />
-          </div>
+        <div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Analysis History</h1>
             <p className="text-muted-foreground mt-1">Track how your readiness score has evolved over time.</p>
@@ -33,9 +29,6 @@ export default function AnalysisHistory() {
         {noHistory && (
           <Card className="border-border bg-card">
             <CardContent className="pt-12 pb-12 flex flex-col items-center text-center gap-6">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                <History className="w-10 h-10 text-primary" />
-              </div>
               <div>
                 <h2 className="text-2xl font-bold">No History Yet</h2>
                 <p className="text-muted-foreground mt-2 max-w-md">
@@ -43,7 +36,7 @@ export default function AnalysisHistory() {
                 </p>
               </div>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/analysis"><ArrowRight className="w-4 h-4 mr-2" /> Run First Analysis</Link>
+                <Link href="/analysis">Run First Analysis</Link>
               </Button>
             </CardContent>
           </Card>
@@ -74,7 +67,6 @@ export default function AnalysisHistory() {
                     </Badge>
                     {idx > 0 && history[idx-1] && (
                       <div className="flex items-center gap-1 text-sm">
-                        <TrendingUp className={`w-4 h-4 ${item.readinessScore >= history[idx-1].readinessScore ? "text-green-400" : "text-red-400"}`} />
                         <span className={item.readinessScore >= history[idx-1].readinessScore ? "text-green-400" : "text-red-400"}>
                           {item.readinessScore >= history[idx-1].readinessScore ? "+" : ""}{item.readinessScore - history[idx-1].readinessScore}
                         </span>

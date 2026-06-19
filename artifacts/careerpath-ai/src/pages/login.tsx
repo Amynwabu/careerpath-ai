@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { BrandMark } from "@/components/brand/brand-mark";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -91,9 +91,7 @@ export default function Login() {
 
       <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded bg-primary/10 flex items-center justify-center border border-primary/30 mb-4 glow-box">
-            <div className="w-6 h-6 border-2 border-primary rounded-sm" />
-          </div>
+          <BrandMark size="lg" variant="outline" className="mb-4" />
           <h1 className="text-3xl font-bold tracking-tight">Sign In</h1>
           <p className="text-muted-foreground mt-2">Welcome back — sign in to your account.</p>
         </div>
@@ -139,7 +137,7 @@ export default function Login() {
                 disabled={loginMutation.isPending}
               >
                 {loginMutation.isPending ? (
-                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Authenticating...</>
+                  "Authenticating..."
                 ) : (
                   "Sign In"
                 )}
