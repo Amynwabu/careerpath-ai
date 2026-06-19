@@ -189,17 +189,6 @@ export default function Onboarding() {
                 <p className="mt-5 text-sm text-muted-foreground">Private workspace. Review and edit before analysis.</p>
               </div>
 
-              <ol className="grid border-b border-white/10 sm:grid-cols-3">
-                {["Understand", "Map", "Build"].map((title, index) => (
-                    <li key={title} className="flex min-h-20 items-center gap-3 border-b border-white/10 py-4 last:border-b-0 sm:border-b-0 sm:border-r sm:px-5 sm:first:pl-0 sm:last:border-r-0">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center border border-primary/30 bg-primary/[0.06] text-xs text-primary">0{index + 1}</span>
-                      <div>
-                        <p className="text-sm font-medium">{title}</p>
-                      </div>
-                    </li>
-                ))}
-              </ol>
-
               <div className="py-8 sm:py-10">
                 <div className="mb-6 flex items-center justify-between gap-4">
                   <div>
