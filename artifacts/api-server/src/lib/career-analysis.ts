@@ -5,6 +5,7 @@ import type {
   Skill,
   WorkExperience,
 } from "@workspace/db";
+import { getProfessionCluster } from "./profession-mapping";
 
 type CareerAnalysisInput = {
   profile: Partial<
@@ -115,6 +116,11 @@ export function generateCareerAnalysis({
   const latestCompany = workExperiences[0]?.company ?? "your organisation";
   const highestDegree = education[0]?.degree ?? "your qualification";
   const timeline = getTimelineLabels(targetYears);
+  const professionCluster = getProfessionCluster(
+    [currentRole, profile.industry, profile.professionalSummary, targetRole]
+      .filter(Boolean)
+      .join(" "),
+  );
 
   const profileSummary = `You are currently a ${latestRole} at ${latestCompany} with ${yearsExperience} years of experience in ${profile.industry ?? "your field"}. Your profile demonstrates a solid foundation with ${skills.length} documented skills and ${certifications.length} certification(s). Based on your background, you have a ${readinessScore}% readiness score for your target role of ${targetRole}.`;
 
@@ -140,28 +146,95 @@ export function generateCareerAnalysis({
 
   const year4To5Plan = `${timeline.analysisLate} focus: Positioning for the target role. Apply for roles within 1 step of ${targetRole}. Build a track record of delivering at scale. Develop your personal brand and executive presence. Engage with senior industry networks. By year ${targetYears}, you should be actively interviewing for ${targetRole} positions with a compelling evidence portfolio.`;
 
+  const professionGuidance = professionCluster
+    ? {
+        profileSummary: `${profileSummary} Your experience maps most strongly to the ${professionCluster.label} profession cluster, so this analysis uses that field's own progression evidence rather than a generic career ladder.`,
+        currentStrengths: `Your transferable strengths include ${professionCluster.strengths.join(", ")}. These are established capabilities from ${professionCluster.label.toLowerCase()} that can support a deeper, wider, or adjacent move without discarding your existing experience.`,
+        skillGaps: `For ${targetRole}, the priority gaps are ${professionCluster.gaps.join(", ")}. Validate each gap against the actual scope and requirements of the roles you intend to pursue.`,
+        experienceGaps: `Build evidence in the language of ${professionCluster.label.toLowerCase()}: ${professionCluster.milestones
+          .slice(0, 3)
+          .map((milestone) => milestone.title.toLowerCase())
+          .join(
+            ", ",
+          )}. Each item should produce a named deliverable, measured result, or verified responsibility.`,
+        qualificationGaps: `Check the recognised professional body, regulator, employer, or trade framework for ${targetRole}. Prioritise only credentials that are explicitly required or consistently valued in this profession, and record the supervised practice or portfolio evidence that accompanies them.`,
+        certificationRecommendations: `Start with the accreditation or competency framework recognised in ${professionCluster.label.toLowerCase()}. Confirm local requirements before paying for training; regulated clinical, teaching, engineering, food-safety, and trade routes can vary by jurisdiction and target scope.`,
+        suggestedProjects: professionCluster.milestones
+          .slice(0, 4)
+          .map(
+            (milestone, index) =>
+              `${index + 1}) ${milestone.title}: ${milestone.description}`,
+          )
+          .join(" "),
+        jobProgressionLadder: `Recommended direction: ${currentRole} to ${targetRole}. The realistic routes in this cluster include ${professionCluster.destinations
+          .slice(0, 4)
+          .map((destination) => destination.title)
+          .join(
+            ", ",
+          )}. Use work-based evidence and role requirements to decide whether your move is deeper, wider, or adjacent.`,
+        immediateActions: `In the next 90 days: 1) ${professionCluster.milestones[0].title}. 2) ${professionCluster.milestones[1].title}. 3) Review the target role with a practitioner in ${professionCluster.label.toLowerCase()}. 4) Capture a baseline measure for the first milestone. 5) Protect ${profile.weeklyLearningHours ?? 5} hours per week for the required evidence and learning.`,
+        year1Priorities: `Year 1 focus: ${professionCluster.milestones
+          .slice(0, 3)
+          .map((milestone) => milestone.title)
+          .join(
+            "; ",
+          )}. Keep the evidence concrete enough for a hiring manager, assessor, client, or professional peer to verify.`,
+        year2To3Plan: `${timeline.analysisMidpoint} focus: ${professionCluster.milestones
+          .slice(3, 5)
+          .map((milestone) => milestone.title)
+          .join(
+            "; ",
+          )}. Expand the scale, responsibility, or commercial impact of the work rather than collecting unrelated courses.`,
+        year4To5Plan: `${timeline.analysisLate} focus: ${professionCluster.milestones[5].title}. Package the completed evidence around the actual selection criteria for ${targetRole} and pursue roles at the appropriate next level.`,
+      }
+    : null;
+
   return {
     readinessScore,
-    profileSummary,
-    currentStrengths,
-    skillGaps,
-    experienceGaps,
-    qualificationGaps,
-    certificationRecommendations,
-    suggestedProjects,
-    jobProgressionLadder,
-    immediateActions,
-    year1Priorities,
-    year2To3Plan,
-    year4To5Plan,
+    profileSummary: professionGuidance?.profileSummary ?? profileSummary,
+    currentStrengths: professionGuidance?.currentStrengths ?? currentStrengths,
+    skillGaps: professionGuidance?.skillGaps ?? skillGaps,
+    experienceGaps: professionGuidance?.experienceGaps ?? experienceGaps,
+    qualificationGaps:
+      professionGuidance?.qualificationGaps ?? qualificationGaps,
+    certificationRecommendations:
+      professionGuidance?.certificationRecommendations ??
+      certificationRecommendations,
+    suggestedProjects:
+      professionGuidance?.suggestedProjects ?? suggestedProjects,
+    jobProgressionLadder:
+      professionGuidance?.jobProgressionLadder ?? jobProgressionLadder,
+    immediateActions: professionGuidance?.immediateActions ?? immediateActions,
+    year1Priorities: professionGuidance?.year1Priorities ?? year1Priorities,
+    year2To3Plan: professionGuidance?.year2To3Plan ?? year2To3Plan,
+    year4To5Plan: professionGuidance?.year4To5Plan ?? year4To5Plan,
   };
 }
 
 export function generateCareerMilestones(
   targetRole: string,
   targetYears: number,
+  professionInput = "",
 ): CareerMilestone[] {
   const timeline = getTimelineLabels(targetYears);
+  const professionCluster = getProfessionCluster(
+    `${professionInput} ${targetRole}`,
+  );
+
+  if (professionCluster) {
+    return professionCluster.milestones.map((milestone, index) => ({
+      title: milestone.title,
+      phase:
+        index < 2
+          ? "Immediate (0-90 days)"
+          : index < 4
+            ? "Year 1"
+            : index === 4
+              ? timeline.milestoneMidpoint
+              : timeline.milestoneLate,
+      description: milestone.description,
+    }));
+  }
 
   return [
     {

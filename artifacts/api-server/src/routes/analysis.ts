@@ -89,7 +89,13 @@ router.post("/analysis", requireAuth, async (req, res): Promise<void> => {
     .from(milestonesTable)
     .where(eq(milestonesTable.userId, userId));
   if (req.body?.skipMilestones !== true && existingMilestones.length === 0) {
-    const milestones = generateCareerMilestones(goal.targetRole, targetYears);
+    const milestones = generateCareerMilestones(
+      goal.targetRole,
+      targetYears,
+      [profile?.currentRole, profile?.industry, profile?.professionalSummary]
+        .filter(Boolean)
+        .join(" "),
+    );
     for (const m of milestones) {
       await db
         .insert(milestonesTable)
