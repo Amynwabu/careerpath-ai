@@ -118,6 +118,24 @@ export default function Dashboard() {
           </div>
         </section>
 
+        <section className="grid gap-5 border border-emerald-400/20 bg-emerald-400/[0.04] p-5 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase text-emerald-300">Update career evidence</p>
+            <h2 className="mt-2 text-lg font-semibold">Changed role, responsibilities, or CV?</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+              Replace your description or upload a newer CV, review the career options again, and rerun your profile analysis.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button asChild variant="outline" className="border-emerald-400/30 text-emerald-200 hover:bg-emerald-400/10">
+              <Link href="/onboarding?mode=description">Change description</Link>
+            </Button>
+            <Button asChild className="bg-emerald-400 text-emerald-950 hover:bg-emerald-300">
+              <Link href="/onboarding?mode=cv">Upload a new CV</Link>
+            </Button>
+          </div>
+        </section>
+
         {/* Top 4-card insight strip */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <InsightCard

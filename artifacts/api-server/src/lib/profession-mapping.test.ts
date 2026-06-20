@@ -3,6 +3,7 @@ import {
   buildProfessionJourneyStages,
   classifyProfession,
   getCareerDirectionMapping,
+  getTrainingStageRanges,
 } from "./profession-mapping";
 
 describe("profession mapping", () => {
@@ -79,5 +80,25 @@ describe("profession mapping", () => {
     expect(stages).toHaveLength(3);
     expect(milestoneTitles).toContain("Lead one curriculum improvement cycle");
     expect(milestoneTitles).not.toContain("Create a public notes repository");
+  });
+
+  it("keeps every suggested training route between 3 and 12 months", () => {
+    const mapping = getCareerDirectionMapping(
+      "Registered nurse pursuing advanced clinical practice on a hospital ward",
+    );
+
+    expect(mapping.options.length).toBeGreaterThan(0);
+    for (const option of mapping.options) {
+      expect(option.durationMonths).toBeGreaterThanOrEqual(3);
+      expect(option.durationMonths).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it("creates valid three-stage ranges for the minimum training duration", () => {
+    expect(getTrainingStageRanges(1)).toEqual([
+      "Months 1-1",
+      "Months 2-2",
+      "Months 3-3",
+    ]);
   });
 });

@@ -2,6 +2,32 @@ import { rankCareerDirections } from "./career-directions";
 
 export type GrowthDirection = "deeper" | "wider" | "adjacent";
 
+export const MIN_TRAINING_MONTHS = 3;
+export const MAX_TRAINING_MONTHS = 12;
+
+export function clampTrainingDurationMonths(durationMonths: number) {
+  if (!Number.isFinite(durationMonths)) return MAX_TRAINING_MONTHS;
+  return Math.max(
+    MIN_TRAINING_MONTHS,
+    Math.min(MAX_TRAINING_MONTHS, Math.round(durationMonths)),
+  );
+}
+
+export function getTrainingStageRanges(durationMonths: number) {
+  const duration = clampTrainingDurationMonths(durationMonths);
+  const firstEnd = Math.max(1, Math.floor(duration / 3));
+  const secondEnd = Math.min(
+    duration - 1,
+    Math.max(firstEnd + 1, Math.floor((duration * 2) / 3)),
+  );
+
+  return [
+    `Months 1-${firstEnd}`,
+    `Months ${firstEnd + 1}-${secondEnd}`,
+    `Months ${secondEnd + 1}-${duration}`,
+  ] as const;
+}
+
 export interface ProfessionDestination {
   id: string;
   title: string;
@@ -1193,6 +1219,9 @@ export function getProfessionDirections(input: string, limit = 4) {
       .slice(0, limit)
       .map((destination, index) => ({
         ...destination,
+        durationMonths: clampTrainingDurationMonths(
+          destination.durationMonths,
+        ),
         matchScore: Math.max(
           1,
           Math.round(classification.confidence * 100) - index,
@@ -1215,7 +1244,12 @@ export function getCareerDirectionMapping(input: string, limit = 4) {
     };
   }
 
-  const options = rankCareerDirections(input).slice(0, limit);
+  const options = rankCareerDirections(input)
+    .slice(0, limit)
+    .map((option) => ({
+      ...option,
+      durationMonths: clampTrainingDurationMonths(option.durationMonths),
+    }));
   return {
     classification:
       options.length > 0
@@ -1250,26 +1284,23 @@ export function buildProfessionJourneyStages(
   cluster: ProfessionCluster,
   durationMonths: number,
 ) {
-  const firstEnd = Math.max(2, Math.round(durationMonths / 3));
-  const secondEnd = Math.max(
-    firstEnd + 2,
-    Math.round((durationMonths * 2) / 3),
-  );
+  const [firstRange, secondRange, thirdRange] =
+    getTrainingStageRanges(durationMonths);
   const stageDefinitions = [
     {
       title: "Build target-role foundations",
-      duration: `Months 1-${firstEnd}`,
+      duration: firstRange,
       description: `Close the first evidence gaps for the ${cluster.label.toLowerCase()} pathway.`,
     },
     {
       title: "Prove capability in practice",
-      duration: `Months ${firstEnd + 1}-${secondEnd}`,
+      duration: secondRange,
       description:
         "Create work-based proof that a hiring manager or professional peer can verify.",
     },
     {
       title: "Prepare the move",
-      duration: `Months ${secondEnd + 1}-${durationMonths}`,
+      duration: thirdRange,
       description:
         "Package the evidence, validate it with practitioners, and pursue realistic opportunities.",
     },

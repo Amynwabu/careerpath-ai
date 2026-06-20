@@ -38,7 +38,20 @@ interface IntakeResult {
   needsClarification: boolean;
 }
 
+type ReviewStep = "options" | "profile";
+
+interface ProfileDraft {
+  currentRole: string;
+  yearsExperience: string;
+  industry: string;
+  careerLevel: string;
+  location: string;
+  weeklyLearningHours: string;
+  professionalSummary: string;
+}
+
 const BUILD_STEPS = [
+  "Saving your verified profile",
   "Saving your career direction",
   "Running readiness and gap analysis",
   "Building your milestone journey",
@@ -49,12 +62,26 @@ export default function Onboarding() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const fileInput = useRef<HTMLInputElement>(null);
-  const [mode, setMode] = useState<"description" | "cv">("description");
+  const [mode, setMode] = useState<"description" | "cv">(() =>
+    new URLSearchParams(window.location.search).get("mode") === "cv"
+      ? "cv"
+      : "description",
+  );
   const [description, setDescription] = useState("");
   const [targetRole, setTargetRole] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<IntakeResult | null>(null);
   const [selectedId, setSelectedId] = useState("");
+  const [reviewStep, setReviewStep] = useState<ReviewStep>("options");
+  const [profileDraft, setProfileDraft] = useState<ProfileDraft>({
+    currentRole: "",
+    yearsExperience: "",
+    industry: "",
+    careerLevel: "",
+    location: "",
+    weeklyLearningHours: "5",
+    professionalSummary: "",
+  });
   const [processing, setProcessing] = useState(false);
   const [buildStep, setBuildStep] = useState(0);
 
@@ -93,6 +120,19 @@ export default function Onboarding() {
       });
       setResult(intake);
       setSelectedId(intake.options[0]?.id ?? "");
+      setReviewStep("options");
+      setProfileDraft({
+        currentRole: intake.extracted.currentRole ?? "",
+        yearsExperience:
+          intake.extracted.yearsExperience != null
+            ? String(intake.extracted.yearsExperience)
+            : "",
+        industry: intake.extracted.industry ?? "",
+        careerLevel: intake.extracted.careerLevel ?? "",
+        location: "",
+        weeklyLearningHours: "5",
+        professionalSummary: intake.extracted.professionalSummary,
+      });
     } catch (error) {
       toast({
         title: "We could not read that career evidence",
@@ -111,9 +151,45 @@ export default function Onboarding() {
     const selected = result?.options.find((option) => option.id === selectedId);
     if (!selected) return;
 
+    if (
+      !profileDraft.currentRole.trim() ||
+      !profileDraft.industry.trim() ||
+      profileDraft.professionalSummary.trim().length < 40
+    ) {
+      toast({
+        title: "Complete the required profile details",
+        description:
+          "Confirm your current role, industry, and a professional summary of at least 40 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setProcessing(true);
     try {
       setBuildStep(0);
+      const yearsExperience = Number(profileDraft.yearsExperience);
+      const weeklyLearningHours = Number(profileDraft.weeklyLearningHours);
+      await apiRequest("/profile", {
+        method: "PATCH",
+        body: JSON.stringify({
+          currentRole: profileDraft.currentRole.trim(),
+          industry: profileDraft.industry.trim(),
+          careerLevel: profileDraft.careerLevel.trim() || undefined,
+          location: profileDraft.location.trim() || undefined,
+          professionalSummary: profileDraft.professionalSummary.trim(),
+          yearsExperience:
+            Number.isFinite(yearsExperience) && yearsExperience >= 0
+              ? yearsExperience
+              : undefined,
+          weeklyLearningHours:
+            Number.isFinite(weeklyLearningHours) && weeklyLearningHours > 0
+              ? weeklyLearningHours
+              : undefined,
+        }),
+      });
+
+      setBuildStep(1);
       await apiRequest("/career-goal", {
         method: "PUT",
         body: JSON.stringify({
@@ -122,13 +198,13 @@ export default function Onboarding() {
         }),
       });
 
-      setBuildStep(1);
+      setBuildStep(2);
       await apiRequest("/analysis", {
         method: "POST",
         body: JSON.stringify({ skipMilestones: true }),
       });
 
-      setBuildStep(2);
+      setBuildStep(3);
       await apiRequest("/journey/build", {
         method: "POST",
         body: JSON.stringify({ selectedDirectionId: selected.id }),
@@ -147,6 +223,23 @@ export default function Onboarding() {
       });
       setProcessing(false);
     }
+  };
+
+  const continueToProfile = () => {
+    if (!selectedId) {
+      toast({
+        title: "Choose a career direction",
+        description: "Select one option before verifying your profile.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setReviewStep("profile");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const updateProfileDraft = (field: keyof ProfileDraft, value: string) => {
+    setProfileDraft((current) => ({ ...current, [field]: value }));
   };
 
   const useCustomDirection = () => {
@@ -244,7 +337,7 @@ export default function Onboarding() {
             variant="outline"
             className="border-white/15 text-muted-foreground"
           >
-            First-time setup
+            Career evidence review
           </Badge>
         </div>
       </header>
@@ -433,138 +526,355 @@ export default function Onboarding() {
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="border border-white/10 bg-card/70 p-6">
-                <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+                <div className="flex gap-6 text-sm">
+                  <span
+                    className={
+                      reviewStep === "options"
+                        ? "font-semibold text-primary"
+                        : "text-muted-foreground"
+                    }
+                  >
+                    1. Career options
+                  </span>
+                  <span
+                    className={
+                      reviewStep === "profile"
+                        ? "font-semibold text-primary"
+                        : "text-muted-foreground"
+                    }
+                  >
+                    2. Verify profile
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setResult(null);
+                    setReviewStep("options");
+                  }}
+                >
+                  Change career evidence
+                </Button>
+              </div>
+
+              {reviewStep === "options" ? (
+                <>
+                  <div className="border border-white/10 bg-card/70 p-6">
+                    <p className="text-xs font-semibold uppercase text-primary">
+                      Career signals found
+                    </p>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      {[
+                        result.extracted.currentRole ?? "Role not detected",
+                        result.extracted.industry ?? "Cross-industry",
+                        result.extracted.yearsExperience != null
+                          ? `${result.extracted.yearsExperience} years experience`
+                          : result.extracted.careerLevel,
+                      ].map((value) => (
+                        <div
+                          key={value}
+                          className="border border-white/10 bg-black/20 px-4 py-3 text-sm"
+                        >
+                          {value}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div>
                     <p className="text-xs font-semibold uppercase text-primary">
-                      Profile mapped
+                      Recommended directions
                     </p>
-                    <h2 className="mt-2 text-xl font-semibold">
-                      We found your strongest career signals
-                    </h2>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setResult(null)}
-                  >
-                    Edit input
-                  </Button>
-                </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  {[
-                    result.extracted.currentRole ?? "Role not detected",
-                    result.extracted.industry ?? "Cross-industry",
-                    result.extracted.yearsExperience != null
-                      ? `${result.extracted.yearsExperience} years`
-                      : result.extracted.careerLevel,
-                  ].map((value) => (
-                    <div
-                      key={value}
-                      className="border border-white/10 bg-black/20 px-4 py-3 text-sm"
-                    >
-                      {value}
-                    </div>
-                  ))}
-                </div>
-                {result.extracted.skills.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {result.extracted.skills.map((skill) => (
-                      <Badge key={skill} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold uppercase text-primary">
-                  Recommended directions
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  Choose a realistic next direction
-                </h2>
-                {result.classification && (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    Profession map:{" "}
-                    <span className="font-medium text-foreground">
-                      {result.classification.label}
-                    </span>
-                  </p>
-                )}
-                {result.needsClarification && result.options.length === 0 ? (
-                  <div className="mt-5 border border-white/10 bg-card/50 p-5">
-                    <p className="font-medium">
-                      We need one more career signal.
+                    <h1 className="mt-2 text-3xl font-semibold">
+                      Choose a realistic career option
+                    </h1>
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Select one route, then verify the profile evidence used to
+                      build your analysis.
                     </p>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      Your description does not yet match a profession strongly
-                      enough to recommend honest next steps. Add a role you want
-                      to explore rather than receiving a generic technology
-                      recommendation.
-                    </p>
-                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                      <Input
-                        value={targetRole}
-                        onChange={(event) => setTargetRole(event.target.value)}
-                        className="h-11 rounded-none border-white/10 bg-black/20"
-                        placeholder="e.g. Workshop Manager"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={useCustomDirection}
-                        className="h-11 rounded-none"
-                      >
-                        Use this direction
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {result.options.map((option) => {
-                      const selected = selectedId === option.id;
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          onClick={() => setSelectedId(option.id)}
-                          className={`min-h-48 border p-5 text-left transition-colors ${selected ? "border-primary bg-primary/[0.06]" : "border-white/10 bg-card/50 hover:border-primary/40"}`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <h3 className="font-semibold">{option.title}</h3>
-                            <span
-                              className={`border px-2 py-1 text-[10px] font-semibold uppercase ${selected ? "border-primary bg-primary text-primary-foreground" : "border-white/20 text-muted-foreground"}`}
+                    {result.classification && (
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Profession map:{" "}
+                        <span className="font-medium text-foreground">
+                          {result.classification.label}
+                        </span>
+                      </p>
+                    )}
+                    {result.needsClarification &&
+                    result.options.length === 0 ? (
+                      <div className="mt-5 border border-white/10 bg-card/50 p-5">
+                        <p className="font-medium">
+                          We need one more career signal.
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                          Add one role you want to explore so the journey stays
+                          grounded in a real profession.
+                        </p>
+                        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                          <Input
+                            value={targetRole}
+                            onChange={(event) =>
+                              setTargetRole(event.target.value)
+                            }
+                            className="h-11 rounded-none border-white/10 bg-black/20"
+                            placeholder="e.g. Workshop Manager"
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={useCustomDirection}
+                            className="h-11 rounded-none"
+                          >
+                            Use this direction
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                        {result.options.map((option) => {
+                          const selected = selectedId === option.id;
+                          return (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => setSelectedId(option.id)}
+                              className={`min-h-48 border p-5 text-left transition-colors ${selected ? "border-primary bg-primary/[0.06]" : "border-white/10 bg-card/50 hover:border-primary/40"}`}
                             >
-                              {selected ? "Selected" : "Select"}
-                            </span>
-                          </div>
-                          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                            {option.rationale}
-                          </p>
-                          {option.growthDirection && (
-                            <p className="mt-3 text-xs uppercase text-muted-foreground">
-                              {option.growthDirection} progression
-                            </p>
-                          )}
-                          <p className="mt-4 text-xs font-medium text-primary">
-                            Estimated route: {option.durationMonths} months
-                          </p>
-                        </button>
-                      );
-                    })}
+                              <div className="flex items-start justify-between gap-3">
+                                <h2 className="font-semibold">{option.title}</h2>
+                                <span
+                                  className={`border px-2 py-1 text-[10px] font-semibold uppercase ${selected ? "border-primary bg-primary text-primary-foreground" : "border-white/20 text-muted-foreground"}`}
+                                >
+                                  {selected ? "Selected" : "Select"}
+                                </span>
+                              </div>
+                              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                                {option.rationale}
+                              </p>
+                              {option.growthDirection && (
+                                <p className="mt-3 text-xs uppercase text-muted-foreground">
+                                  {option.growthDirection} progression
+                                </p>
+                              )}
+                              <p className="mt-4 text-xs font-medium text-primary">
+                                Training plan: {option.durationMonths} months
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <Button
-                onClick={buildJourney}
-                disabled={!selectedId}
-                className="h-12 w-full rounded-none text-base"
-              >
-                Run analysis and build my journey
-              </Button>
+                  <Button
+                    onClick={continueToProfile}
+                    disabled={!selectedId}
+                    className="h-12 w-full rounded-none text-base"
+                  >
+                    Continue to verify my profile
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <p className="text-xs font-semibold uppercase text-primary">
+                      Profile verification
+                    </p>
+                    <h1 className="mt-2 text-3xl font-semibold">
+                      Verify and complete your profile
+                    </h1>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                      Correct anything the CV or description extraction missed.
+                      This saved profile will be used for your analysis and
+                      training journey.
+                    </p>
+                  </div>
+
+                  <div className="border border-white/10 bg-card/70 p-6">
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <div>
+                        <label
+                          htmlFor="verify-current-role"
+                          className="text-sm font-medium"
+                        >
+                          Current role *
+                        </label>
+                        <Input
+                          id="verify-current-role"
+                          value={profileDraft.currentRole}
+                          onChange={(event) =>
+                            updateProfileDraft("currentRole", event.target.value)
+                          }
+                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="verify-industry"
+                          className="text-sm font-medium"
+                        >
+                          Industry or profession *
+                        </label>
+                        <Input
+                          id="verify-industry"
+                          value={profileDraft.industry}
+                          onChange={(event) =>
+                            updateProfileDraft("industry", event.target.value)
+                          }
+                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="verify-years"
+                          className="text-sm font-medium"
+                        >
+                          Years of experience
+                        </label>
+                        <Input
+                          id="verify-years"
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={profileDraft.yearsExperience}
+                          onChange={(event) =>
+                            updateProfileDraft(
+                              "yearsExperience",
+                              event.target.value,
+                            )
+                          }
+                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="verify-level"
+                          className="text-sm font-medium"
+                        >
+                          Career level
+                        </label>
+                        <Input
+                          id="verify-level"
+                          value={profileDraft.careerLevel}
+                          onChange={(event) =>
+                            updateProfileDraft("careerLevel", event.target.value)
+                          }
+                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="verify-location"
+                          className="text-sm font-medium"
+                        >
+                          Location
+                        </label>
+                        <Input
+                          id="verify-location"
+                          value={profileDraft.location}
+                          onChange={(event) =>
+                            updateProfileDraft("location", event.target.value)
+                          }
+                          placeholder="e.g. London, UK"
+                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="verify-learning-hours"
+                          className="text-sm font-medium"
+                        >
+                          Weekly learning hours
+                        </label>
+                        <Input
+                          id="verify-learning-hours"
+                          type="number"
+                          min="1"
+                          max="40"
+                          value={profileDraft.weeklyLearningHours}
+                          onChange={(event) =>
+                            updateProfileDraft(
+                              "weeklyLearningHours",
+                              event.target.value,
+                            )
+                          }
+                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-5">
+                      <label
+                        htmlFor="verify-summary"
+                        className="text-sm font-medium"
+                      >
+                        Professional summary *
+                      </label>
+                      <Textarea
+                        id="verify-summary"
+                        rows={7}
+                        value={profileDraft.professionalSummary}
+                        onChange={(event) =>
+                          updateProfileDraft(
+                            "professionalSummary",
+                            event.target.value,
+                          )
+                        }
+                        className="mt-2 resize-none rounded-none border-white/10 bg-black/20 leading-7"
+                      />
+                    </div>
+
+                    {result.extracted.skills.length > 0 && (
+                      <div className="mt-5 border-t border-white/10 pt-5">
+                        <p className="text-sm font-medium">Extracted skills</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {result.extracted.skills.map((skill) => (
+                            <Badge key={skill} variant="secondary">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="border border-primary/20 bg-primary/[0.04] p-5">
+                    <p className="text-xs font-semibold uppercase text-primary">
+                      Selected direction
+                    </p>
+                    <p className="mt-2 font-semibold">
+                      {
+                        result.options.find(
+                          (option) => option.id === selectedId,
+                        )?.title
+                      }
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Training plans run for a minimum of 3 months and a maximum
+                      of 12 months.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setReviewStep("options")}
+                      className="h-12 rounded-none"
+                    >
+                      Back to career options
+                    </Button>
+                    <Button
+                      onClick={buildJourney}
+                      className="h-12 rounded-none px-6 text-base"
+                    >
+                      Save profile and build my journey
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </section>

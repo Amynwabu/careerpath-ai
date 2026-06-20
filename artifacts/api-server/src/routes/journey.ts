@@ -16,9 +16,11 @@ import { requireAuth } from "../middlewares/auth";
 import { careerDirections } from "../lib/career-directions";
 import {
   buildProfessionJourneyStages,
+  clampTrainingDurationMonths,
   findProfessionDestination,
   getCareerDirectionMapping,
   getProfessionCluster,
+  getTrainingStageRanges,
 } from "../lib/profession-mapping";
 
 const router: IRouter = Router();
@@ -175,9 +177,8 @@ router.post(
           {
             id: "career-goal",
             title: goal.targetRole,
-            durationMonths: Math.max(
-              6,
-              Math.min(60, (goal.targetYears ?? 1) * 12),
+            durationMonths: clampTrainingDurationMonths(
+              (goal.targetYears ?? 1) * 12,
             ),
             rationale:
               "Continue from your saved career goal and latest analysis.",
@@ -227,23 +228,29 @@ router.post("/journey/build", requireAuth, async (req, res): Promise<void> => {
     .limit(1);
 
   const professionDestination = findProfessionDestination(directionId);
-  const selectedDirection =
+  const selectedDirectionCandidate =
     directionId === "career-goal" && goal?.targetRole
       ? {
           id: "career-goal",
           title: goal.targetRole,
-          durationMonths: Math.max(
-            6,
-            Math.min(60, (goal.targetYears ?? 1) * 12),
+          durationMonths: clampTrainingDurationMonths(
+            (goal.targetYears ?? 1) * 12,
           ),
         }
       : (professionDestination?.destination ??
         careerDirections.find((option) => option.id === directionId));
 
-  if (!selectedDirection) {
+  if (!selectedDirectionCandidate) {
     res.status(400).json({ error: "Select a valid journey direction." });
     return;
   }
+
+  const selectedDirection = {
+    ...selectedDirectionCandidate,
+    durationMonths: clampTrainingDurationMonths(
+      selectedDirectionCandidate.durationMonths,
+    ),
+  };
 
   const result = await db.transaction(async (tx) => {
     await tx
@@ -295,7 +302,12 @@ router.post("/journey/build", requireAuth, async (req, res): Promise<void> => {
           professionCluster,
           selectedDirection.durationMonths,
         )
-      : stageTemplates;
+      : stageTemplates.map((template, index) => ({
+          ...template,
+          duration: getTrainingStageRanges(selectedDirection.durationMonths)[
+            index
+          ],
+        }));
 
     const stages = [];
     for (const template of templates) {

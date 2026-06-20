@@ -9,15 +9,60 @@ export function Sidebar() {
   const { logout } = useAuth();
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/profile", label: "My Profile" },
-    { href: "/career-goal", label: "Career Goal" },
-    { href: "/journey-builder", label: "Journey Builder" },
-    { href: "/analysis", label: "Career Analysis" },
-    { href: "/roadmap", label: "Career Roadmap" },
-    { href: "/milestones", label: "Milestones" },
-    { href: "/advisors", label: "Advisors" },
-    { href: "/history", label: "History" },
+    {
+      href: "/dashboard",
+      label: "Dashboard",
+      active: "border-cyan-400/50 bg-cyan-400/15 text-cyan-200",
+      idle: "border-cyan-400/15 text-cyan-200/70 hover:border-cyan-400/35 hover:bg-cyan-400/10 hover:text-cyan-100",
+    },
+    {
+      href: "/profile",
+      label: "My Profile",
+      active: "border-emerald-400/50 bg-emerald-400/15 text-emerald-200",
+      idle: "border-emerald-400/15 text-emerald-200/70 hover:border-emerald-400/35 hover:bg-emerald-400/10 hover:text-emerald-100",
+    },
+    {
+      href: "/career-goal",
+      label: "Career Goal",
+      active: "border-amber-400/50 bg-amber-400/15 text-amber-200",
+      idle: "border-amber-400/15 text-amber-200/70 hover:border-amber-400/35 hover:bg-amber-400/10 hover:text-amber-100",
+    },
+    {
+      href: "/journey-builder",
+      label: "Journey Builder",
+      active: "border-fuchsia-400/50 bg-fuchsia-400/15 text-fuchsia-200",
+      idle: "border-fuchsia-400/15 text-fuchsia-200/70 hover:border-fuchsia-400/35 hover:bg-fuchsia-400/10 hover:text-fuchsia-100",
+    },
+    {
+      href: "/analysis",
+      label: "Career Analysis",
+      active: "border-sky-400/50 bg-sky-400/15 text-sky-200",
+      idle: "border-sky-400/15 text-sky-200/70 hover:border-sky-400/35 hover:bg-sky-400/10 hover:text-sky-100",
+    },
+    {
+      href: "/roadmap",
+      label: "Career Roadmap",
+      active: "border-violet-400/50 bg-violet-400/15 text-violet-200",
+      idle: "border-violet-400/15 text-violet-200/70 hover:border-violet-400/35 hover:bg-violet-400/10 hover:text-violet-100",
+    },
+    {
+      href: "/milestones",
+      label: "Milestones",
+      active: "border-lime-400/50 bg-lime-400/15 text-lime-200",
+      idle: "border-lime-400/15 text-lime-200/70 hover:border-lime-400/35 hover:bg-lime-400/10 hover:text-lime-100",
+    },
+    {
+      href: "/advisors",
+      label: "Advisors",
+      active: "border-rose-400/50 bg-rose-400/15 text-rose-200",
+      idle: "border-rose-400/15 text-rose-200/70 hover:border-rose-400/35 hover:bg-rose-400/10 hover:text-rose-100",
+    },
+    {
+      href: "/history",
+      label: "History",
+      active: "border-orange-400/50 bg-orange-400/15 text-orange-200",
+      idle: "border-orange-400/15 text-orange-200/70 hover:border-orange-400/35 hover:bg-orange-400/10 hover:text-orange-100",
+    },
   ];
 
   return (
@@ -38,11 +83,10 @@ export function Sidebar() {
           return (
             <Link key={item.href} href={item.href}>
               <div
+                aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer",
-                  isActive
-                    ? "bg-primary/10 text-primary border border-primary/20 glow-box"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                  "flex items-center border px-3 py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer",
+                  isActive ? item.active : item.idle,
                 )}
               >
                 {item.label}
