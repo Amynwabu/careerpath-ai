@@ -70,7 +70,7 @@ export function Sidebar() {
       <div className="h-20 flex items-center px-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <BrandMark />
-          <span className="font-bold text-lg tracking-tight">CareerPath AI</span>
+          <span className="font-bold text-lg tracking-tight">CareerPathX</span>
         </div>
       </div>
 

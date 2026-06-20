@@ -329,7 +329,7 @@ export default function Onboarding() {
           <div className="flex items-center gap-3">
             <BrandMark />
             <div>
-              <p className="font-semibold">CareerPath AI</p>
+              <p className="font-semibold">CareerPathX</p>
               <p className="text-xs text-muted-foreground">Profile mapping</p>
             </div>
           </div>

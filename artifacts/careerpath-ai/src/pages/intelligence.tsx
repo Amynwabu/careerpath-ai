@@ -72,7 +72,7 @@ export default function Intelligence() {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <BrandMark />
-            <span className="font-bold text-xl tracking-tight">CareerPath AI</span>
+            <span className="font-bold text-xl tracking-tight">CareerPathX</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="/intelligence" className="text-primary">Intelligence</Link>
@@ -97,7 +97,7 @@ export default function Intelligence() {
             Every Feature Built to Get You <span className="text-primary glow-text">There Faster</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            CareerPath AI isn't just a career tool. It's a complete execution system — from where you are today to your dream role, with every step mapped, prioritised, and guided by AI.
+            CareerPathX isn't just a career tool. It's a complete execution system — from where you are today to your dream role, with every step mapped, prioritised, and guided by AI.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(0,240,255,0.4)] glow-box">
@@ -143,8 +143,8 @@ export default function Intelligence() {
       <section className="py-24 px-6">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">Why CareerPath AI</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">CareerPath AI vs Generic Career Advice</h2>
+            <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">Why CareerPathX</Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">CareerPathX vs Generic Career Advice</h2>
             <p className="text-muted-foreground max-w-lg mx-auto">Most tools give you advice. We give you a system.</p>
           </div>
 
@@ -153,7 +153,7 @@ export default function Intelligence() {
               <div className="grid grid-cols-3 bg-white/5 border-b border-white/5 text-sm font-semibold">
                 <div className="p-4">Feature</div>
                 <div className="p-4 text-center text-muted-foreground">Generic Tools</div>
-                <div className="p-4 text-center text-primary">CareerPath AI</div>
+                <div className="p-4 text-center text-primary">CareerPathX</div>
               </div>
               {COMPARISON.map((row, i) => (
                 <div key={row.feature} className={`grid grid-cols-3 border-b border-white/5 text-sm ${i % 2 === 0 ? "" : "bg-white/2"}`}>
@@ -188,14 +188,14 @@ export default function Intelligence() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <Link href="/" className="flex items-center gap-3">
               <BrandMark size="sm" />
-              <span className="font-bold text-sm">CareerPath AI</span>
+              <span className="font-bold text-sm">CareerPathX</span>
             </Link>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/intelligence" className="text-primary">Features</Link>
               <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
               <Link href="/login" className="hover:text-primary transition-colors">Sign In</Link>
             </div>
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerPath AI. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerPathX. All rights reserved.</p>
           </div>
         </div>
       </footer>

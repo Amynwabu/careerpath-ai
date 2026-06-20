@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useReducedMotion } from "framer-motion";
 
 interface CircularProgressProps {
   value: number;
@@ -19,13 +20,23 @@ export function CircularProgress({
   label,
   showValue = true,
 }: CircularProgressProps) {
+  const prefersReducedMotion = useReducedMotion();
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (value / 100) * circumference;
 
   return (
     <div className={cn("relative inline-flex items-center justify-center flex-col", className)}>
-      <svg width={size} height={size} className="transform -rotate-90">
+      <svg
+        width={size}
+        height={size}
+        className="transform -rotate-90"
+        role="progressbar"
+        aria-label={label ?? "Progress"}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.round(value)}
+      >
         {/* Background circle */}
         <circle
           cx={size / 2}
@@ -43,7 +54,11 @@ export function CircularProgress({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          className={cn("fill-none transition-all duration-1000 ease-in-out", colorClass, "stroke-current")}
+          className={cn(
+            "fill-none stroke-current",
+            !prefersReducedMotion && "transition-all duration-1000 ease-in-out",
+            colorClass,
+          )}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center">

@@ -1,4 +1,4 @@
-# CareerPath AI
+# CareerPathX
 
 AI-powered career intelligence platform for turning a professional profile and
 five-year career target into readiness scores, gap analysis, roadmaps, and
@@ -6,7 +6,7 @@ trackable milestones.
 
 ## What It Is
 
-CareerPath AI is a full-stack TypeScript application. Users create an account,
+CareerPathX is a full-stack TypeScript application. Users create an account,
 complete a professional profile, define a target role, and run an analysis that
 generates:
 

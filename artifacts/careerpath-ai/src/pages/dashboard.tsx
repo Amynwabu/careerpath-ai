@@ -1,11 +1,34 @@
 import { useGetDashboardSummary, useGetSkillGaps, useGetCareerGoal, useGetProfile, useListMilestones, useGetRoadmap } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
-import { CircularProgress } from "@/components/ui/circular-progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useReducedMotion } from "framer-motion";
+
+type PhaseState = "complete" | "active" | "upcoming";
+
+const phaseStateStyles: Record<PhaseState, { card: string; badge: string; connector: string; label: string }> = {
+  complete: {
+    card: "border-emerald-400/35 bg-emerald-400/[0.06]",
+    badge: "border-emerald-400/30 bg-emerald-400/15 text-emerald-200",
+    connector: "bg-emerald-400/45",
+    label: "Complete",
+  },
+  active: {
+    card: "border-cyan-400/45 bg-cyan-400/[0.07]",
+    badge: "border-cyan-400/35 bg-cyan-400/15 text-cyan-100",
+    connector: "bg-cyan-400/45",
+    label: "In progress",
+  },
+  upcoming: {
+    card: "border-white/10 bg-white/[0.025]",
+    badge: "border-white/10 bg-white/5 text-muted-foreground",
+    connector: "bg-white/10",
+    label: "Upcoming",
+  },
+};
 
 function InsightCard({ label, value, sub, href, loading }: {
   label: string;
@@ -40,6 +63,7 @@ function InsightCard({ label, value, sub, href, loading }: {
 }
 
 export default function Dashboard() {
+  const prefersReducedMotion = useReducedMotion();
   const { data: summary, isLoading: loadingSummary } = useGetDashboardSummary();
   const { data: skillGaps, isLoading: loadingGaps } = useGetSkillGaps();
   const { data: goal, isLoading: loadingGoal } = useGetCareerGoal();
@@ -77,6 +101,22 @@ export default function Dashboard() {
   // Next milestone
   const nextMilestone = milestones?.find(m => !m.completed);
 
+  const getPhaseState = (index: number, phaseCount: number): PhaseState => {
+    const totalMilestones = milestones?.length ?? 0;
+    const completedMilestones = milestones?.filter(milestone => milestone.completed).length ?? 0;
+
+    if (totalMilestones === 0) return index === 0 ? "active" : "upcoming";
+    if (completedMilestones === totalMilestones) return "complete";
+
+    const activeIndex = Math.min(
+      phaseCount - 1,
+      Math.floor((completedMilestones / totalMilestones) * phaseCount),
+    );
+
+    if (index < activeIndex) return "complete";
+    return index === activeIndex ? "active" : "upcoming";
+  };
+
   // Top missing skill
   const topMissing = skillGaps?.[0]?.skill;
 
@@ -110,7 +150,7 @@ export default function Dashboard() {
               <span className="font-semibold text-primary">{liveSummary?.journeyProgress ?? 0}%</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden bg-white/5">
-              <div className="h-full bg-primary transition-all duration-500" style={{ width: `${liveSummary?.journeyProgress ?? 0}%` }} />
+              <div className={`h-full bg-primary ${prefersReducedMotion ? "" : "transition-all duration-500"}`} style={{ width: `${liveSummary?.journeyProgress ?? 0}%` }} />
             </div>
           </div>
           <div className="min-w-0 md:max-w-xs">
@@ -195,23 +235,23 @@ export default function Dashboard() {
                     </div>
                     <div className="w-full bg-white/5 rounded-full h-2">
                       <div
-                        className="bg-muted-foreground/40 h-2 rounded-full transition-all duration-700"
+                        className={`bg-muted-foreground/40 h-2 rounded-full ${prefersReducedMotion ? "" : "transition-all duration-700"}`}
                         style={{ width: `${Math.min(100, (readiness / 100) * 60 + 10)}%` }}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">Without structured guidance</p>
                   </div>
 
-                  {/* With CareerPath AI */}
+                  {/* With CareerPathX */}
                   <div className="space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">With CareerPath AI</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">With CareerPathX</p>
                     <div className="flex items-end gap-2">
                       <span className="text-4xl font-bold text-primary">{withAI}</span>
                       <span className="text-sm text-muted-foreground mb-1.5">years</span>
                     </div>
                     <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
                       <div
-                        className="bg-primary h-2 rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(0,240,255,0.5)]"
+                        className={`bg-primary h-2 rounded-full shadow-[0_0_8px_rgba(0,240,255,0.5)] ${prefersReducedMotion ? "" : "transition-all duration-700"}`}
                         style={{ width: `${Math.min(100, (readiness / 100) * 40 + 20)}%` }}
                       />
                     </div>
@@ -280,40 +320,33 @@ export default function Dashboard() {
                     <p className="text-xs text-muted-foreground mt-1.5 text-center w-16">Now</p>
                   </div>
 
-                  {roadmap.phases.map((phase, idx) => (
-                    <div key={idx} className="flex items-start gap-3 flex-shrink-0">
-                      {/* Connector line */}
-                      <div className="mt-5 w-6 h-0.5 bg-gradient-to-r from-primary/40 to-primary/20 flex-shrink-0" />
+                  {roadmap.phases.map((phase, idx) => {
+                    const state = getPhaseState(idx, roadmap.phases.length);
+                    const stateStyles = phaseStateStyles[state];
 
-                      {/* Phase card */}
-                      <div className={`w-44 rounded-xl border p-3 space-y-1.5 flex-shrink-0 ${
-                        idx === 0
-                          ? "border-primary/40 bg-primary/5"
-                          : idx === 1
-                            ? "border-cyan-500/30 bg-cyan-500/5"
-                            : idx === 2
-                              ? "border-purple-500/30 bg-purple-500/5"
-                              : "border-amber-500/30 bg-amber-500/5"
-                      }`}>
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-xs font-semibold text-foreground truncate">{phase.label}</span>
-                          <Badge className={`text-[10px] px-1.5 py-0 flex-shrink-0 ${
-                            idx === 0 ? "bg-primary/20 text-primary border-primary/30"
-                            : idx === 1 ? "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
-                            : idx === 2 ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
-                            : "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                          }`}>
-                            {phase.timeframe}
-                          </Badge>
+                    return (
+                      <div key={idx} className="flex items-start gap-3 flex-shrink-0">
+                        {/* Connector line */}
+                        <div className={`mt-5 h-0.5 w-6 flex-shrink-0 ${stateStyles.connector}`} />
+
+                        {/* Phase card */}
+                        <div className={`w-44 rounded-lg border p-3 space-y-1.5 flex-shrink-0 ${stateStyles.card}`}>
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-xs font-semibold text-foreground truncate">{phase.label}</span>
+                            <Badge className={`flex-shrink-0 px-1.5 py-0 text-[11px] ${stateStyles.badge}`}>
+                              {stateStyles.label}
+                            </Badge>
+                          </div>
+                          <p className="text-xs font-medium text-muted-foreground">{phase.timeframe}</p>
+                          <p className="text-xs text-muted-foreground leading-snug line-clamp-2">{phase.focus}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground leading-snug line-clamp-2">{phase.focus}</p>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   {/* End node */}
                   <div className="flex items-start gap-3 flex-shrink-0">
-                    <div className="mt-5 w-6 h-0.5 bg-gradient-to-r from-primary/20 to-primary/40 flex-shrink-0" />
+                    <div className="mt-5 h-0.5 w-6 flex-shrink-0 bg-white/10" />
                     <div className="flex flex-col items-center">
                       <div className="grid h-10 w-10 place-items-center border-2 border-primary bg-primary text-[10px] font-semibold text-primary-foreground glow-box">Goal</div>
                       <p className="text-xs text-primary font-medium mt-1.5 text-center w-20 truncate">{targetRole ?? "Your goal"}</p>
@@ -410,7 +443,7 @@ export default function Dashboard() {
                   {milestones.filter(m => !m.completed).slice(0, 4).map((m, idx) => (
                     <div key={m.id} className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${idx === 0 ? "bg-primary/5 border-primary/20" : "bg-white/5 border-white/5"}`}>
                       <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${idx === 0 ? "border-primary" : "border-white/20"}`}>
-                        {idx === 0 && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
+                        {idx === 0 && <div className={`w-2 h-2 rounded-full bg-primary ${prefersReducedMotion ? "" : "animate-pulse"}`} />}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className={`text-sm font-medium truncate ${idx === 0 ? "text-foreground" : "text-muted-foreground"}`}>{m.title}</p>

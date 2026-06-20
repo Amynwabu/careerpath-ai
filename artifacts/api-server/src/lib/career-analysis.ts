@@ -138,7 +138,7 @@ export function generateCareerAnalysis({
 
   const jobProgressionLadder = `Recommended progression: ${latestRole} → Senior ${latestRole.replace("Senior ", "")} → Lead / Principal ${latestRole.split(" ").slice(-1)[0]} → ${targetRole.includes("Director") || targetRole.includes("Head") ? targetRole : "Senior " + targetRole} → ${targetRole}. Estimated timeline: ${targetYears} years with deliberate development.`;
 
-  const immediateActions = `In the next 90 days: 1) Complete your CareerPath AI profile and run a full gap analysis. 2) Identify and enrol in one priority certification course. 3) Request a stretch project or secondment opportunity. 4) Connect with 3 professionals already in your target role via LinkedIn. 5) Begin a personal learning routine of at least ${profile.weeklyLearningHours ?? 5} hours per week.`;
+  const immediateActions = `In the next 90 days: 1) Complete your CareerPathX profile and run a full gap analysis. 2) Identify and enrol in one priority certification course. 3) Request a stretch project or secondment opportunity. 4) Connect with 3 professionals already in your target role via LinkedIn. 5) Begin a personal learning routine of at least ${profile.weeklyLearningHours ?? 5} hours per week.`;
 
   const year1Priorities = `Year 1 focus: Foundational capability building. Complete your first priority certification. Volunteer for a leadership opportunity within your current organisation. Build a professional network in your target sector. Begin developing a portfolio of evidence. Set up a mentoring relationship with someone 2-3 roles ahead of you on your target path.`;
 

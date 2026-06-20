@@ -58,7 +58,7 @@ function DashboardMockup() {
                 </div>
               </div>
               <div>
-                <div className="text-[9px] text-primary">With CareerPath AI</div>
+                <div className="text-[11px] text-primary">With CareerPathX</div>
                 <div className="text-base font-bold text-primary">2.8 <span className="text-[9px]">yrs</span></div>
                 <div className="h-1 rounded-full bg-white/5 mt-1 overflow-hidden">
                   <div className="h-full w-1/3 bg-primary rounded-full shadow-[0_0_6px_rgba(0,240,255,0.6)]" />
@@ -145,7 +145,7 @@ export default function Landing() {
         <div className="container mx-auto px-6 h-18 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BrandMark />
-            <span className="font-bold text-xl tracking-tight">CareerPath AI</span>
+            <span className="font-bold text-xl tracking-tight">CareerPathX</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="/intelligence" className="hover:text-primary transition-colors">Intelligence</Link>
@@ -244,7 +244,7 @@ export default function Landing() {
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">How It Works</Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">How CareerPath AI Works</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">How CareerPathX Works</h2>
             <p className="text-muted-foreground max-w-xl mx-auto">Three steps from where you are to where you want to be.</p>
           </div>
 
@@ -306,7 +306,7 @@ export default function Landing() {
               From Where You Are To Where You Want To Be
             </h2>
             <p className="text-muted-foreground max-w-lg mx-auto">
-              CareerPath AI has helped professionals make career transitions that felt impossible — with a clear, AI-generated plan.
+              CareerPathX has helped professionals make career transitions that felt impossible — with a clear, AI-generated plan.
             </p>
           </div>
 
@@ -401,14 +401,14 @@ export default function Landing() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <BrandMark size="sm" />
-              <span className="font-bold text-sm">CareerPath AI</span>
+              <span className="font-bold text-sm">CareerPathX</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/intelligence" className="hover:text-primary transition-colors">Features</Link>
               <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
               <Link href="/login" className="hover:text-primary transition-colors">Sign In</Link>
             </div>
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerPath AI. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerPathX. All rights reserved.</p>
           </div>
         </div>
       </footer>

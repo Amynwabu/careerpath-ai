@@ -22,7 +22,7 @@ All notable project changes should be documented in this file.
 
 ### Added
 
-- Initial MVP structure for the CareerPath AI monorepo.
+- Initial MVP structure for the CareerPathX monorepo.
 - React and Vite frontend for profile, career goal, analysis, roadmap,
   milestone, dashboard, and history workflows.
 - Express API server with authentication, profile, analysis, roadmap,

@@ -110,7 +110,7 @@ export default function Pricing() {
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <BrandMark />
-            <span className="font-bold text-xl tracking-tight">CareerPath AI</span>
+            <span className="font-bold text-xl tracking-tight">CareerPathX</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
             <Link href="/intelligence" className="hover:text-primary transition-colors">Intelligence</Link>
@@ -286,14 +286,14 @@ export default function Pricing() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <Link href="/" className="flex items-center gap-3">
               <BrandMark size="sm" />
-              <span className="font-bold text-sm">CareerPath AI</span>
+              <span className="font-bold text-sm">CareerPathX</span>
             </Link>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link href="/intelligence" className="hover:text-primary transition-colors">Features</Link>
               <Link href="/pricing" className="text-primary">Pricing</Link>
               <Link href="/login" className="hover:text-primary transition-colors">Sign In</Link>
             </div>
-            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerPath AI. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} CareerPathX. All rights reserved.</p>
           </div>
         </div>
       </footer>

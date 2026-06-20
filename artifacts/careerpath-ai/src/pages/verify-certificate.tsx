@@ -35,7 +35,7 @@ export default function VerifyCertificate() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-3 font-semibold">
             <BrandMark />
-            CareerPath AI
+            CareerPathX
           </Link>
           <Button asChild variant="outline"><Link href="/login">Sign in</Link></Button>
         </div>

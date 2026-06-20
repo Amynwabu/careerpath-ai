@@ -62,7 +62,7 @@ router.post("/certificates/generate", requireAuth, async (req, res): Promise<voi
       userId: req.user!.userId,
       journeyId: journey.id,
       title: `${journey.targetRole} Career Journey`,
-      recipientName: user?.name ?? "CareerPath AI learner",
+      recipientName: user?.name ?? "CareerPathX learner",
       completionDuration: `Completed a ${journey.durationMonths}-month pathway`,
       verificationToken,
     })
