@@ -48,6 +48,25 @@ describe("profession mapping", () => {
     );
   });
 
+  it("ranks destination roles using the latest responsibility evidence", () => {
+    const mapping = getCareerDirectionMapping(
+      "I am a teacher coordinating a cross-staff education programme, managing partners, delivery plans and impact reporting",
+    );
+
+    expect(mapping.classification?.code).toBe("k12-education");
+    expect(mapping.options[0]?.title).toBe("Education Programme Manager");
+  });
+
+  it("keeps curriculum leadership first when curriculum evidence is strongest", () => {
+    const mapping = getCareerDirectionMapping(
+      "I am a teacher leading curriculum strategy, assessment moderation, teacher coaching and pupil outcome analysis",
+    );
+
+    expect(mapping.options[0]?.title).toBe(
+      "Head of Department / Curriculum Leader",
+    );
+  });
+
   it("asks for clarification when the evidence has no profession signal", () => {
     const mapping = getCareerDirectionMapping(
       "I enjoy making things better and working with people",

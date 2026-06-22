@@ -3,7 +3,6 @@ import { and, count, desc, eq } from "drizzle-orm";
 import mammoth from "mammoth";
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import {
-  activityLogTable,
   careerAnalysesTable,
   careerGoalsTable,
   db,
@@ -16,6 +15,7 @@ import {
 import { requireAuth } from "../middlewares/auth";
 import { mapCareerText } from "../lib/career-intake";
 import { getCareerDirectionMapping } from "../lib/profession-mapping";
+import { refreshCareerPath } from "../lib/career-refresh";
 
 const router: IRouter = Router();
 const allowedFileTypes = new Set([
@@ -192,46 +192,10 @@ router.post(
       return;
     }
     const extracted = mapCareerText(sourceText);
-    const userId = req.user!.userId;
-
-    await db.transaction(async (tx) => {
-      const profileValues = Object.fromEntries(
-        Object.entries(extracted).filter(
-          ([key, value]) => key !== "skills" && value !== undefined,
-        ),
-      );
-      await tx
-        .update(profilesTable)
-        .set(profileValues)
-        .where(eq(profilesTable.userId, userId));
-
-      const existingSkills = await tx
-        .select({ name: skillsTable.name })
-        .from(skillsTable)
-        .where(eq(skillsTable.userId, userId));
-      const existingNames = new Set(
-        existingSkills.map((skill) => skill.name.toLowerCase()),
-      );
-      const newSkills = extracted.skills.filter(
-        (skill) => !existingNames.has(skill.toLowerCase()),
-      );
-      if (newSkills.length > 0) {
-        await tx.insert(skillsTable).values(
-          newSkills.map((name) => ({
-            userId,
-            name,
-            category: "Extracted from CV",
-            proficiencyLevel: "Intermediate",
-          })),
-        );
-      }
-
-      await tx.insert(activityLogTable).values({
-        userId,
-        type: "profile",
-        description: `Mapped career profile from ${fileBase64 ? "CV upload" : "work description"}`,
-      });
-    });
+    const [previousGoal] = await db
+      .select({ targetRole: careerGoalsTable.targetRole })
+      .from(careerGoalsTable)
+      .where(eq(careerGoalsTable.userId, req.user!.userId));
 
     const mapping = getCareerDirectionMapping(sourceText);
     const options = targetRole
@@ -265,7 +229,91 @@ router.post(
       options,
       classification: mapping.classification,
       needsClarification: !targetRole && mapping.needsClarification,
+      previousTargetRole: previousGoal?.targetRole ?? null,
     });
+  },
+);
+
+router.post(
+  "/onboarding/refresh",
+  requireAuth,
+  async (req, res): Promise<void> => {
+    const profile = req.body?.profile;
+    const source = req.body?.source;
+    const selectedDirectionId =
+      typeof req.body?.selectedDirectionId === "string"
+        ? req.body.selectedDirectionId.trim()
+        : "";
+    const targetRole =
+      typeof req.body?.targetRole === "string" ? req.body.targetRole.trim() : "";
+    const durationMonths = Number(req.body?.durationMonths);
+
+    if (source !== "cv" && source !== "description") {
+      res.status(400).json({ error: "Evidence source must be a CV or description." });
+      return;
+    }
+    if (!selectedDirectionId || !targetRole || targetRole.length > 160) {
+      res.status(400).json({ error: "Select a valid career direction." });
+      return;
+    }
+    if (
+      !profile ||
+      typeof profile.currentRole !== "string" ||
+      !profile.currentRole.trim() ||
+      typeof profile.industry !== "string" ||
+      !profile.industry.trim() ||
+      typeof profile.professionalSummary !== "string" ||
+      profile.professionalSummary.trim().length < 40
+    ) {
+      res.status(400).json({
+        error: "Confirm your current role, industry, and professional summary before reanalysis.",
+      });
+      return;
+    }
+    if (!Number.isFinite(durationMonths)) {
+      res.status(400).json({ error: "The selected training duration is invalid." });
+      return;
+    }
+
+    const yearsExperience = Number(profile.yearsExperience);
+    const weeklyLearningHours = Number(profile.weeklyLearningHours);
+    const extractedSkills = Array.isArray(req.body?.extractedSkills)
+      ? req.body.extractedSkills.filter(
+          (skill: unknown): skill is string =>
+            typeof skill === "string" && skill.trim().length > 0,
+        )
+      : [];
+
+    const result = await refreshCareerPath(req.user!.userId, {
+      source,
+      fileName:
+        typeof req.body?.fileName === "string" ? req.body.fileName.trim() : null,
+      selectedDirectionId,
+      targetRole,
+      durationMonths,
+      extractedSkills,
+      profile: {
+        currentRole: profile.currentRole.trim(),
+        industry: profile.industry.trim(),
+        professionalSummary: profile.professionalSummary.trim(),
+        careerLevel:
+          typeof profile.careerLevel === "string"
+            ? profile.careerLevel.trim()
+            : undefined,
+        location:
+          typeof profile.location === "string" ? profile.location.trim() : undefined,
+        yearsExperience:
+          Number.isFinite(yearsExperience) && yearsExperience >= 0
+            ? yearsExperience
+            : undefined,
+        weeklyLearningHours:
+          Number.isFinite(weeklyLearningHours) && weeklyLearningHours > 0
+            ? weeklyLearningHours
+            : undefined,
+      },
+    });
+
+    res.status(201).json(result);
   },
 );
 

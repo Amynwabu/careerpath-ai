@@ -1212,19 +1212,65 @@ export function classifyProfession(input: string) {
 export function getProfessionDirections(input: string, limit = 4) {
   const classification = classifyProfession(input);
   if (!classification) return null;
+  const normalized = input.toLowerCase();
+  const ignoredTokens = new Set([
+    "and",
+    "the",
+    "with",
+    "from",
+    "manager",
+    "specialist",
+    "lead",
+    "leader",
+  ]);
+  const scoreDestination = (destination: ProfessionDestination) => {
+    const phrases = [destination.title, ...destination.skills];
+    const phraseScore = phrases.reduce(
+      (score, phrase) => score + (includesPhrase(normalized, phrase) ? 6 : 0),
+      0,
+    );
+    const tokens = Array.from(
+      new Set(
+        phrases
+          .join(" ")
+          .toLowerCase()
+          .split(/[^a-z0-9]+/)
+          .filter((token) => token.length >= 4 && !ignoredTokens.has(token)),
+      ),
+    );
+    return (
+      phraseScore +
+      tokens.reduce(
+        (score, token) => score + (normalized.includes(token) ? 2 : 0),
+        0,
+      )
+    );
+  };
 
   return {
     classification,
     options: classification.cluster.destinations
-      .slice(0, limit)
       .map((destination, index) => ({
+        destination,
+        index,
+        evidenceScore: scoreDestination(destination),
+      }))
+      .sort(
+        (a, b) =>
+          b.evidenceScore - a.evidenceScore || a.index - b.index,
+      )
+      .slice(0, limit)
+      .map(({ destination, evidenceScore }, index) => ({
         ...destination,
         durationMonths: clampTrainingDurationMonths(
           destination.durationMonths,
         ),
         matchScore: Math.max(
           1,
-          Math.round(classification.confidence * 100) - index,
+          Math.min(
+            100,
+            Math.round(classification.confidence * 100) + evidenceScore - index,
+          ),
         ),
       })),
   };

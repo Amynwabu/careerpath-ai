@@ -36,6 +36,19 @@ interface IntakeResult {
   options: CareerOption[];
   classification: { code: string; label: string; confidence: number } | null;
   needsClarification: boolean;
+  previousTargetRole: string | null;
+}
+
+interface RefreshResult {
+  pathOutcome: {
+    status: "changed" | "confirmed" | "created";
+    previousTargetRole: string | null;
+    targetRole: string;
+    message: string;
+  };
+  analysis: { id: number; readinessScore: number };
+  journey: { id: number; targetRole: string; durationMonths: number };
+  refreshedAt: string;
 }
 
 type ReviewStep = "options" | "profile";
@@ -51,10 +64,10 @@ interface ProfileDraft {
 }
 
 const BUILD_STEPS = [
-  "Saving your verified profile",
-  "Saving your career direction",
-  "Running readiness and gap analysis",
-  "Building your milestone journey",
+  "Validating your latest career evidence",
+  "Remapping the strongest career direction",
+  "Rebuilding readiness and capability gaps",
+  "Replacing the roadmap and milestone journey",
 ];
 
 export default function Onboarding() {
@@ -62,6 +75,7 @@ export default function Onboarding() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const fileInput = useRef<HTMLInputElement>(null);
+  const isEvidenceUpdate = new URLSearchParams(window.location.search).has("mode");
   const [mode, setMode] = useState<"description" | "cv">(() =>
     new URLSearchParams(window.location.search).get("mode") === "cv"
       ? "cv"
@@ -148,7 +162,8 @@ export default function Onboarding() {
   };
 
   const buildJourney = async () => {
-    const selected = result?.options.find((option) => option.id === selectedId);
+    if (!result) return;
+    const selected = result.options.find((option) => option.id === selectedId);
     if (!selected) return;
 
     if (
@@ -166,50 +181,52 @@ export default function Onboarding() {
     }
 
     setProcessing(true);
+    let progressTimer: number | undefined;
     try {
       setBuildStep(0);
       const yearsExperience = Number(profileDraft.yearsExperience);
       const weeklyLearningHours = Number(profileDraft.weeklyLearningHours);
-      await apiRequest("/profile", {
-        method: "PATCH",
-        body: JSON.stringify({
-          currentRole: profileDraft.currentRole.trim(),
-          industry: profileDraft.industry.trim(),
-          careerLevel: profileDraft.careerLevel.trim() || undefined,
-          location: profileDraft.location.trim() || undefined,
-          professionalSummary: profileDraft.professionalSummary.trim(),
-          yearsExperience:
-            Number.isFinite(yearsExperience) && yearsExperience >= 0
-              ? yearsExperience
-              : undefined,
-          weeklyLearningHours:
-            Number.isFinite(weeklyLearningHours) && weeklyLearningHours > 0
-              ? weeklyLearningHours
-              : undefined,
-        }),
-      });
+      progressTimer = window.setInterval(() => {
+        setBuildStep((current) => Math.min(BUILD_STEPS.length - 2, current + 1));
+      }, 650);
 
-      setBuildStep(1);
-      await apiRequest("/career-goal", {
-        method: "PUT",
+      const refresh = await apiRequest<RefreshResult>("/onboarding/refresh", {
+        method: "POST",
         body: JSON.stringify({
+          source: result.source,
+          fileName: result.fileName,
+          selectedDirectionId: selected.id,
           targetRole: selected.title,
-          targetYears: Math.max(1, Math.ceil(selected.durationMonths / 12)),
+          durationMonths: selected.durationMonths,
+          extractedSkills: result.extracted.skills,
+          profile: {
+            currentRole: profileDraft.currentRole.trim(),
+            industry: profileDraft.industry.trim(),
+            careerLevel: profileDraft.careerLevel.trim() || undefined,
+            location: profileDraft.location.trim() || undefined,
+            professionalSummary: profileDraft.professionalSummary.trim(),
+            yearsExperience:
+              Number.isFinite(yearsExperience) && yearsExperience >= 0
+                ? yearsExperience
+                : undefined,
+            weeklyLearningHours:
+              Number.isFinite(weeklyLearningHours) && weeklyLearningHours > 0
+                ? weeklyLearningHours
+                : undefined,
+          },
         }),
       });
 
-      setBuildStep(2);
-      await apiRequest("/analysis", {
-        method: "POST",
-        body: JSON.stringify({ skipMilestones: true }),
-      });
-
-      setBuildStep(3);
-      await apiRequest("/journey/build", {
-        method: "POST",
-        body: JSON.stringify({ selectedDirectionId: selected.id }),
-      });
-
+      if (progressTimer !== undefined) window.clearInterval(progressTimer);
+      setBuildStep(BUILD_STEPS.length - 1);
+      sessionStorage.setItem(
+        "careerpath_reanalysis_outcome",
+        JSON.stringify({
+          ...refresh.pathOutcome,
+          readinessScore: refresh.analysis.readinessScore,
+          refreshedAt: refresh.refreshedAt,
+        }),
+      );
       await queryClient.invalidateQueries();
       setLocation("/dashboard");
     } catch (error) {
@@ -222,6 +239,8 @@ export default function Onboarding() {
         variant: "destructive",
       });
       setProcessing(false);
+    } finally {
+      if (progressTimer !== undefined) window.clearInterval(progressTimer);
     }
   };
 
@@ -288,7 +307,7 @@ export default function Onboarding() {
                 Career engine active
               </p>
               <h1 className="mt-1 text-2xl font-semibold">
-                Building your route
+                {isEvidenceUpdate ? "Refreshing your career route" : "Building your route"}
               </h1>
             </div>
           </div>
@@ -348,14 +367,17 @@ export default function Onboarding() {
             <div>
               <div className="border-b border-white/10 pb-9 sm:pb-11">
                 <p className="text-xs font-semibold uppercase text-primary">
-                  Career signal intake
+                  {isEvidenceUpdate ? "Career evidence refresh" : "Career signal intake"}
                 </p>
                 <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
-                  Map your experience to a realistic next career move.
+                  {isEvidenceUpdate
+                    ? "Refresh your pathway from your latest experience."
+                    : "Map your experience to a realistic next career move."}
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-                  Describe your current work or upload your CV to start your
-                  profile map.
+                  {isEvidenceUpdate
+                    ? "Change your current work description or upload a newer CV. CareerPathX will remap the strongest route and rebuild every dependent dashboard signal."
+                    : "Describe your current work or upload your CV to start your profile map."}
                 </p>
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -364,7 +386,7 @@ export default function Onboarding() {
                     onClick={() => setMode("description")}
                     className="h-12 rounded-none px-6 text-base sm:min-w-52"
                   >
-                    Describe what I do
+                    {isEvidenceUpdate ? "Change description" : "Describe what I do"}
                   </Button>
                   <Button
                     type="button"
@@ -372,7 +394,7 @@ export default function Onboarding() {
                     onClick={() => setMode("cv")}
                     className="h-12 rounded-none border-white/15 px-6 text-base sm:min-w-52"
                   >
-                    Upload my CV
+                    {isEvidenceUpdate ? "Upload a newer CV" : "Upload my CV"}
                   </Button>
                 </div>
 
@@ -519,7 +541,9 @@ export default function Onboarding() {
                   >
                     {processing
                       ? "Extracting career signals..."
-                      : "Map my career options"}
+                      : isEvidenceUpdate
+                        ? "Review remapped career options"
+                        : "Map my career options"}
                   </Button>
                 </div>
               </div>
@@ -870,7 +894,9 @@ export default function Onboarding() {
                       onClick={buildJourney}
                       className="h-12 rounded-none px-6 text-base"
                     >
-                      Save profile and build my journey
+                      {isEvidenceUpdate
+                        ? "Refresh analysis and rebuild pathway"
+                        : "Save profile and build my journey"}
                     </Button>
                   </div>
                 </>

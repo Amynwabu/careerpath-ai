@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ArrowRight,
   BarChart3,
@@ -6,6 +7,7 @@ import {
   Check,
   ChevronRight,
   Clock3,
+  CircleCheckBig,
   FileUp,
   Focus,
   Gauge,
@@ -14,6 +16,7 @@ import {
   Sparkles,
   Target,
   TrendingUp,
+  X,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useReducedMotion } from "framer-motion";
@@ -32,6 +35,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type PhaseState = "complete" | "active" | "upcoming";
+
+type ReanalysisOutcome = {
+  status: "changed" | "confirmed" | "created";
+  previousTargetRole: string | null;
+  targetRole: string;
+  message: string;
+  readinessScore: number;
+  refreshedAt: string;
+};
 
 const panelClass = "rounded-lg border border-white/[0.08] bg-[#0d1114] shadow-[0_18px_60px_rgba(0,0,0,0.22)]";
 
@@ -63,6 +75,16 @@ function PanelHeading({ eyebrow, title, action }: { eyebrow: string; title: stri
 
 export default function Dashboard() {
   const prefersReducedMotion = useReducedMotion();
+  const [reanalysisOutcome, setReanalysisOutcome] = useState<ReanalysisOutcome | null>(() => {
+    const stored = sessionStorage.getItem("careerpath_reanalysis_outcome");
+    if (!stored) return null;
+    sessionStorage.removeItem("careerpath_reanalysis_outcome");
+    try {
+      return JSON.parse(stored) as ReanalysisOutcome;
+    } catch {
+      return null;
+    }
+  });
   const { data: summary, isLoading: loadingSummary } = useGetDashboardSummary();
   const { data: skillGaps, isLoading: loadingGaps } = useGetSkillGaps();
   const { data: goal, isLoading: loadingGoal } = useGetCareerGoal();
@@ -130,6 +152,49 @@ export default function Dashboard() {
             </Link>
           </Button>
         </header>
+
+        {reanalysisOutcome && (
+          <section
+            role="status"
+            className="grid gap-4 rounded-lg border border-primary/25 bg-primary/[0.045] p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center"
+          >
+            <span className="grid h-10 w-10 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+              {reanalysisOutcome.status === "changed" ? (
+                <RefreshCw className="h-4 w-4" />
+              ) : (
+                <CircleCheckBig className="h-4 w-4" />
+              )}
+            </span>
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-primary">
+                {reanalysisOutcome.status === "changed"
+                  ? "Career path remapped"
+                  : reanalysisOutcome.status === "confirmed"
+                    ? "Career path confirmed"
+                    : "Career path created"}
+              </p>
+              <p className="mt-1 text-sm font-medium text-white">{reanalysisOutcome.message}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Readiness, roadmap stages, capability gaps, and next actions now use this evidence.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline" size="sm" className="border-primary/25 text-primary">
+                <Link href="/analysis">Review analysis</Link>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Dismiss career path update"
+                className="text-muted-foreground hover:text-white"
+                onClick={() => setReanalysisOutcome(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </section>
+        )}
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
           <section className={cn(panelClass, "mission-grid relative overflow-hidden p-5 sm:p-7 xl:col-span-8")}>
