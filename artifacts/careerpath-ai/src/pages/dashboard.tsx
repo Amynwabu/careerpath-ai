@@ -1,65 +1,64 @@
-import { useGetDashboardSummary, useGetSkillGaps, useGetCareerGoal, useGetProfile, useListMilestones, useGetRoadmap } from "@workspace/api-client-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Bot,
+  CalendarRange,
+  Check,
+  ChevronRight,
+  Clock3,
+  FileUp,
+  Focus,
+  Gauge,
+  Radar,
+  RefreshCw,
+  Sparkles,
+  Target,
+  TrendingUp,
+} from "lucide-react";
+import { Link } from "wouter";
+import { useReducedMotion } from "framer-motion";
+import {
+  useGetCareerGoal,
+  useGetDashboardSummary,
+  useGetProfile,
+  useGetRoadmap,
+  useGetSkillGaps,
+  useListMilestones,
+} from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/app-layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type PhaseState = "complete" | "active" | "upcoming";
 
-const phaseStateStyles: Record<PhaseState, { card: string; badge: string; connector: string; label: string }> = {
-  complete: {
-    card: "border-emerald-400/35 bg-emerald-400/[0.06]",
-    badge: "border-emerald-400/30 bg-emerald-400/15 text-emerald-200",
-    connector: "bg-emerald-400/45",
-    label: "Complete",
-  },
-  active: {
-    card: "border-cyan-400/45 bg-cyan-400/[0.07]",
-    badge: "border-cyan-400/35 bg-cyan-400/15 text-cyan-100",
-    connector: "bg-cyan-400/45",
-    label: "In progress",
-  },
-  upcoming: {
-    card: "border-white/10 bg-white/[0.025]",
-    badge: "border-white/10 bg-white/5 text-muted-foreground",
-    connector: "bg-white/10",
-    label: "Upcoming",
-  },
+const panelClass = "rounded-lg border border-white/[0.08] bg-[#0d1114] shadow-[0_18px_60px_rgba(0,0,0,0.22)]";
+
+const priorityStyles: Record<string, string> = {
+  High: "border-red-400/25 bg-red-400/[0.08] text-red-200",
+  Medium: "border-amber-400/25 bg-amber-400/[0.08] text-amber-200",
+  Low: "border-emerald-400/25 bg-emerald-400/[0.08] text-emerald-200",
 };
 
-function InsightCard({ label, value, sub, href, loading }: {
-  label: string;
-  value: string | null;
-  sub?: string;
-  href?: string;
-  loading?: boolean;
-}) {
-  const inner = (
-    <Card className="glass-panel border-white/5 hover:border-primary/20 transition-colors cursor-pointer group">
-      <CardContent className="pt-5 pb-5">
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
-            {loading ? (
-              <Skeleton className="h-5 w-32 mt-1.5" />
-            ) : (
-              <p className="font-semibold mt-1 leading-tight truncate text-sm" title={value ?? undefined}>
-                {value ?? <span className="text-muted-foreground italic">Not set</span>}
-              </p>
-            )}
-            {sub && !loading && (
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+const levelValues: Record<string, number> = {
+  "No experience": 6,
+  Beginner: 20,
+  Intermediate: 45,
+  Advanced: 72,
+  Expert: 94,
+};
+
+function PanelHeading({ eyebrow, title, action }: { eyebrow: string; title: string; action?: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-[10px] font-semibold uppercase text-primary/75">{eyebrow}</p>
+        <h2 className="mt-1.5 text-base font-semibold text-white">{title}</h2>
+      </div>
+      {action}
+    </div>
   );
-  if (href) return <Link href={href}>{inner}</Link>;
-  return inner;
 }
 
 export default function Dashboard() {
@@ -70,402 +69,359 @@ export default function Dashboard() {
   const { data: profile, isLoading: loadingProfile } = useGetProfile();
   const { data: milestones, isLoading: loadingMilestones } = useListMilestones();
   const { data: roadmap, isLoading: loadingRoadmap } = useGetRoadmap();
+
   const liveSummary = summary as (typeof summary & {
     userStatus?: string;
     journeyProgress?: number;
     nextAction?: string;
   });
 
-  const targetYears = (goal as any)?.targetYears ?? 5;
   const readiness = summary?.readinessScore ?? 0;
+  const journeyProgress = liveSummary?.journeyProgress ?? 0;
+  const targetYears = goal?.targetYears ?? 1;
+  const targetRole = summary?.targetRole ?? goal?.targetRole ?? "Define your target role";
+  const currentRole = profile?.currentRole ?? "Complete your current role";
   const hasAnalysis = readiness > 0;
+  const incompleteMilestones = milestones?.filter((milestone) => !milestone.completed) ?? [];
+  const completedMilestones = milestones?.filter((milestone) => milestone.completed).length ?? 0;
+  const nextMilestone = incompleteMilestones[0];
+  const nextAction = liveSummary?.nextAction ?? nextMilestone?.title ?? "Run your first career analysis";
+  const topGap = skillGaps?.[0];
 
-  // Urgency calculation
   const atCurrentPace = hasAnalysis
     ? Math.round(targetYears * (1 + ((100 - readiness) / 100) * 1.5) * 10) / 10
     : null;
-  const withAI = hasAnalysis
-    ? Math.round(targetYears * 0.56 * 10) / 10
+  const withCareerPathX = hasAnalysis ? Math.round(targetYears * 0.56 * 10) / 10 : null;
+  const timeSaved = atCurrentPace && withCareerPathX
+    ? Math.round((atCurrentPace - withCareerPathX) * 10) / 10
     : null;
-  const timeSaved = atCurrentPace && withAI ? Math.round((atCurrentPace - withAI) * 10) / 10 : null;
 
-  // AI Coach tip
-  const topGap = skillGaps?.[0];
-  const targetRole = summary?.targetRole ?? (goal as any)?.targetRole;
   const coachTip = topGap
-    ? `Focus on ${topGap.skill} this week — it's your highest-priority skill gap on your path to ${targetRole ?? "your target role"}.`
-    : targetRole
-      ? `Run your first analysis to unlock personalised coaching tips for your path to ${targetRole}.`
-      : "Set your career goal and run an analysis to unlock your personalised AI coaching tips.";
-
-  // Next milestone
-  const nextMilestone = milestones?.find(m => !m.completed);
+    ? `Focus on ${topGap.skill} this week. It is your highest-priority capability gap on the path to ${targetRole}.`
+    : `Run your career analysis to identify the highest-leverage move on your path to ${targetRole}.`;
 
   const getPhaseState = (index: number, phaseCount: number): PhaseState => {
-    const totalMilestones = milestones?.length ?? 0;
-    const completedMilestones = milestones?.filter(milestone => milestone.completed).length ?? 0;
-
-    if (totalMilestones === 0) return index === 0 ? "active" : "upcoming";
-    if (completedMilestones === totalMilestones) return "complete";
-
-    const activeIndex = Math.min(
-      phaseCount - 1,
-      Math.floor((completedMilestones / totalMilestones) * phaseCount),
-    );
-
+    const total = milestones?.length ?? 0;
+    if (total === 0) return index === 0 ? "active" : "upcoming";
+    if (completedMilestones === total) return "complete";
+    const activeIndex = Math.min(phaseCount - 1, Math.floor((completedMilestones / total) * phaseCount));
     if (index < activeIndex) return "complete";
     return index === activeIndex ? "active" : "upcoming";
   };
 
-  // Top missing skill
-  const topMissing = skillGaps?.[0]?.skill;
-
   return (
     <AppLayout>
-      <div className="p-8 max-w-7xl mx-auto space-y-6">
-
-        {/* Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Your Career Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Everything you need to reach your career goal, faster.</p>
-          </div>
-          <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 glow-box">
-            <Link href="/analysis">
-              Run Analysis
-            </Link>
-          </Button>
-        </div>
-
-        <section className="grid gap-5 border-y border-primary/20 bg-primary/[0.03] px-5 py-5 md:grid-cols-[1fr_1.5fr_auto] md:items-center">
-          <div>
-            <div>
-              <p className="text-xs font-medium uppercase text-muted-foreground">Current status</p>
-              <p className="mt-1 font-semibold">{loadingSummary ? "Updating status" : liveSummary?.userStatus ?? "Profile ready"}</p>
+      <div className="mx-auto max-w-[1540px] space-y-5 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-[10px] font-semibold uppercase text-primary/75">
+              <span className="h-1.5 w-1.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)]" />
+              Live career intelligence
             </div>
-          </div>
-          <div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Journey progress</span>
-              <span className="font-semibold text-primary">{liveSummary?.journeyProgress ?? 0}%</span>
-            </div>
-            <div className="mt-2 h-2 overflow-hidden bg-white/5">
-              <div className={`h-full bg-primary ${prefersReducedMotion ? "" : "transition-all duration-500"}`} style={{ width: `${liveSummary?.journeyProgress ?? 0}%` }} />
-            </div>
-          </div>
-          <div className="min-w-0 md:max-w-xs">
-            <div className="min-w-0"><p className="text-xs text-muted-foreground">Next action</p><p className="mt-1 truncate text-sm font-medium">{liveSummary?.nextAction ?? nextMilestone?.title ?? "Run your first analysis"}</p></div>
-          </div>
-        </section>
-
-        <section className="grid gap-5 border border-emerald-400/20 bg-emerald-400/[0.04] p-5 md:grid-cols-[1fr_auto] md:items-center">
-          <div>
-            <p className="text-xs font-semibold uppercase text-emerald-300">Update career evidence</p>
-            <h2 className="mt-2 text-lg font-semibold">Changed role, responsibilities, or CV?</h2>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Replace your description or upload a newer CV, review the career options again, and rerun your profile analysis.
+            <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Career Mission Control</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+              Track readiness, close evidence gaps, and accelerate your path to leadership.
             </p>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild variant="outline" className="border-emerald-400/30 text-emerald-200 hover:bg-emerald-400/10">
-              <Link href="/onboarding?mode=description">Change description</Link>
+          <Button asChild className="h-11 self-start bg-primary px-5 text-primary-foreground shadow-[0_0_24px_hsl(var(--primary)/0.12)] hover:bg-primary/90 xl:self-auto">
+            <Link href="/analysis">
+              <Radar className="h-4 w-4" />
+              Run analysis
+            </Link>
+          </Button>
+        </header>
+
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+          <section className={cn(panelClass, "mission-grid relative overflow-hidden p-5 sm:p-7 xl:col-span-8")}>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <Gauge className="h-4 w-4 text-primary" />
+                  <p className="text-[10px] font-semibold uppercase text-muted-foreground">Career progression signal</p>
+                </div>
+                <Badge className="border-primary/20 bg-primary/[0.08] text-[10px] font-medium text-primary">
+                  {targetYears}-year goal
+                </Badge>
+              </div>
+
+              <div className="mt-8 grid items-center gap-8 lg:grid-cols-[1fr_auto]">
+                <div>
+                  <div className="grid gap-4 sm:grid-cols-[1fr_auto_1.2fr] sm:items-center">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-muted-foreground">Current position</p>
+                      {loadingProfile ? <Skeleton className="mt-2 h-7 w-40" /> : <p className="mt-2 text-xl font-semibold text-white sm:text-2xl">{currentRole}</p>}
+                    </div>
+                    <div className="hidden items-center gap-2 text-primary sm:flex" aria-hidden="true">
+                      <span className="h-px w-8 bg-primary/30" />
+                      <ArrowRight className="h-4 w-4" />
+                      <span className="h-px w-8 bg-primary/30" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase text-primary/75">Target position</p>
+                      {loadingGoal || loadingSummary ? <Skeleton className="mt-2 h-7 w-56" /> : <p className="mt-2 text-xl font-semibold leading-tight text-primary sm:text-2xl">{targetRole}</p>}
+                    </div>
+                  </div>
+
+                  <p className="mt-7 max-w-2xl text-sm leading-6 text-muted-foreground">
+                    Your pathway is mapped around verified experience, priority capability gaps, and measurable evidence of leadership impact.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-5 border-l-0 border-white/[0.07] lg:border-l lg:pl-8">
+                  <div
+                    className="grid h-28 w-28 shrink-0 place-items-center rounded-full p-2"
+                    style={{ background: `conic-gradient(hsl(var(--primary)) ${readiness * 3.6}deg, rgba(255,255,255,0.07) 0deg)` }}
+                    aria-label={`${readiness}% career readiness`}
+                  >
+                    <div className="grid h-full w-full place-items-center rounded-full border border-white/[0.06] bg-[#0b0f12]">
+                      <div className="text-center">
+                        <p className="text-3xl font-semibold text-white">{readiness}%</p>
+                        <p className="text-[10px] font-medium uppercase text-muted-foreground">Ready</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 grid gap-4 border-t border-white/[0.07] pt-5 sm:grid-cols-[1fr_auto] sm:items-end">
+                <div>
+                  <div className="flex items-center justify-between gap-4 text-xs">
+                    <span className="text-muted-foreground">Journey execution</span>
+                    <span className="font-semibold text-primary">{journeyProgress}%</span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden bg-white/[0.06]">
+                    <div
+                      className={cn("h-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.7)]", !prefersReducedMotion && "transition-[width] duration-700")}
+                      style={{ width: `${journeyProgress}%` }}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">{liveSummary?.userStatus ?? "Profile signal ready"}</p>
+              </div>
+            </div>
+          </section>
+
+          <section className={cn(panelClass, "relative flex flex-col overflow-hidden border-primary/20 p-5 sm:p-6 xl:col-span-4")}>
+            <div className="absolute inset-y-0 left-0 w-0.5 bg-primary" aria-hidden="true" />
+            <PanelHeading
+              eyebrow="Weekly mission"
+              title="Highest-leverage action"
+              action={<Focus className="h-5 w-5 text-primary" />}
+            />
+            <div className="flex flex-1 flex-col justify-between">
+              <div className="mt-8">
+                <Badge className="border-primary/20 bg-primary/[0.08] text-[10px] uppercase text-primary">Up next</Badge>
+                <h3 className="mt-4 text-xl font-semibold leading-8 text-white">{nextAction}</h3>
+                <div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
+                  <CalendarRange className="h-4 w-4 text-primary/80" />
+                  <span>{nextMilestone?.phase ?? "Immediate action"}</span>
+                </div>
+              </div>
+              <Button asChild variant="outline" className="mt-8 w-full border-primary/25 text-primary hover:bg-primary/[0.06]">
+                <Link href="/milestones">
+                  Open milestone
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </section>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+          <section className={cn(panelClass, "p-5 sm:p-6 xl:col-span-5")}>
+            <PanelHeading eyebrow="Time acceleration" title="Projected time to goal" action={<TrendingUp className="h-5 w-5 text-primary" />} />
+            {!hasAnalysis ? (
+              <div className="mt-7 border-t border-white/[0.07] pt-6">
+                <p className="text-sm leading-6 text-muted-foreground">Run an analysis to model your current pace against a structured, evidence-led pathway.</p>
+                <Button asChild size="sm" variant="outline" className="mt-5 border-primary/25 text-primary">
+                  <Link href="/analysis">Calculate acceleration</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="mt-7 space-y-6">
+                <div>
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground">At your current pace</p>
+                      <p className="mt-1 text-3xl font-semibold text-white">{atCurrentPace} <span className="text-sm font-normal text-muted-foreground">years</span></p>
+                    </div>
+                    <Clock3 className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="mt-3 h-1.5 bg-white/[0.06]"><div className="h-full w-full bg-white/20" /></div>
+                </div>
+                <div>
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-xs text-primary">With CareerPathX</p>
+                      <p className="mt-1 text-3xl font-semibold text-primary">{withCareerPathX} <span className="text-sm font-normal text-muted-foreground">years</span></p>
+                    </div>
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="mt-3 h-1.5 bg-white/[0.06]"><div className="h-full w-[34%] bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.6)]" /></div>
+                </div>
+                <div className="border-t border-white/[0.07] pt-4 text-sm text-primary">Save about {timeSaved} year{timeSaved !== 1 ? "s" : ""} with focused AI coaching.</div>
+              </div>
+            )}
+          </section>
+
+          <section className={cn(panelClass, "relative overflow-hidden p-5 sm:p-6 xl:col-span-7")}>
+            <PanelHeading eyebrow="AI strategist" title="This week's coaching signal" action={<Bot className="h-5 w-5 text-primary" />} />
+            <div className="mt-7 border-l-2 border-primary bg-primary/[0.035] px-5 py-4">
+              <p className="text-base leading-7 text-white">“{coachTip}”</p>
+            </div>
+            <div className="mt-6 grid gap-4 border-t border-white/[0.07] pt-5 sm:grid-cols-2">
+              <div>
+                <p className="text-[10px] font-semibold uppercase text-muted-foreground">Recommended focus</p>
+                <p className="mt-2 text-sm font-semibold text-primary">{topGap?.skill ?? "Career evidence analysis"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-semibold uppercase text-muted-foreground">Priority</p>
+                <Badge className={cn("mt-2 text-[10px]", priorityStyles[topGap?.priority ?? "High"])}>{topGap?.priority ?? "High"}</Badge>
+              </div>
+            </div>
+            <Button asChild variant="ghost" className="mt-5 justify-start px-0 text-primary hover:bg-transparent">
+              <Link href="/advisors">
+                Open AI advisor
+                <ChevronRight className="h-4 w-4" />
+              </Link>
             </Button>
-            <Button asChild className="bg-emerald-400 text-emerald-950 hover:bg-emerald-300">
-              <Link href="/onboarding?mode=cv">Upload a new CV</Link>
+          </section>
+        </div>
+
+        <section className={cn(panelClass, "overflow-hidden p-5 sm:p-6")}>
+          <PanelHeading
+            eyebrow="Strategic pathway"
+            title="Career path roadmap"
+            action={(
+              <Button asChild variant="ghost" size="sm" className="hidden text-muted-foreground hover:text-primary sm:inline-flex">
+                <Link href="/roadmap">View full roadmap <ChevronRight className="h-4 w-4" /></Link>
+              </Button>
+            )}
+          />
+          {loadingRoadmap ? (
+            <div className="mt-7 grid gap-3 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <Skeleton key={item} className="h-28 w-full rounded-md" />)}</div>
+          ) : roadmap?.phases?.length ? (
+            <div className="relative mt-8">
+              <div className="absolute left-5 right-5 top-5 hidden h-px bg-white/[0.08] lg:block" aria-hidden="true" />
+              <div className="relative grid gap-3 lg:grid-cols-4">
+                {roadmap.phases.map((phase, index) => {
+                  const state = getPhaseState(index, roadmap.phases.length);
+                  return (
+                    <div key={`${phase.label}-${index}`} className={cn("relative border border-white/[0.07] bg-[#0a0e11] p-4", state === "active" && "border-primary/30 bg-primary/[0.035]")}>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className={cn("grid h-10 w-10 place-items-center rounded-full border bg-[#0d1114] text-xs font-semibold", state === "active" ? "border-primary text-primary" : state === "complete" ? "border-emerald-400/40 text-emerald-300" : "border-white/10 text-muted-foreground")}>
+                          {state === "complete" ? <Check className="h-4 w-4" /> : index + 1}
+                        </span>
+                        <Badge className={cn("border-white/10 bg-white/[0.04] text-[10px] text-muted-foreground", state === "active" && "border-primary/20 bg-primary/[0.08] text-primary")}>{state === "active" ? "In progress" : state === "complete" ? "Complete" : "Upcoming"}</Badge>
+                      </div>
+                      <p className="mt-4 text-sm font-semibold text-white">{phase.label}</p>
+                      <p className="mt-1 text-xs text-primary/80">{phase.timeframe}</p>
+                      <p className="mt-3 line-clamp-2 text-xs leading-5 text-muted-foreground">{phase.focus}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-4 flex items-center justify-between border border-primary/20 bg-primary/[0.035] px-4 py-3">
+                <div className="flex items-center gap-3"><Target className="h-4 w-4 text-primary" /><span className="text-xs font-semibold uppercase text-muted-foreground">Destination</span></div>
+                <span className="text-sm font-semibold text-primary">{targetRole}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-7 flex flex-col items-start border-t border-white/[0.07] pt-6">
+              <p className="text-sm text-muted-foreground">Generate your analysis to unlock a staged career roadmap.</p>
+              <Button asChild size="sm" className="mt-4"><Link href="/analysis">Generate roadmap</Link></Button>
+            </div>
+          )}
+        </section>
+
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+          <section className={cn(panelClass, "p-5 sm:p-6 xl:col-span-7")}>
+            <PanelHeading
+              eyebrow="Capability intelligence"
+              title="Priority skill gaps"
+              action={<span className="text-xs text-muted-foreground">{skillGaps?.length ?? 0} signals</span>}
+            />
+            {loadingGaps ? (
+              <div className="mt-6 space-y-3">{[1, 2, 3, 4].map((item) => <Skeleton key={item} className="h-20 w-full rounded-md" />)}</div>
+            ) : skillGaps?.length ? (
+              <div className="mt-6 divide-y divide-white/[0.07] border-y border-white/[0.07]">
+                {skillGaps.slice(0, 5).map((gap, index) => {
+                  const currentLevel = gap.currentLevel ?? "No experience";
+                  const currentValue = levelValues[currentLevel] ?? 6;
+                  const requiredValue = levelValues[gap.requiredLevel] ?? 72;
+                  return (
+                    <div key={`${gap.skill}-${index}`} className="group py-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-white">{gap.skill}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{currentLevel} to {gap.requiredLevel}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={cn("text-[10px]", priorityStyles[gap.priority] ?? priorityStyles.Low)}>{gap.priority}</Badge>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary" />
+                        </div>
+                      </div>
+                      <div className="relative mt-3 h-1.5 bg-white/[0.06]">
+                        <div className="absolute inset-y-0 left-0 bg-white/20" style={{ width: `${currentValue}%` }} />
+                        <div className="absolute inset-y-0 w-px bg-primary shadow-[0_0_7px_hsl(var(--primary)/0.8)]" style={{ left: `${requiredValue}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-6 border-t border-white/[0.07] pt-6"><p className="text-sm text-muted-foreground">No skill gaps identified yet.</p></div>
+            )}
+          </section>
+
+          <section className={cn(panelClass, "p-5 sm:p-6 xl:col-span-5")}>
+            <PanelHeading
+              eyebrow="Execution queue"
+              title="Next actions"
+              action={<span className="text-xs text-muted-foreground">{completedMilestones} / {milestones?.length ?? 0} done</span>}
+            />
+            {loadingMilestones ? (
+              <div className="mt-6 space-y-3">{[1, 2, 3, 4].map((item) => <Skeleton key={item} className="h-16 w-full rounded-md" />)}</div>
+            ) : incompleteMilestones.length ? (
+              <div className="mt-6 divide-y divide-white/[0.07] border-y border-white/[0.07]">
+                {incompleteMilestones.slice(0, 4).map((milestone, index) => (
+                  <div key={milestone.id} className="flex gap-3 py-4">
+                    <span className={cn("mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border text-[10px]", index === 0 ? "border-primary bg-primary/10 text-primary" : "border-white/15 text-muted-foreground")}>{index + 1}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium leading-5 text-white">{milestone.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{milestone.phase}</p>
+                    </div>
+                    {index === 0 && <Badge className="h-fit border-primary/20 bg-primary/[0.08] text-[10px] text-primary">Up next</Badge>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-6 border-t border-white/[0.07] pt-6"><p className="text-sm text-muted-foreground">Your next actions will appear after analysis.</p></div>
+            )}
+            <Button asChild variant="ghost" className="mt-5 w-full justify-between border border-white/[0.07] text-muted-foreground hover:text-primary">
+              <Link href="/milestones">View all milestones <ArrowRight className="h-4 w-4" /></Link>
+            </Button>
+          </section>
+        </div>
+
+        <section className={cn(panelClass, "grid gap-5 border-primary/15 p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center")}>
+          <div className="flex gap-4">
+            <span className="grid h-10 w-10 shrink-0 place-items-center border border-primary/20 bg-primary/[0.06] text-primary"><RefreshCw className="h-4 w-4" /></span>
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-primary/75">Career evidence update</p>
+              <h2 className="mt-1.5 text-base font-semibold text-white">Changed role, responsibilities, or CV?</h2>
+              <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Replace your description or upload a newer CV, review career options again, and rerun profile analysis.</p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button asChild variant="outline" className="border-white/10 text-foreground hover:border-primary/25 hover:text-primary">
+              <Link href="/onboarding?mode=description"><BarChart3 className="h-4 w-4" />Change description</Link>
+            </Button>
+            <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Link href="/onboarding?mode=cv"><FileUp className="h-4 w-4" />Upload a new CV</Link>
             </Button>
           </div>
         </section>
-
-        {/* Top 4-card insight strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <InsightCard
-            label="Your Target Role"
-            value={targetRole ?? null}
-            sub={targetYears ? `${targetYears}-year goal` : undefined}
-            href="/career-goal"
-            loading={loadingGoal || loadingSummary}
-          />
-          <InsightCard
-            label="Where You Are"
-            value={(profile as any)?.currentRole ?? null}
-            sub={hasAnalysis ? `${readiness}% ready` : (profile as any)?.careerLevel ?? undefined}
-            href="/profile"
-            loading={loadingProfile}
-          />
-          <InsightCard
-            label="What's Missing"
-            value={topMissing ?? (loadingGaps ? null : "Run analysis to find gaps")}
-            sub={skillGaps && skillGaps.length > 1 ? `+${skillGaps.length - 1} more gaps identified` : undefined}
-            href="/analysis"
-            loading={loadingGaps}
-          />
-          <InsightCard
-            label="What To Do Next"
-            value={nextMilestone?.title ?? (loadingMilestones ? null : "Run analysis to generate milestones")}
-            sub={nextMilestone?.phase ?? undefined}
-            href="/milestones"
-            loading={loadingMilestones}
-          />
-        </div>
-
-        {/* Urgency + AI Coach row */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-
-          {/* Urgency widget */}
-          <Card className="glass-panel border-white/5 lg:col-span-3">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Time to Goal</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!hasAnalysis ? (
-                <div className="flex flex-col items-center text-center py-4 gap-3">
-                  <p className="text-sm text-muted-foreground">Run your first analysis to see how long your journey will take — and how much time AI coaching can save you.</p>
-                  <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                    <Link href="/analysis">Run Analysis</Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-6">
-                  {/* At current pace */}
-                  <div className="space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">At your current pace</p>
-                    <div className="flex items-end gap-2">
-                      <span className="text-4xl font-bold text-muted-foreground">{atCurrentPace}</span>
-                      <span className="text-sm text-muted-foreground mb-1.5">years</span>
-                    </div>
-                    <div className="w-full bg-white/5 rounded-full h-2">
-                      <div
-                        className={`bg-muted-foreground/40 h-2 rounded-full ${prefersReducedMotion ? "" : "transition-all duration-700"}`}
-                        style={{ width: `${Math.min(100, (readiness / 100) * 60 + 10)}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">Without structured guidance</p>
-                  </div>
-
-                  {/* With CareerPathX */}
-                  <div className="space-y-3">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">With CareerPathX</p>
-                    <div className="flex items-end gap-2">
-                      <span className="text-4xl font-bold text-primary">{withAI}</span>
-                      <span className="text-sm text-muted-foreground mb-1.5">years</span>
-                    </div>
-                    <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`bg-primary h-2 rounded-full shadow-[0_0_8px_rgba(0,240,255,0.5)] ${prefersReducedMotion ? "" : "transition-all duration-700"}`}
-                        style={{ width: `${Math.min(100, (readiness / 100) * 40 + 20)}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-primary">Save about {timeSaved} year{timeSaved !== 1 ? "s" : ""} with AI coaching</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* AI Coach card */}
-          <Card className="glass-panel border-primary/20 lg:col-span-2 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl pointer-events-none" />
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">AI Coach</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                  <p className="text-sm leading-relaxed text-foreground/90">
-                    "{coachTip}"
-                  </p>
-                </div>
-                {topGap && (
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Recommended focus</p>
-                      <p className="text-sm font-semibold text-primary mt-0.5">{topGap.skill}</p>
-                    </div>
-                    <Badge variant={topGap.priority === "High" ? "destructive" : "secondary"} className="text-xs">
-                      {topGap.priority} priority
-                    </Badge>
-                  </div>
-                )}
-                {!topGap && (
-                  <Button asChild size="sm" variant="outline" className="w-full border-primary/20 hover:bg-primary/5 text-primary">
-                    <Link href="/analysis">Unlock personalised tips</Link>
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Career path visual */}
-        <Card className="glass-panel border-white/5">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Your Career Path</CardTitle>
-              <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary">
-                <Link href="/roadmap">View full roadmap</Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loadingRoadmap ? (
-              <div className="flex gap-4 overflow-x-auto pb-2">
-                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-20 w-48 flex-shrink-0 rounded-xl" />)}
-              </div>
-            ) : roadmap?.phases?.length ? (
-              <div className="relative">
-                <div className="flex items-start gap-3 overflow-x-auto pb-2">
-                  {/* Start node */}
-                  <div className="flex flex-col items-center flex-shrink-0">
-                    <div className="grid h-10 w-10 place-items-center border-2 border-primary bg-primary/20 text-[10px] font-semibold text-primary">Now</div>
-                    <p className="text-xs text-muted-foreground mt-1.5 text-center w-16">Now</p>
-                  </div>
-
-                  {roadmap.phases.map((phase, idx) => {
-                    const state = getPhaseState(idx, roadmap.phases.length);
-                    const stateStyles = phaseStateStyles[state];
-
-                    return (
-                      <div key={idx} className="flex items-start gap-3 flex-shrink-0">
-                        {/* Connector line */}
-                        <div className={`mt-5 h-0.5 w-6 flex-shrink-0 ${stateStyles.connector}`} />
-
-                        {/* Phase card */}
-                        <div className={`w-44 rounded-lg border p-3 space-y-1.5 flex-shrink-0 ${stateStyles.card}`}>
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-xs font-semibold text-foreground truncate">{phase.label}</span>
-                            <Badge className={`flex-shrink-0 px-1.5 py-0 text-[11px] ${stateStyles.badge}`}>
-                              {stateStyles.label}
-                            </Badge>
-                          </div>
-                          <p className="text-xs font-medium text-muted-foreground">{phase.timeframe}</p>
-                          <p className="text-xs text-muted-foreground leading-snug line-clamp-2">{phase.focus}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* End node */}
-                  <div className="flex items-start gap-3 flex-shrink-0">
-                    <div className="mt-5 h-0.5 w-6 flex-shrink-0 bg-white/10" />
-                    <div className="flex flex-col items-center">
-                      <div className="grid h-10 w-10 place-items-center border-2 border-primary bg-primary text-[10px] font-semibold text-primary-foreground glow-box">Goal</div>
-                      <p className="text-xs text-primary font-medium mt-1.5 text-center w-20 truncate">{targetRole ?? "Your goal"}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center text-center py-6 gap-3">
-                <p className="text-xs font-semibold uppercase text-primary">Career route not generated</p>
-                <p className="text-sm text-muted-foreground">Run your career analysis to generate a personalised roadmap.</p>
-                <Button asChild size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  <Link href="/analysis">Generate Roadmap</Link>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Bottom 2-col: Skill gaps + Next actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* Skill gaps */}
-          <Card className="glass-panel border-white/5 flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Priority Skill Gaps</CardTitle>
-                {skillGaps && skillGaps.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">{skillGaps.length} gap{skillGaps.length !== 1 ? "s" : ""}</Badge>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1">
-              {loadingGaps ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full" />)}
-                </div>
-              ) : !skillGaps || skillGaps.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center py-8 gap-3 text-muted-foreground">
-                  <p className="text-sm">No gaps identified yet.</p>
-                  <Button variant="outline" size="sm" className="border-white/10" asChild>
-                    <Link href="/analysis">Run Analysis</Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {skillGaps.slice(0, 5).map((gap, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 gap-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm truncate">{gap.skill}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{gap.category} · {gap.currentLevel || "No experience"} to {gap.requiredLevel}</p>
-                      </div>
-                      <Badge variant={gap.priority === "High" ? "destructive" : "secondary"} className="text-xs flex-shrink-0">
-                        {gap.priority}
-                      </Badge>
-                    </div>
-                  ))}
-                  {skillGaps.length > 5 && (
-                    <Button asChild variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-primary mt-1">
-                      <Link href="/analysis">View all {skillGaps.length} gaps</Link>
-                    </Button>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Next milestones */}
-          <Card className="glass-panel border-white/5 flex flex-col">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Next Actions</CardTitle>
-                {milestones && milestones.length > 0 && (
-                  <div className="text-xs text-muted-foreground">
-                    {milestones.filter(m => m.completed).length} / {milestones.length} done
-                  </div>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="flex-1">
-              {loadingMilestones ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full" />)}
-                </div>
-              ) : !milestones || milestones.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-center py-8 gap-3 text-muted-foreground">
-                  <p className="text-sm">No milestones yet.</p>
-                  <Button variant="outline" size="sm" className="border-white/10" asChild>
-                    <Link href="/analysis">Run Analysis</Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {milestones.filter(m => !m.completed).slice(0, 4).map((m, idx) => (
-                    <div key={m.id} className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${idx === 0 ? "bg-primary/5 border-primary/20" : "bg-white/5 border-white/5"}`}>
-                      <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center ${idx === 0 ? "border-primary" : "border-white/20"}`}>
-                        {idx === 0 && <div className={`w-2 h-2 rounded-full bg-primary ${prefersReducedMotion ? "" : "animate-pulse"}`} />}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className={`text-sm font-medium truncate ${idx === 0 ? "text-foreground" : "text-muted-foreground"}`}>{m.title}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{m.phase}</p>
-                      </div>
-                      {idx === 0 && <Badge className="bg-primary/20 text-primary border-primary/30 text-xs flex-shrink-0">Up next</Badge>}
-                    </div>
-                  ))}
-                  {milestones.filter(m => !m.completed).length > 4 && (
-                    <Button asChild variant="ghost" size="sm" className="w-full text-muted-foreground hover:text-primary mt-1">
-                      <Link href="/milestones">View all milestones</Link>
-                    </Button>
-                  )}
-                  {milestones.filter(m => !m.completed).length === 0 && (
-                    <div className="text-primary p-3 rounded-lg bg-primary/5 border border-primary/20"><p className="text-sm font-medium">All milestones complete.</p></div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
       </div>
     </AppLayout>
   );

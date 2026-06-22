@@ -80,46 +80,46 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Deep navy / Obsidian */
-  --background: 225 35% 6%;
+  /* Graphite mission-control surfaces */
+  --background: 200 18% 5%;
   --foreground: 210 20% 98%;
 
-  --border: 225 25% 15%;
+  --border: 195 12% 15%;
 
-  --card: 225 30% 9%;
+  --card: 195 14% 8%;
   --card-foreground: 210 20% 98%;
-  --card-border: 225 25% 15%;
+  --card-border: 195 12% 15%;
 
-  --sidebar: 225 35% 5%;
+  --sidebar: 195 18% 4%;
   --sidebar-foreground: 210 20% 98%;
-  --sidebar-border: 225 25% 12%;
+  --sidebar-border: 195 12% 12%;
   --sidebar-primary: 190 90% 50%;
-  --sidebar-primary-foreground: 225 40% 5%;
-  --sidebar-accent: 225 25% 12%;
+  --sidebar-primary-foreground: 195 30% 5%;
+  --sidebar-accent: 195 12% 12%;
   --sidebar-accent-foreground: 210 20% 98%;
   --sidebar-ring: 190 90% 50%;
 
-  --popover: 225 30% 9%;
+  --popover: 195 14% 8%;
   --popover-foreground: 210 20% 98%;
-  --popover-border: 225 25% 15%;
+  --popover-border: 195 12% 15%;
 
   /* Electric Cyan / Teal */
   --primary: 190 90% 45%;
-  --primary-foreground: 225 40% 5%;
+  --primary-foreground: 195 30% 5%;
 
-  --secondary: 225 25% 15%;
+  --secondary: 195 12% 15%;
   --secondary-foreground: 210 20% 98%;
 
-  --muted: 225 25% 12%;
+  --muted: 195 12% 12%;
   --muted-foreground: 215 20% 76%;
 
   --accent: 190 90% 45%;
-  --accent-foreground: 225 40% 5%;
+  --accent-foreground: 195 30% 5%;
 
   --destructive: 0 85% 60%;
   --destructive-foreground: 210 20% 98%;
 
-  --input: 225 25% 15%;
+  --input: 195 12% 15%;
   --ring: 190 90% 45%;
   
   --chart-1: 190 90% 45%;
@@ -152,6 +152,14 @@
 
   .glow-box {
     box-shadow: 0 0 30px hsl(var(--primary) / 0.15);
+  }
+
+  .mission-grid {
+    background-color: #0d1114;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    background-size: 32px 32px;
   }
 }
 

@@ -1,110 +1,110 @@
+import type { ComponentType } from "react";
+import {
+  BarChart3,
+  BookOpenCheck,
+  Compass,
+  Flag,
+  History,
+  LayoutDashboard,
+  LogOut,
+  Route,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { cn } from "@/lib/utils";
 
-export function Sidebar() {
+type NavigationItem = {
+  href: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+};
+
+export const navigationItems: NavigationItem[] = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/profile", label: "My Profile", icon: UserRound },
+  { href: "/career-goal", label: "Career Goal", icon: Flag },
+  { href: "/journey-builder", label: "Journey Builder", icon: Compass },
+  { href: "/analysis", label: "Career Analysis", icon: BarChart3 },
+  { href: "/roadmap", label: "Career Roadmap", icon: Route },
+  { href: "/milestones", label: "Milestones", icon: BookOpenCheck },
+  { href: "/advisors", label: "Advisors", icon: UsersRound },
+  { href: "/history", label: "History", icon: History },
+];
+
+type SidebarProps = {
+  className?: string;
+  onNavigate?: () => void;
+};
+
+export function Sidebar({ className, onNavigate }: SidebarProps) {
   const [location] = useLocation();
   const { logout } = useAuth();
 
-  const navItems = [
-    {
-      href: "/dashboard",
-      label: "Dashboard",
-      active: "border-cyan-400/50 bg-cyan-400/15 text-cyan-200",
-      idle: "border-cyan-400/15 text-cyan-200/70 hover:border-cyan-400/35 hover:bg-cyan-400/10 hover:text-cyan-100",
-    },
-    {
-      href: "/profile",
-      label: "My Profile",
-      active: "border-emerald-400/50 bg-emerald-400/15 text-emerald-200",
-      idle: "border-emerald-400/15 text-emerald-200/70 hover:border-emerald-400/35 hover:bg-emerald-400/10 hover:text-emerald-100",
-    },
-    {
-      href: "/career-goal",
-      label: "Career Goal",
-      active: "border-amber-400/50 bg-amber-400/15 text-amber-200",
-      idle: "border-amber-400/15 text-amber-200/70 hover:border-amber-400/35 hover:bg-amber-400/10 hover:text-amber-100",
-    },
-    {
-      href: "/journey-builder",
-      label: "Journey Builder",
-      active: "border-fuchsia-400/50 bg-fuchsia-400/15 text-fuchsia-200",
-      idle: "border-fuchsia-400/15 text-fuchsia-200/70 hover:border-fuchsia-400/35 hover:bg-fuchsia-400/10 hover:text-fuchsia-100",
-    },
-    {
-      href: "/analysis",
-      label: "Career Analysis",
-      active: "border-sky-400/50 bg-sky-400/15 text-sky-200",
-      idle: "border-sky-400/15 text-sky-200/70 hover:border-sky-400/35 hover:bg-sky-400/10 hover:text-sky-100",
-    },
-    {
-      href: "/roadmap",
-      label: "Career Roadmap",
-      active: "border-violet-400/50 bg-violet-400/15 text-violet-200",
-      idle: "border-violet-400/15 text-violet-200/70 hover:border-violet-400/35 hover:bg-violet-400/10 hover:text-violet-100",
-    },
-    {
-      href: "/milestones",
-      label: "Milestones",
-      active: "border-lime-400/50 bg-lime-400/15 text-lime-200",
-      idle: "border-lime-400/15 text-lime-200/70 hover:border-lime-400/35 hover:bg-lime-400/10 hover:text-lime-100",
-    },
-    {
-      href: "/advisors",
-      label: "Advisors",
-      active: "border-rose-400/50 bg-rose-400/15 text-rose-200",
-      idle: "border-rose-400/15 text-rose-200/70 hover:border-rose-400/35 hover:bg-rose-400/10 hover:text-rose-100",
-    },
-    {
-      href: "/history",
-      label: "History",
-      active: "border-orange-400/50 bg-orange-400/15 text-orange-200",
-      idle: "border-orange-400/15 text-orange-200/70 hover:border-orange-400/35 hover:bg-orange-400/10 hover:text-orange-100",
-    },
-  ];
-
   return (
-    <div className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col sticky top-0 left-0">
-      <div className="h-20 flex items-center px-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
+    <aside
+      className={cn(
+        "sticky left-0 top-0 z-30 flex h-screen w-64 shrink-0 flex-col border-r border-white/[0.07] bg-[#080b0d]",
+        className,
+      )}
+    >
+      <div className="flex h-20 items-center border-b border-white/[0.07] px-5">
+        <Link href="/dashboard" onClick={onNavigate} className="flex items-center gap-3">
           <BrandMark />
-          <span className="font-bold text-lg tracking-tight">CareerPathX</span>
-        </div>
+          <div>
+            <span className="block text-base font-semibold text-white">CareerPathX</span>
+            <span className="block text-[10px] font-medium uppercase text-primary/70">Career intelligence</span>
+          </div>
+        </Link>
       </div>
 
-      <div className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
-        <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">
-          Navigation
-        </div>
-        {navItems.map((item) => {
-          const isActive = location === item.href;
-          return (
-            <Link key={item.href} href={item.href}>
-              <div
+      <nav aria-label="Primary navigation" className="flex-1 overflow-y-auto px-3 py-5">
+        <p className="mb-3 px-3 text-[10px] font-semibold uppercase text-muted-foreground">Mission control</p>
+        <div className="space-y-1">
+          {navigationItems.map((item) => {
+            const isActive = location === item.href;
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex items-center border px-3 py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer",
-                  isActive ? item.active : item.idle,
+                  "group relative flex min-h-10 items-center gap-3 rounded-md border border-transparent px-3 text-sm font-medium text-muted-foreground transition-colors",
+                  "hover:border-white/[0.07] hover:bg-white/[0.035] hover:text-white",
+                  isActive && "border-primary/25 bg-primary/[0.08] text-primary",
                 )}
               >
-                {item.label}
-              </div>
-            </Link>
-          );
-        })}
-      </div>
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "absolute inset-y-2 left-0 w-px bg-transparent",
+                    isActive && "bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)]",
+                  )}
+                />
+                <Icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
 
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="border-t border-white/[0.07] p-3">
         <Button
           variant="ghost"
-          className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-white/5 border-none"
+          className="w-full justify-start border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-white"
           onClick={() => logout()}
         >
-          Log Out
+          <LogOut className="h-4 w-4" />
+          Log out
         </Button>
       </div>
-    </div>
+    </aside>
   );
 }
