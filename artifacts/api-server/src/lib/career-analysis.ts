@@ -5,7 +5,10 @@ import type {
   Skill,
   WorkExperience,
 } from "@workspace/db";
-import { getProfessionCluster } from "./profession-mapping";
+import {
+  getProfessionCluster,
+  type ProfessionCluster,
+} from "./profession-mapping";
 
 type CareerAnalysisInput = {
   profile: Partial<
@@ -31,6 +34,12 @@ type CareerMilestone = {
   phase: string;
   description: string;
 };
+
+const PLAN_PHASES = {
+  foundations: "Months 1-2",
+  practice: "Months 3-4",
+  applications: "Months 5-6",
+} as const;
 
 function getTimelineLabels(targetYears: number) {
   const midpoint = Math.min(Math.ceil(targetYears / 2), targetYears);
@@ -88,6 +97,137 @@ function getReadinessScore({
   return Math.min(score, 82);
 }
 
+function normalizeRole(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function includesRolePhrase(input: string, phrase: string) {
+  const normalizedPhrase = normalizeRole(phrase);
+  return (
+    normalizedPhrase.length > 0 &&
+    ` ${normalizeRole(input)} `.includes(` ${normalizedPhrase} `)
+  );
+}
+
+function isNativeClusterTarget(
+  cluster: ProfessionCluster,
+  targetRole: string,
+) {
+  return [...cluster.aliases, ...cluster.destinations.map((item) => item.title)]
+    .some(
+      (phrase) =>
+        includesRolePhrase(targetRole, phrase) ||
+        includesRolePhrase(phrase, targetRole),
+    );
+}
+
+function getTargetFocus(targetRole: string) {
+  const role = normalizeRole(targetRole);
+
+  if (/\b(data analyst|business intelligence|bi analyst|analytics)\b/.test(role)) {
+    return {
+      label: "entry-level data analyst pathway",
+      gaps: [
+        "SQL",
+        "spreadsheet analysis",
+        "dashboarding",
+        "basic Python",
+        "portfolio evidence",
+      ],
+      projects: [
+        "Clean and analyse a public dataset with spreadsheet and SQL notes",
+        "Build a simple dashboard that answers three business questions",
+        "Write a short case study explaining the insight and recommendation",
+      ],
+      certification:
+        "Choose one practical data analysis course only if it helps you produce portfolio evidence.",
+      foundations:
+        "learn SQL, spreadsheet analysis, dashboard basics, and data storytelling",
+      practice:
+        "build 2 to 3 portfolio projects with clear business questions and written findings",
+      applications:
+        "update your CV and LinkedIn, then start applying for junior or entry-level data analyst roles from month 5",
+    };
+  }
+
+  if (/\b(software|developer|engineer|frontend|backend)\b/.test(role)) {
+    return {
+      label: "entry-level software pathway",
+      gaps: [
+        "programming fundamentals",
+        "version control",
+        "testing",
+        "shipped projects",
+        "technical interview practice",
+      ],
+      projects: [
+        "Ship a small web app that solves a real workflow problem",
+        "Add tests and a readable README to one public project",
+        "Practise explaining tradeoffs from your project work",
+      ],
+      certification:
+        "Prioritise shipped projects over certificates unless a course fills a specific fundamentals gap.",
+      foundations:
+        "learn programming fundamentals, Git, testing, and one practical application stack",
+      practice:
+        "ship 2 portfolio projects that show problem solving, code quality, and user value",
+      applications:
+        "refresh your CV and profile, practise interviews, and apply from month 5",
+    };
+  }
+
+  return {
+    label: `${targetRole} pathway`,
+    gaps: [
+      "target-role fundamentals",
+      "verified portfolio evidence",
+      "field-specific tools",
+      "practitioner feedback",
+      "interview readiness",
+    ],
+    projects: [
+      `Review five current ${targetRole} job descriptions and extract repeated requirements`,
+      "Build one practical evidence project tied to those requirements",
+      "Get feedback from someone already working in the target field",
+    ],
+    certification:
+      "Only choose credentials that current target-role job descriptions consistently request.",
+    foundations:
+      "learn the target-role fundamentals and confirm what employers actually request",
+    practice:
+      "build practical proof through projects, shadowing, volunteering, or work-based evidence",
+    applications:
+      "update CV and LinkedIn, practise target-role interviews, and start applying from month 5",
+  };
+}
+
+function getTransferableStrengths(
+  cluster: ProfessionCluster | null,
+  targetRole: string,
+) {
+  const target = normalizeRole(targetRole);
+  if (cluster?.code === "k12-education" && target.includes("data")) {
+    return [
+      "communication",
+      "structured thinking",
+      "reporting",
+      "planning",
+      "stakeholder management",
+      "presenting information clearly",
+    ];
+  }
+  return cluster?.strengths ?? [
+    "communication",
+    "problem solving",
+    "planning",
+    "stakeholder management",
+  ];
+}
+
 export function generateCareerAnalysis({
   profile,
   targetRole,
@@ -115,50 +255,75 @@ export function generateCareerAnalysis({
   const latestRole = workExperiences[0]?.title ?? currentRole;
   const latestCompany = workExperiences[0]?.company ?? "your organisation";
   const highestDegree = education[0]?.degree ?? "your qualification";
-  const timeline = getTimelineLabels(targetYears);
   const professionCluster = getProfessionCluster(
-    [currentRole, profile.industry, profile.professionalSummary, targetRole]
+    [currentRole, profile.industry, profile.professionalSummary]
       .filter(Boolean)
       .join(" "),
   );
+  const targetFocus = getTargetFocus(targetRole);
+  const useProfessionGuidance = Boolean(
+    professionCluster && isNativeClusterTarget(professionCluster, targetRole),
+  );
 
-  const profileSummary = `You are currently a ${latestRole} at ${latestCompany} with ${yearsExperience} years of experience in ${profile.industry ?? "your field"}. Your profile demonstrates a solid foundation with ${skills.length} documented skills and ${certifications.length} certification(s). Based on your background, you have a ${readinessScore}% readiness score for your target role of ${targetRole}.`;
+  const profileSummary = `You are moving from ${latestRole} toward ${targetRole}. Your current profile shows ${yearsExperience} years of experience, ${skills.length} documented skills, and a ${readinessScore}% readiness score.`;
 
-  const currentStrengths = `Your core strengths include: ${topSkills}. Your ${yearsExperience >= 5 ? "extensive" : yearsExperience >= 2 ? "growing" : "foundational"} experience in ${profile.industry ?? "your sector"} positions you well to begin this transition. ${education.length > 0 ? `Your ${highestDegree} provides the academic foundation required.` : ""} Your demonstrated track record across ${workExperiences.length} role(s) shows career progression.`;
+  const currentStrengths = `Your strongest transferable strengths are ${topSkills}. Your ${yearsExperience >= 5 ? "deep" : yearsExperience >= 2 ? "growing" : "early"} experience in ${profile.industry ?? "your sector"} gives you useful evidence to build from.${education.length > 0 ? ` Your ${highestDegree} may also support the move.` : ""}`;
 
-  const skillGaps = `To reach ${targetRole}, you will need to develop competencies in strategic leadership, stakeholder management, and advanced ${targetRole.toLowerCase().includes("ai") || targetRole.toLowerCase().includes("data") ? "AI/ML and data engineering" : "domain-specific technical"} capabilities. Communication at the executive level, change management, and cross-functional delivery are critical gaps to address. Consider deepening expertise in emerging tools and methodologies relevant to the ${targetRole} space.`;
+  const skillGaps = `Main gaps for ${targetRole}: ${targetFocus.gaps.join(", ")}. Start with the gaps that appear repeatedly in current job descriptions.`;
 
-  const experienceGaps = `You currently lack direct experience in ${targetRole.split(" ").slice(-2).join(" ")} responsibilities such as P&L ownership, team leadership at scale, and strategic programme delivery. You will need at least 2-3 years in progressively senior roles to close this gap. Seek opportunities for project leadership, mentoring junior staff, and representing your team in senior forums.`;
+  const experienceGaps = `Build direct evidence through practical work: ${targetFocus.projects.slice(0, 2).join("; ")}. Keep each example measurable and easy for an employer to review.`;
 
-  const qualificationGaps = `Industry-recognised credentials relevant to ${targetRole} would strengthen your candidacy significantly. Consider pursuing relevant postgraduate qualifications if your target role is highly credentialed. A professional certificate from a recognised body in your target domain is strongly recommended within the next 12 months.`;
+  const qualificationGaps = targetFocus.certification;
 
-  const certificationRecommendations = `Priority certifications for ${targetRole}: 1) Project Management Professional (PMP) or PRINCE2 if transitioning to delivery leadership. 2) Relevant cloud or technology certifications (AWS, Azure, Google Cloud) for technical roles. 3) CIPD, CMI Level 5/7 or equivalent for people leadership roles. 4) Agile/Scrum Master certification for product or delivery roles. 5) Sector-specific credentials relevant to your target industry.`;
+  const certificationRecommendations = `Pick one learning path that closes a named gap for ${targetRole}. Do not collect unrelated certificates before you have portfolio evidence.`;
 
-  const suggestedProjects = `Build your portfolio with: 1) A cross-functional project you led end-to-end. 2) A data or AI implementation project demonstrating technical credibility. 3) A change initiative you championed with measurable outcomes. 4) An external contribution such as a conference talk, article, or open-source contribution. 5) Evidence of mentoring or coaching others in your field.`;
+  const suggestedProjects = targetFocus.projects
+    .map((project, index) => `${index + 1}) ${project}`)
+    .join(" ");
 
-  const jobProgressionLadder = `Recommended progression: ${latestRole} → Senior ${latestRole.replace("Senior ", "")} → Lead / Principal ${latestRole.split(" ").slice(-1)[0]} → ${targetRole.includes("Director") || targetRole.includes("Head") ? targetRole : "Senior " + targetRole} → ${targetRole}. Estimated timeline: ${targetYears} years with deliberate development.`;
+  const jobProgressionLadder = `Recommended direction: ${latestRole} to ${targetRole}. Aim for the most realistic entry point first, then progress once your evidence matches the target-role requirements.`;
 
-  const immediateActions = `In the next 90 days: 1) Complete your CareerPathX profile and run a full gap analysis. 2) Identify and enrol in one priority certification course. 3) Request a stretch project or secondment opportunity. 4) Connect with 3 professionals already in your target role via LinkedIn. 5) Begin a personal learning routine of at least ${profile.weeklyLearningHours ?? 5} hours per week.`;
+  const immediateActions = `${PLAN_PHASES.foundations} focus: ${targetFocus.foundations}. Protect ${profile.weeklyLearningHours ?? 5} focused learning hours each week.`;
 
-  const year1Priorities = `Year 1 focus: Foundational capability building. Complete your first priority certification. Volunteer for a leadership opportunity within your current organisation. Build a professional network in your target sector. Begin developing a portfolio of evidence. Set up a mentoring relationship with someone 2-3 roles ahead of you on your target path.`;
+  const year1Priorities = `${PLAN_PHASES.practice} focus: ${targetFocus.practice}. Ask for feedback before adding more courses.`;
 
-  const year2To3Plan = `${timeline.analysisMidpoint} focus: Capability acceleration and visibility. Move into a role with direct reports or significant stakeholder responsibility. Complete your second priority qualification. Deliver at least one high-visibility project. Begin speaking or publishing in your professional community. Seek roles that give you P&L or budget accountability.`;
+  const year2To3Plan = `${PLAN_PHASES.applications} focus: ${targetFocus.applications}. Track applications and revise your evidence monthly.`;
 
-  const year4To5Plan = `${timeline.analysisLate} focus: Positioning for the target role. Apply for roles within 1 step of ${targetRole}. Build a track record of delivering at scale. Develop your personal brand and executive presence. Engage with senior industry networks. By year ${targetYears}, you should be actively interviewing for ${targetRole} positions with a compelling evidence portfolio.`;
+  const year4To5Plan = `Review progress monthly: compare your evidence with live ${targetRole} roles, update the plan, and keep applying where the match is realistic.`;
 
-  const professionGuidance = professionCluster
+  const careerChangeGuidance = professionCluster && !useProfessionGuidance
+    ? (() => {
+        const strengths = getTransferableStrengths(professionCluster, targetRole);
+        return {
+          profileSummary: `You are moving from ${currentRole} into ${targetRole}. Your ${professionCluster.label.toLowerCase()} background gives you transferable strengths, but the plan should follow the declared ${targetFocus.label}.`,
+          currentStrengths: `Your strongest transferable skills are ${strengths.join(", ")}.`,
+          skillGaps: `Your main gaps are ${targetFocus.gaps.join(", ")}.`,
+          experienceGaps: `Build proof for ${targetRole}: ${targetFocus.projects.slice(0, 2).join("; ")}.`,
+          qualificationGaps: targetFocus.certification,
+          certificationRecommendations: `Start with one practical ${targetRole} learning path, then use it to produce portfolio evidence.`,
+          suggestedProjects,
+          jobProgressionLadder: `Recommended direction: ${currentRole} to ${targetRole}. For a field change, target entry-level, junior, associate, or transition roles before senior titles.`,
+          immediateActions,
+          year1Priorities,
+          year2To3Plan,
+          year4To5Plan,
+        };
+      })()
+    : null;
+
+  const professionGuidance = professionCluster && useProfessionGuidance
     ? {
-        profileSummary: `${profileSummary} Your experience maps most strongly to the ${professionCluster.label} profession cluster, so this analysis uses that field's own progression evidence rather than a generic career ladder.`,
-        currentStrengths: `Your transferable strengths include ${professionCluster.strengths.join(", ")}. These are established capabilities from ${professionCluster.label.toLowerCase()} that can support a deeper, wider, or adjacent move without discarding your existing experience.`,
-        skillGaps: `For ${targetRole}, the priority gaps are ${professionCluster.gaps.join(", ")}. Validate each gap against the actual scope and requirements of the roles you intend to pursue.`,
+        profileSummary: `${profileSummary} This target matches the ${professionCluster.label.toLowerCase()} progression route.`,
+        currentStrengths: `Your strongest transferable strengths are ${professionCluster.strengths.join(", ")}.`,
+        skillGaps: `For ${targetRole}, the priority gaps are ${professionCluster.gaps.join(", ")}.`,
         experienceGaps: `Build evidence in the language of ${professionCluster.label.toLowerCase()}: ${professionCluster.milestones
           .slice(0, 3)
           .map((milestone) => milestone.title.toLowerCase())
           .join(
             ", ",
           )}. Each item should produce a named deliverable, measured result, or verified responsibility.`,
-        qualificationGaps: `Check the recognised professional body, regulator, employer, or trade framework for ${targetRole}. Prioritise only credentials that are explicitly required or consistently valued in this profession, and record the supervised practice or portfolio evidence that accompanies them.`,
-        certificationRecommendations: `Start with the accreditation or competency framework recognised in ${professionCluster.label.toLowerCase()}. Confirm local requirements before paying for training; regulated clinical, teaching, engineering, food-safety, and trade routes can vary by jurisdiction and target scope.`,
+        qualificationGaps: `Check the recognised professional body, regulator, employer, or trade framework for ${targetRole}. Prioritise credentials that are required or consistently valued.`,
+        certificationRecommendations: `Start with the accreditation or competency framework recognised in ${professionCluster.label.toLowerCase()}. Confirm local requirements before paying for training.`,
         suggestedProjects: professionCluster.milestones
           .slice(0, 4)
           .map(
@@ -172,42 +337,71 @@ export function generateCareerAnalysis({
           .join(
             ", ",
           )}. Use work-based evidence and role requirements to decide whether your move is deeper, wider, or adjacent.`,
-        immediateActions: `In the next 90 days: 1) ${professionCluster.milestones[0].title}. 2) ${professionCluster.milestones[1].title}. 3) Review the target role with a practitioner in ${professionCluster.label.toLowerCase()}. 4) Capture a baseline measure for the first milestone. 5) Protect ${profile.weeklyLearningHours ?? 5} hours per week for the required evidence and learning.`,
-        year1Priorities: `Year 1 focus: ${professionCluster.milestones
+        immediateActions: `${PLAN_PHASES.foundations} focus: ${professionCluster.milestones
+          .slice(0, 2)
+          .map((milestone) => milestone.title)
+          .join("; ")}. Protect ${profile.weeklyLearningHours ?? 5} focused learning hours each week.`,
+        year1Priorities: `${PLAN_PHASES.practice} focus: ${professionCluster.milestones
           .slice(0, 3)
           .map((milestone) => milestone.title)
           .join(
             "; ",
           )}. Keep the evidence concrete enough for a hiring manager, assessor, client, or professional peer to verify.`,
-        year2To3Plan: `${timeline.analysisMidpoint} focus: ${professionCluster.milestones
+        year2To3Plan: `${PLAN_PHASES.applications} focus: ${professionCluster.milestones
           .slice(3, 5)
           .map((milestone) => milestone.title)
           .join(
             "; ",
-          )}. Expand the scale, responsibility, or commercial impact of the work rather than collecting unrelated courses.`,
-        year4To5Plan: `${timeline.analysisLate} focus: ${professionCluster.milestones[5].title}. Package the completed evidence around the actual selection criteria for ${targetRole} and pursue roles at the appropriate next level.`,
+          )}. Update CV and LinkedIn, then start applying from month 5.`,
+        year4To5Plan: `Review progress monthly: ${professionCluster.milestones[5].title}. Package the completed evidence around the actual selection criteria for ${targetRole}.`,
       }
     : null;
 
   return {
     readinessScore,
-    profileSummary: professionGuidance?.profileSummary ?? profileSummary,
-    currentStrengths: professionGuidance?.currentStrengths ?? currentStrengths,
-    skillGaps: professionGuidance?.skillGaps ?? skillGaps,
-    experienceGaps: professionGuidance?.experienceGaps ?? experienceGaps,
+    profileSummary:
+      careerChangeGuidance?.profileSummary ??
+      professionGuidance?.profileSummary ??
+      profileSummary,
+    currentStrengths:
+      careerChangeGuidance?.currentStrengths ??
+      professionGuidance?.currentStrengths ??
+      currentStrengths,
+    skillGaps:
+      careerChangeGuidance?.skillGaps ?? professionGuidance?.skillGaps ?? skillGaps,
+    experienceGaps:
+      careerChangeGuidance?.experienceGaps ??
+      professionGuidance?.experienceGaps ??
+      experienceGaps,
     qualificationGaps:
+      careerChangeGuidance?.qualificationGaps ??
       professionGuidance?.qualificationGaps ?? qualificationGaps,
     certificationRecommendations:
+      careerChangeGuidance?.certificationRecommendations ??
       professionGuidance?.certificationRecommendations ??
       certificationRecommendations,
     suggestedProjects:
+      careerChangeGuidance?.suggestedProjects ??
       professionGuidance?.suggestedProjects ?? suggestedProjects,
     jobProgressionLadder:
+      careerChangeGuidance?.jobProgressionLadder ??
       professionGuidance?.jobProgressionLadder ?? jobProgressionLadder,
-    immediateActions: professionGuidance?.immediateActions ?? immediateActions,
-    year1Priorities: professionGuidance?.year1Priorities ?? year1Priorities,
-    year2To3Plan: professionGuidance?.year2To3Plan ?? year2To3Plan,
-    year4To5Plan: professionGuidance?.year4To5Plan ?? year4To5Plan,
+    immediateActions:
+      careerChangeGuidance?.immediateActions ??
+      professionGuidance?.immediateActions ??
+      immediateActions,
+    year1Priorities:
+      careerChangeGuidance?.year1Priorities ??
+      professionGuidance?.year1Priorities ??
+      year1Priorities,
+    year2To3Plan:
+      careerChangeGuidance?.year2To3Plan ??
+      professionGuidance?.year2To3Plan ??
+      year2To3Plan,
+    year4To5Plan:
+      careerChangeGuidance?.year4To5Plan ??
+      professionGuidance?.year4To5Plan ??
+      year4To5Plan,
   };
 }
 
@@ -216,7 +410,6 @@ export function generateCareerMilestones(
   targetYears: number,
   professionInput = "",
 ): CareerMilestone[] {
-  const timeline = getTimelineLabels(targetYears);
   const professionCluster = getProfessionCluster(
     `${professionInput} ${targetRole}`,
   );
@@ -226,79 +419,47 @@ export function generateCareerMilestones(
       title: milestone.title,
       phase:
         index < 2
-          ? "Immediate (0-90 days)"
+          ? PLAN_PHASES.foundations
           : index < 4
-            ? "Year 1"
-            : index === 4
-              ? timeline.milestoneMidpoint
-              : timeline.milestoneLate,
+            ? PLAN_PHASES.practice
+            : PLAN_PHASES.applications,
       description: milestone.description,
     }));
   }
 
   return [
     {
-      title: "Complete profile and career goal setup",
-      phase: "Immediate (0-90 days)",
-      description: `Fill out all profile sections and set your ${targetYears}-year career goal`,
+      title: "Confirm target-role requirements",
+      phase: PLAN_PHASES.foundations,
+      description: `Review five current ${targetRole} job descriptions and capture repeated requirements.`,
     },
     {
-      title: "Enrol in a priority certification course",
-      phase: "Immediate (0-90 days)",
-      description: "Identify and start your first professional certification",
-    },
-    {
-      title: "Connect with 5 professionals in target role",
-      phase: "Immediate (0-90 days)",
-      description: "Build your network in the direction of your target career",
-    },
-    {
-      title: "Complete first certification",
-      phase: "Year 1",
-      description: `Earn a credential relevant to ${targetRole}`,
-    },
-    {
-      title: "Take on a leadership opportunity",
-      phase: "Year 1",
+      title: "Start one focused learning path",
+      phase: PLAN_PHASES.foundations,
       description:
-        "Lead a project or team initiative within your current organisation",
+        "Choose training that closes a named gap and produces portfolio evidence.",
     },
     {
-      title: "Build a portfolio piece",
-      phase: "Year 1",
+      title: "Build the first portfolio project",
+      phase: PLAN_PHASES.practice,
+      description: `Create one practical project that demonstrates ${targetRole} capability.`,
+    },
+    {
+      title: "Get practitioner feedback",
+      phase: PLAN_PHASES.practice,
       description:
-        "Create a tangible piece of evidence demonstrating your target capabilities",
+        "Ask someone in the target field to review your evidence and next gaps.",
     },
     {
-      title: "Move into a role with team responsibility",
-      phase: timeline.milestoneMidpoint,
+      title: "Update CV and LinkedIn",
+      phase: PLAN_PHASES.applications,
       description:
-        "Progress to a role with direct reports or significant stakeholder ownership",
+        "Rewrite your profile around measured evidence for the target role.",
     },
     {
-      title: "Complete second priority qualification",
-      phase: timeline.milestoneMidpoint,
-      description: "Deepen your credentials with a second key certification",
-    },
-    {
-      title: "Deliver a high-visibility project",
-      phase: timeline.milestoneMidpoint,
-      description: "Lead a project that demonstrates executive-level impact",
-    },
-    {
-      title: "Apply for roles one step below target",
-      phase: timeline.milestoneLate,
-      description: `Secure a position 1 step below ${targetRole} to build final experience`,
-    },
-    {
-      title: "Develop executive presence and personal brand",
-      phase: timeline.milestoneLate,
-      description: "Speak at an event or publish thought leadership content",
-    },
-    {
-      title: `Land the ${targetRole} role`,
-      phase: timeline.milestoneLate,
-      description: `Achieve your ${targetYears}-year career target`,
+      title: "Start targeted applications",
+      phase: PLAN_PHASES.applications,
+      description: `Apply for realistic ${targetRole} openings from month 5 and review progress monthly.`,
     },
   ];
 }

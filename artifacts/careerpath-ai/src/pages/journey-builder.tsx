@@ -212,10 +212,10 @@ export default function JourneyBuilder() {
           <div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                Journey Builder
+                Career Journey
               </h1>
               <p className="text-muted-foreground mt-1">
-                Turn your profile and analysis into a staged career pathway.
+                Turn your profile and analysis into a 6-month action plan.
               </p>
             </div>
           </div>
@@ -258,8 +258,8 @@ export default function JourneyBuilder() {
                 />
                 <Button onClick={generateDirections} disabled={isGenerating}>
                   {isGenerating
-                    ? "Generating directions..."
-                    : "Generate directions"}
+                    ? "Finding directions..."
+                    : "Find directions"}
                 </Button>
               </CardContent>
             </Card>
@@ -306,7 +306,7 @@ export default function JourneyBuilder() {
                       ))}
                     </div>
                     <p className="text-sm font-medium mt-4">
-                      Estimated {direction.durationMonths} months
+                      Training plan: {direction.durationMonths} months
                     </p>
                   </button>
                 );
@@ -380,7 +380,7 @@ export default function JourneyBuilder() {
                         ))}
                       </div>
                       <div className="space-y-2">
-                        <p className="text-sm font-semibold">Milestones</p>
+                        <p className="text-sm font-semibold">Progress actions</p>
                         {stage.checklist.map((item) => (
                           <button
                             key={item.key}

@@ -5,7 +5,7 @@ import { requireAuth } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
-function getActions(plan: string): string[] {
+function getActions(plan: string, limit = 5): string[] {
   return plan
     .replace(/^[^:]+:\s*/, "")
     .split(/\.\s+/)
@@ -15,7 +15,8 @@ function getActions(plan: string): string[] {
         .replace(/\.$/, "")
         .trim(),
     )
-    .filter(Boolean);
+    .filter(Boolean)
+    .slice(0, limit);
 }
 
 function getTimeframe(plan: string, fallback: string): string {
@@ -43,28 +44,25 @@ router.get("/roadmap", requireAuth, async (req, res): Promise<void> => {
     readinessScore: analysis.readinessScore,
     phases: [
       {
-        label: "Immediate Actions",
-        timeframe: "0-90 days",
-        focus: "Establish your direction and next development moves.",
+        label: "Learn core tools",
+        timeframe: getTimeframe(analysis.immediateActions, "Months 1-2"),
+        focus: "Build the foundation for your target role.",
         actions: getActions(analysis.immediateActions),
       },
       {
-        label: "Foundation",
-        timeframe: getTimeframe(analysis.year1Priorities, "Year 1"),
-        focus: "Build foundational capability and evidence.",
+        label: "Build portfolio evidence",
+        timeframe: getTimeframe(analysis.year1Priorities, "Months 3-4"),
+        focus: "Create 2 to 3 proof points employers can review.",
         actions: getActions(analysis.year1Priorities),
       },
       {
-        label: "Acceleration",
-        timeframe: getTimeframe(analysis.year2To3Plan, "Years 2-3"),
-        focus: "Increase responsibility, visibility, and credentials.",
-        actions: getActions(analysis.year2To3Plan),
-      },
-      {
-        label: "Positioning",
-        timeframe: getTimeframe(analysis.year4To5Plan, "Years 4-5"),
-        focus: `Position yourself for ${analysis.targetRole}.`,
-        actions: getActions(analysis.year4To5Plan),
+        label: "Apply and review",
+        timeframe: getTimeframe(analysis.year2To3Plan, "Months 5-6"),
+        focus: `Update CV and LinkedIn, apply for ${analysis.targetRole}, and review progress monthly.`,
+        actions: [
+          ...getActions(analysis.year2To3Plan, 4),
+          ...getActions(analysis.year4To5Plan, 1),
+        ],
       },
     ],
   });

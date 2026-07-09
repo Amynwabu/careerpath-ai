@@ -91,7 +91,7 @@ describe("profession mapping", () => {
     );
     expect(classification).not.toBeNull();
 
-    const stages = buildProfessionJourneyStages(classification!.cluster, 12);
+    const stages = buildProfessionJourneyStages(classification!.cluster, 6);
     const milestoneTitles = stages.flatMap((stage) =>
       stage.checklist.map((item) => item.title),
     );
@@ -101,7 +101,7 @@ describe("profession mapping", () => {
     expect(milestoneTitles).not.toContain("Create a public notes repository");
   });
 
-  it("keeps every suggested training route between 3 and 12 months", () => {
+  it("keeps every suggested training route between 3 and 6 months", () => {
     const mapping = getCareerDirectionMapping(
       "Registered nurse pursuing advanced clinical practice on a hospital ward",
     );
@@ -109,7 +109,7 @@ describe("profession mapping", () => {
     expect(mapping.options.length).toBeGreaterThan(0);
     for (const option of mapping.options) {
       expect(option.durationMonths).toBeGreaterThanOrEqual(3);
-      expect(option.durationMonths).toBeLessThanOrEqual(12);
+      expect(option.durationMonths).toBeLessThanOrEqual(6);
     }
   });
 

@@ -35,10 +35,10 @@ function DashboardMockup() {
           {/* 4 insight cards */}
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: "Target Role", value: "AI Engineer" },
-              { label: "Where You Are", value: "Data Analyst" },
-              { label: "What's Missing", value: "Machine Learning" },
-              { label: "What To Do Next", value: "Build ML project" },
+              { label: "Target Role", value: "Data Analyst" },
+              { label: "Where You Are", value: "Teacher" },
+              { label: "What's Missing", value: "SQL" },
+              { label: "What To Do Next", value: "Build dashboard" },
             ].map((card) => (
               <div key={card.label} className="rounded-lg bg-white/5 border border-white/5 p-2.5">
                 <div className="text-[9px] text-muted-foreground uppercase tracking-wider">{card.label}</div>
@@ -66,26 +66,26 @@ function DashboardMockup() {
               </div>
             </div>
           </div>
-          {/* AI Coach */}
+          {/* Career coach */}
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-2.5">
             <div className="flex items-center gap-1.5 mb-1.5">
               <div className="w-3.5 h-3.5 rounded-full bg-primary/20 flex items-center justify-center">
-                <div className="w-2 h-2 text-primary text-[7px] font-bold flex items-center justify-center">AI</div>
+                <div className="w-2 h-2 text-primary text-[7px] font-bold flex items-center justify-center">✓</div>
               </div>
-              <div className="text-[9px] font-medium text-primary">AI Coach</div>
+              <div className="text-[9px] font-medium text-primary">Career Coach</div>
               <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse ml-auto" />
             </div>
             <div className="text-[9px] text-foreground/80 italic leading-tight">
-              "Focus on Machine Learning this week — it's your highest-priority gap for AI Engineer."
+              "Focus on SQL this week. It is your highest-priority gap for data analyst roles."
             </div>
           </div>
           {/* Skill gaps mini */}
           <div className="space-y-1.5">
             <div className="text-[9px] text-muted-foreground uppercase tracking-wider">Priority Skill Gaps</div>
             {[
-              { skill: "Machine Learning", level: "High", w: "85%" },
-              { skill: "Python (Advanced)", level: "High", w: "70%" },
-              { skill: "MLOps / Deployment", level: "Med", w: "55%" },
+              { skill: "SQL", level: "High", w: "85%" },
+              { skill: "Spreadsheet analysis", level: "High", w: "70%" },
+              { skill: "Portfolio evidence", level: "Med", w: "55%" },
             ].map((gap) => (
               <div key={gap.skill} className="flex items-center gap-2">
                 <div className="text-[9px] text-foreground flex-1 truncate">{gap.skill}</div>
@@ -100,24 +100,24 @@ function DashboardMockup() {
 }
 
 const TRANSFORMATIONS = [
-  { from: "Business Analyst", to: "Data Scientist", time: "14 months" },
-  { from: "Teacher", to: "AI Product Manager", time: "18 months" },
-  { from: "Graduate", to: "Software Engineer", time: "8 months" },
-  { from: "Marketing Manager", to: "Growth Engineer", time: "12 months" },
+  { from: "Teacher", to: "Data Analyst", time: "6-month plan" },
+  { from: "Business Analyst", to: "Data Analyst", time: "6-month plan" },
+  { from: "Graduate", to: "Software Engineer", time: "6-month plan" },
+  { from: "Marketing Manager", to: "Growth Specialist", time: "6-month plan" },
 ];
 
 const HOW_IT_WORKS = [
   {
     step: "01",
     title: "Analyse",
-    desc: "Upload your CV and tell us your target role. Our AI breaks down your current skills, experience, and qualifications against real job requirements.",
+    desc: "Upload your CV or describe your experience. We review your skills, experience, and qualifications against practical requirements for your target role.",
     bullets: ["CV skill extraction", "Role requirement mapping", "Gap identification"],
   },
   {
     step: "02",
     title: "Map",
-    desc: "Get a personalised, phase-by-phase career roadmap built around your timeline — not a generic template.",
-    bullets: ["Custom milestone plan", "Priority skill ordering", "Timeline optimisation"],
+    desc: "Get a personalised, phase-by-phase roadmap built around your timeline, not a generic template.",
+    bullets: ["Custom progress plan", "Priority skill ordering", "Timeline optimisation"],
   },
   {
     step: "03",
@@ -128,11 +128,11 @@ const HOW_IT_WORKS = [
 ];
 
 const FEATURES = [
-  { title: "Skill Gap Detection", desc: "AI compares your profile to real job requirements and highlights exactly what's missing." },
-  { title: "AI Career Roadmap", desc: "Phase-by-phase plan personalised to your timeline, skills, and target role." },
+  { title: "Skill Gap Detection", desc: "Compare your profile to real job requirements and see exactly what's missing." },
+  { title: "Personalised Roadmap", desc: "Phase-by-phase plan personalised to your timeline, skills, and target role." },
   { title: "Learning Platform Links", desc: "Curated courses from Coursera, Udemy, YouTube, and more — matched to your gaps." },
-  { title: "Portfolio Guidance", desc: "AI-suggested projects that prove your skills to employers." },
-  { title: "Progress Tracking", desc: "Milestone-based tracking so you know exactly how far you've come." },
+  { title: "Portfolio Guidance", desc: "Project ideas that prove your skills to employers." },
+  { title: "Progress Tracking", desc: "Action tracking so you know exactly how far you've come." },
   { title: "Real Job Outcomes", desc: "Every recommendation is tied to actual hiring requirements, not guesswork." },
 ];
 
@@ -148,7 +148,7 @@ export default function Landing() {
             <span className="font-bold text-xl tracking-tight">CareerPathX</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-            <Link href="/intelligence" className="hover:text-primary transition-colors">Intelligence</Link>
+            <Link href="/intelligence" className="hover:text-primary transition-colors">Features</Link>
             <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
             <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
           </div>
@@ -175,7 +175,7 @@ export default function Landing() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                AI-Powered Career Transformation
+                Personalised Career Planning
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
@@ -185,7 +185,7 @@ export default function Landing() {
               </h1>
 
               <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
-                Upload your CV. Choose your future role. Get a step-by-step roadmap, skills gap analysis, and exact platforms to learn from — powered by AI.
+                Upload your CV. Choose your future role. Get a step-by-step roadmap, skills gap analysis, and practical learning resources.
               </p>
 
               {/* 3-step process */}
@@ -193,7 +193,7 @@ export default function Landing() {
                 {[
                   "Upload your CV",
                   "Select your dream role",
-                  "Get your AI-powered roadmap",
+                  "Get your personalised roadmap",
                 ].map((step, i) => (
                   <div key={step} className="flex items-center gap-3">
                     <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0">
@@ -228,13 +228,13 @@ export default function Landing() {
       <section className="py-8 border-y border-white/5 bg-white/2">
         <div className="container mx-auto px-6">
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
-            <div>Built by an AI & Robotics expert</div>
+            <div>Built for career changers</div>
             <div className="w-px h-4 bg-white/10 hidden sm:block" />
             <div>Academic & industry validated</div>
             <div className="w-px h-4 bg-white/10 hidden sm:block" />
-            <div>AI-powered gap analysis</div>
+            <div>Clear gap analysis</div>
             <div className="w-px h-4 bg-white/10 hidden sm:block" />
-            <div>Personalised milestones</div>
+            <div>Personalised next steps</div>
           </div>
         </div>
       </section>
@@ -279,10 +279,10 @@ export default function Landing() {
                 <span className="text-primary">A Full Career Execution System</span>
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-8">
-                Most career tools tell you what's wrong. We tell you exactly how to fix it — with a step-by-step plan, curated learning resources, and AI-guided milestones that adapt to your progress.
+                Most career tools tell you what's wrong. We show you exactly how to fix it with a step-by-step plan, curated learning resources, and progress actions that adapt to your route.
               </p>
               <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                <Link href="/intelligence">Explore All Features</Link>
+                <Link href="/intelligence">Explore Features</Link>
               </Button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -306,7 +306,7 @@ export default function Landing() {
               From Where You Are To Where You Want To Be
             </h2>
             <p className="text-muted-foreground max-w-lg mx-auto">
-              CareerPathX has helped professionals make career transitions that felt impossible — with a clear, AI-generated plan.
+              CareerPathX helps professionals make career transitions feel practical with a clear plan.
             </p>
           </div>
 
@@ -322,7 +322,7 @@ export default function Landing() {
                 <div className="font-bold text-primary mb-4">{t.to}</div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full bg-primary" />
-                  {t.time} with AI guidance
+                  {t.time}
                 </div>
               </div>
             ))}
@@ -336,7 +336,7 @@ export default function Landing() {
           <div className="text-center mb-16">
             <Badge className="bg-primary/10 text-primary border-primary/20 mb-4">Simple Pricing</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Free. Upgrade When Ready.</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">No credit card required to get started. Upgrade to unlock the full career execution system.</p>
+            <p className="text-muted-foreground max-w-md mx-auto">No credit card required to get started. Upgrade when you need the full planning workspace.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
@@ -345,7 +345,7 @@ export default function Landing() {
               <div className="text-lg font-bold mb-1">Free</div>
               <div className="text-3xl font-black mb-6">£0 <span className="text-sm font-normal text-muted-foreground">forever</span></div>
               <ul className="space-y-3 mb-8">
-                {["Basic career roadmap", "Skill gap overview", "3 AI analysis runs", "Core milestone tracking"].map(f => (
+                {["Basic roadmap", "Skill gap overview", "3 analysis runs", "Core progress tracking"].map(f => (
                   <li key={f} className="border-l border-primary/40 pl-3 text-sm">{f}</li>
                 ))}
               </ul>
@@ -362,9 +362,9 @@ export default function Landing() {
               <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
               <div className="relative z-10">
                 <div className="text-lg font-bold mb-1">Premium</div>
-                <div className="text-3xl font-black mb-6">£19 <span className="text-sm font-normal text-muted-foreground">/ month</span></div>
+                <div className="text-3xl font-black mb-6">£10 <span className="text-sm font-normal text-muted-foreground">/ month</span></div>
                 <ul className="space-y-3 mb-8">
-                  {["Full AI career roadmap", "Unlimited analysis runs", "AI mentor coaching", "Advanced course recommendations", "Portfolio project guidance", "Priority skill gap detection"].map(f => (
+                  {["Full roadmap", "Unlimited analysis runs", "Career coaching", "Advanced course recommendations", "Portfolio project guidance", "Priority skill gap detection"].map(f => (
                     <li key={f} className="border-l border-primary/40 pl-3 text-sm">{f}</li>
                   ))}
                 </ul>
@@ -386,7 +386,7 @@ export default function Landing() {
             Your Career Won't Change<br />Unless You Do
           </h2>
           <p className="text-muted-foreground text-lg mb-10 max-w-md mx-auto">
-            Start your AI-powered career path today. It takes less than 5 minutes to get your personalised roadmap.
+            Start your career path today. It takes less than 5 minutes to get your personalised roadmap.
           </p>
           <Button asChild size="lg" className="text-base h-14 px-10 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_rgba(0,240,255,0.5)] glow-box">
             <Link href="/register">Start Your Career Path</Link>

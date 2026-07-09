@@ -27,12 +27,12 @@ export const navigationItems: NavigationItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/profile", label: "My Profile", icon: UserRound },
   { href: "/career-goal", label: "Career Goal", icon: Flag },
-  { href: "/journey-builder", label: "Journey Builder", icon: Compass },
-  { href: "/analysis", label: "Career Analysis", icon: BarChart3 },
-  { href: "/roadmap", label: "Career Roadmap", icon: Route },
-  { href: "/milestones", label: "Milestones", icon: BookOpenCheck },
-  { href: "/advisors", label: "Advisors", icon: UsersRound },
-  { href: "/history", label: "History", icon: History },
+  { href: "/journey-builder", label: "Career Journey", icon: Compass },
+  { href: "/analysis", label: "Your Analysis", icon: BarChart3 },
+  { href: "/roadmap", label: "Your Roadmap", icon: Route },
+  { href: "/milestones", label: "Progress", icon: BookOpenCheck },
+  { href: "/advisors", label: "Support", icon: UsersRound },
+  { href: "/history", label: "Past Results", icon: History },
 ];
 
 type SidebarProps = {
@@ -56,13 +56,13 @@ export function Sidebar({ className, onNavigate }: SidebarProps) {
           <BrandMark />
           <div>
             <span className="block text-base font-semibold text-white">CareerPathX</span>
-            <span className="block text-[10px] font-medium uppercase text-primary/70">Career intelligence</span>
+            <span className="block text-[10px] font-medium uppercase text-primary/70">Career plan</span>
           </div>
         </Link>
       </div>
 
       <nav aria-label="Primary navigation" className="flex-1 overflow-y-auto px-3 py-5">
-        <p className="mb-3 px-3 text-[10px] font-semibold uppercase text-muted-foreground">Mission control</p>
+        <p className="mb-3 px-3 text-[10px] font-semibold uppercase text-muted-foreground">Dashboard</p>
         <div className="space-y-1">
           {navigationItems.map((item) => {
             const isActive = location === item.href;

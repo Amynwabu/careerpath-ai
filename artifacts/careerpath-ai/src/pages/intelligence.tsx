@@ -5,9 +5,9 @@ import { BrandMark } from "@/components/brand/brand-mark";
 
 const FEATURE_GROUPS = [
   {
-    badge: "Profile Intelligence",
+    badge: "Profile Review",
     headline: "Know Exactly Where You Stand",
-    desc: "Our AI reads your CV, work history, skills, and certifications — then maps them against real job requirements for your target role.",
+    desc: "We review your CV, work history, skills, and certifications, then map them against practical requirements for your target role.",
     features: [
       { title: "CV Analysis", desc: "Automatically extracts skills, experience, and qualifications from your profile." },
       { title: "Role Gap Mapping", desc: "Compares your profile against live requirements for your target role." },
@@ -22,14 +22,14 @@ const FEATURE_GROUPS = [
     features: [
       { title: "Phase-by-Phase Roadmap", desc: "Structured phases with clear focus areas and timelines." },
       { title: "Timeline Optimisation", desc: "Set your target years and the AI builds a path that fits." },
-      { title: "Milestone Tracking", desc: "Bite-sized milestones that keep you accountable and on track." },
-      { title: "Urgency Intelligence", desc: "See how much faster you'll reach your goal with structured AI guidance." },
+      { title: "Progress Tracking", desc: "Bite-sized actions that keep you accountable and on track." },
+      { title: "Timeline View", desc: "See how a structured plan can shorten the route to your goal." },
     ],
   },
   {
-    badge: "AI Coach",
-    headline: "A Mentor That Knows Your Profile",
-    desc: "Your AI coach gives personalised, actionable advice based on your actual data — not generic career tips.",
+    badge: "Career Coach",
+    headline: "Support That Knows Your Profile",
+    desc: "Get personalised, actionable advice based on your actual profile, not generic career tips.",
     features: [
       { title: "Weekly Focus Tips", desc: "Tells you exactly which skill to work on this week for maximum progress." },
       { title: "Priority Ranking", desc: "Ranks your skill gaps by impact — so you work on what matters most first." },
@@ -43,7 +43,7 @@ const FEATURE_GROUPS = [
     desc: "Every skill gap comes with curated learning resources, recommended projects, and certification paths — matched specifically to your needs.",
     features: [
       { title: "Course Recommendations", desc: "Curated courses from top platforms matched to each skill gap." },
-      { title: "Portfolio Projects", desc: "AI-suggested projects that prove your skills to hiring managers." },
+      { title: "Portfolio Projects", desc: "Project ideas that prove your skills to hiring managers." },
       { title: "Certification Paths", desc: "Recommended certifications that unlock your target role." },
       { title: "Experience Guidance", desc: "Actionable steps to build real-world experience." },
     ],
@@ -55,7 +55,7 @@ const COMPARISON = [
   { feature: "Personalised Gap Report", generic: false, us: true },
   { feature: "Phase-by-Phase Roadmap", generic: false, us: true },
   { feature: "Time-to-Goal Calculation", generic: false, us: true },
-  { feature: "AI Coach Tips", generic: false, us: true },
+  { feature: "Career Coach Tips", generic: false, us: true },
   { feature: "Curated Course Links", generic: false, us: true },
   { feature: "Portfolio Project Guidance", generic: false, us: true },
   { feature: "Milestone Tracking", generic: false, us: true },
@@ -75,7 +75,7 @@ export default function Intelligence() {
             <span className="font-bold text-xl tracking-tight">CareerPathX</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-            <Link href="/intelligence" className="text-primary">Intelligence</Link>
+            <Link href="/intelligence" className="text-primary">Features</Link>
             <Link href="/#how-it-works" className="hover:text-primary transition-colors">How It Works</Link>
             <Link href="/pricing" className="hover:text-primary transition-colors">Pricing</Link>
           </div>
@@ -92,12 +92,12 @@ export default function Intelligence() {
       <section className="pt-36 pb-20 px-6 relative overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/15 rounded-full blur-[140px] pointer-events-none" />
         <div className="container mx-auto text-center relative z-10">
-          <Badge className="bg-primary/10 text-primary border-primary/20 mb-6">Career Intelligence Engine</Badge>
+          <Badge className="bg-primary/10 text-primary border-primary/20 mb-6">Career Plan</Badge>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 max-w-3xl mx-auto leading-tight">
             Every Feature Built to Get You <span className="text-primary glow-text">There Faster</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            CareerPathX isn't just a career tool. It's a complete execution system — from where you are today to your dream role, with every step mapped, prioritised, and guided by AI.
+            CareerPathX is a complete planning workspace, from where you are today to your target role, with every step mapped and prioritised.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(0,240,255,0.4)] glow-box">

@@ -395,7 +395,7 @@ export const GetLatestAnalysisResponse = zod.object({
 });
 
 /**
- * @summary Get analysis history
+ * @summary Get past results
  */
 export const ListAnalysisHistoryResponseItem = zod.object({
   id: zod.number(),

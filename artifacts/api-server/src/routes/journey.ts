@@ -70,7 +70,7 @@ const stageTemplates = [
   {
     stageOrder: 2,
     title: "Build proof",
-    duration: "Months 3-5",
+    duration: "Months 3-4",
     description:
       "Create visible projects that demonstrate readiness for the transition.",
     resources: [
@@ -95,7 +95,7 @@ const stageTemplates = [
   {
     stageOrder: 3,
     title: "Move into the market",
-    duration: "Months 6-9",
+    duration: "Months 5-6",
     description: "Prepare applications, interviews, and advisor feedback.",
     resources: [
       {

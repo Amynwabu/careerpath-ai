@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/api-request";
 import { fileToBase64, validateCvFile } from "@/lib/cv-file";
@@ -67,8 +74,57 @@ const BUILD_STEPS = [
   "Validating your latest career evidence",
   "Remapping the strongest career direction",
   "Rebuilding readiness and capability gaps",
-  "Replacing the roadmap and milestone journey",
+  "Replacing the roadmap and progress plan",
 ];
+
+const INDUSTRY_OPTIONS = [
+  "Education",
+  "Data",
+  "Technology",
+  "Healthcare",
+  "Finance",
+  "Marketing",
+  "Operations",
+  "Public Sector",
+  "Food and Hospitality",
+  "Skilled Trades",
+  "Retail",
+  "Media",
+];
+
+const CAREER_LEVEL_OPTIONS = [
+  "Beginner",
+  "Career changer",
+  "Junior",
+  "Mid-level",
+  "Senior",
+  "Lead/Principal",
+  "Director",
+];
+
+const LOCATION_OPTIONS = [
+  "UK-wide",
+  "London, UK",
+  "Manchester, UK",
+  "Birmingham, UK",
+  "Leeds, UK",
+  "Scotland",
+  "Wales",
+  "Northern Ireland",
+  "Remote",
+  "United States",
+  "Canada",
+  "Europe",
+  "International",
+];
+
+function withDraftOption(options: string[], value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return options;
+  return options.some((option) => option.toLowerCase() === trimmed.toLowerCase())
+    ? options
+    : [trimmed, ...options];
+}
 
 export default function Onboarding() {
   const [, setLocation] = useLocation();
@@ -98,6 +154,18 @@ export default function Onboarding() {
   });
   const [processing, setProcessing] = useState(false);
   const [buildStep, setBuildStep] = useState(0);
+  const industryOptions = withDraftOption(
+    INDUSTRY_OPTIONS,
+    profileDraft.industry,
+  );
+  const careerLevelOptions = withDraftOption(
+    CAREER_LEVEL_OPTIONS,
+    profileDraft.careerLevel,
+  );
+  const locationOptions = withDraftOption(
+    LOCATION_OPTIONS,
+    profileDraft.location,
+  );
 
   const analyseIntake = async () => {
     if (mode === "description" && description.trim().length < 40) {
@@ -280,7 +348,7 @@ export default function Onboarding() {
             {
               id: "career-goal",
               title: role,
-              durationMonths: 12,
+              durationMonths: 6,
               rationale:
                 "Use this stated target as the starting direction and validate it against your experience during analysis.",
               skills: [
@@ -304,7 +372,7 @@ export default function Onboarding() {
             <BrandMark size="lg" className="animate-pulse" />
             <div>
               <p className="text-xs font-semibold uppercase text-primary">
-                Career engine active
+                Career plan update
               </p>
               <h1 className="mt-1 text-2xl font-semibold">
                 {isEvidenceUpdate ? "Refreshing your career route" : "Building your route"}
@@ -367,7 +435,7 @@ export default function Onboarding() {
             <div>
               <div className="border-b border-white/10 pb-9 sm:pb-11">
                 <p className="text-xs font-semibold uppercase text-primary">
-                  {isEvidenceUpdate ? "Career evidence refresh" : "Career signal intake"}
+                  {isEvidenceUpdate ? "Career evidence refresh" : "Profile mapping"}
                 </p>
                 <h1 className="mt-4 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl">
                   {isEvidenceUpdate
@@ -376,7 +444,7 @@ export default function Onboarding() {
                 </h1>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
                   {isEvidenceUpdate
-                    ? "Change your current work description or upload a newer CV. CareerPathX will remap the strongest route and rebuild every dependent dashboard signal."
+                    ? "Change your current work description or upload a newer CV. CareerPathX will remap the strongest route and rebuild the dashboard."
                     : "Describe your current work or upload your CV to start your profile map."}
                 </p>
 
@@ -397,18 +465,11 @@ export default function Onboarding() {
                     {isEvidenceUpdate ? "Upload a newer CV" : "Upload my CV"}
                   </Button>
                 </div>
-
-                <p className="mt-5 text-sm text-muted-foreground">
-                  Private workspace. Review and edit before analysis.
-                </p>
               </div>
 
               <div className="py-8 sm:py-10">
                 <div className="mb-6 flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold uppercase text-primary">
-                      Your starting point
-                    </p>
                     <h2 className="mt-2 text-xl font-semibold">
                       {mode === "description"
                         ? "Describe your current work"
@@ -432,9 +493,9 @@ export default function Onboarding() {
                       variant={mode === "cv" ? "secondary" : "ghost"}
                       onClick={() => setMode("cv")}
                       className="rounded-none"
-                      aria-label="Use CV upload"
+                      aria-label="Use CV"
                     >
-                      CV upload
+                      CV
                     </Button>
                   </div>
                 </div>
@@ -522,8 +583,7 @@ export default function Onboarding() {
                       </span>
                     </label>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Leave this blank and the engine will recommend realistic
-                      options.
+                      Leave this blank and we will recommend realistic options.
                     </p>
                     <Input
                       id="target-role"
@@ -579,7 +639,7 @@ export default function Onboarding() {
                     setReviewStep("options");
                   }}
                 >
-                  Change career evidence
+                  Edit input
                 </Button>
               </div>
 
@@ -692,13 +752,26 @@ export default function Onboarding() {
                     )}
                   </div>
 
-                  <Button
-                    onClick={continueToProfile}
-                    disabled={!selectedId}
-                    className="h-12 w-full rounded-none text-base"
-                  >
-                    Continue to verify my profile
-                  </Button>
+                  <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setResult(null);
+                        setReviewStep("options");
+                      }}
+                      className="h-12 rounded-none"
+                    >
+                      Back to input
+                    </Button>
+                    <Button
+                      onClick={continueToProfile}
+                      disabled={!selectedId}
+                      className="h-12 rounded-none px-6 text-base"
+                    >
+                      Continue to verify my profile
+                    </Button>
+                  </div>
                 </>
               ) : (
                 <>
@@ -712,7 +785,7 @@ export default function Onboarding() {
                     <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                       Correct anything the CV or description extraction missed.
                       This saved profile will be used for your analysis and
-                      training journey.
+                      career journey.
                     </p>
                   </div>
 
@@ -741,14 +814,26 @@ export default function Onboarding() {
                         >
                           Industry or profession *
                         </label>
-                        <Input
-                          id="verify-industry"
-                          value={profileDraft.industry}
-                          onChange={(event) =>
-                            updateProfileDraft("industry", event.target.value)
+                        <Select
+                          value={profileDraft.industry || undefined}
+                          onValueChange={(value) =>
+                            updateProfileDraft("industry", value)
                           }
-                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
-                        />
+                        >
+                          <SelectTrigger
+                            id="verify-industry"
+                            className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                          >
+                            <SelectValue placeholder="Choose industry or profession" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {industryOptions.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <label
@@ -779,14 +864,26 @@ export default function Onboarding() {
                         >
                           Career level
                         </label>
-                        <Input
-                          id="verify-level"
-                          value={profileDraft.careerLevel}
-                          onChange={(event) =>
-                            updateProfileDraft("careerLevel", event.target.value)
+                        <Select
+                          value={profileDraft.careerLevel || undefined}
+                          onValueChange={(value) =>
+                            updateProfileDraft("careerLevel", value)
                           }
-                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
-                        />
+                        >
+                          <SelectTrigger
+                            id="verify-level"
+                            className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                          >
+                            <SelectValue placeholder="Choose career level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {careerLevelOptions.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <label
@@ -795,15 +892,26 @@ export default function Onboarding() {
                         >
                           Location
                         </label>
-                        <Input
-                          id="verify-location"
-                          value={profileDraft.location}
-                          onChange={(event) =>
-                            updateProfileDraft("location", event.target.value)
+                        <Select
+                          value={profileDraft.location || undefined}
+                          onValueChange={(value) =>
+                            updateProfileDraft("location", value)
                           }
-                          placeholder="e.g. London, UK"
-                          className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
-                        />
+                        >
+                          <SelectTrigger
+                            id="verify-location"
+                            className="mt-2 h-11 rounded-none border-white/10 bg-black/20"
+                          >
+                            <SelectValue placeholder="Choose location" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {locationOptions.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <label
@@ -877,7 +985,7 @@ export default function Onboarding() {
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       Training plans run for a minimum of 3 months and a maximum
-                      of 12 months.
+                      of 6 months.
                     </p>
                   </div>
 

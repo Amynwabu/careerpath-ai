@@ -257,7 +257,7 @@ export async function refreshCareerPath(userId: number, input: CareerRefreshInpu
       {
         userId,
         type: "profile",
-        description: `Refreshed career evidence from ${input.source === "cv" ? input.fileName || "CV upload" : "work description"}`,
+        description: `Refreshed career evidence from ${input.source === "cv" ? input.fileName || "CV" : "work description"}`,
       },
       {
         userId,

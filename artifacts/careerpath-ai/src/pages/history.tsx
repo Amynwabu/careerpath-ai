@@ -15,8 +15,8 @@ export default function AnalysisHistory() {
       <div className="p-8 max-w-4xl mx-auto space-y-8">
         <div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Analysis History</h1>
-            <p className="text-muted-foreground mt-1">Track how your readiness score has evolved over time.</p>
+            <h1 className="text-3xl font-bold tracking-tight">Past Results</h1>
+            <p className="text-muted-foreground mt-1">See your recent results and progress.</p>
           </div>
         </div>
 
@@ -30,13 +30,13 @@ export default function AnalysisHistory() {
           <Card className="border-border bg-card">
             <CardContent className="pt-12 pb-12 flex flex-col items-center text-center gap-6">
               <div>
-                <h2 className="text-2xl font-bold">No History Yet</h2>
+                <h2 className="text-2xl font-bold">No Past Results Yet</h2>
                 <p className="text-muted-foreground mt-2 max-w-md">
-                  Run your first career analysis to start building a history of readiness scores and track your progression over time.
+                  Run your first analysis to save a result.
                 </p>
               </div>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/analysis">Run First Analysis</Link>
+                <Link href="/analysis">Run Analysis</Link>
               </Button>
             </CardContent>
           </Card>
@@ -54,6 +54,9 @@ export default function AnalysisHistory() {
                     <p className="font-semibold truncate">{item.targetRole}</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       {new Date(item.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Next step: review the latest action plan.
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

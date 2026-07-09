@@ -24,11 +24,11 @@ tags:
   - name: career-goal
     description: Career goal definition
   - name: analysis
-    description: AI career analysis
+    description: Analysis
   - name: roadmap
-    description: Career roadmap
+    description: Roadmap
   - name: milestones
-    description: Progress milestones
+    description: Progress actions
   - name: dashboard
     description: Dashboard summary data
 paths:
@@ -487,7 +487,7 @@ paths:
     post:
       operationId: runAnalysis
       tags: [analysis]
-      summary: Run AI career analysis
+      summary: Run analysis
       responses:
         "201":
           description: Analysis created
@@ -525,7 +525,7 @@ paths:
     get:
       operationId: listAnalysisHistory
       tags: [analysis]
-      summary: Get analysis history
+      summary: Get past results
       responses:
         "200":
           description: List of past analyses
@@ -559,7 +559,7 @@ paths:
     get:
       operationId: listMilestones
       tags: [milestones]
-      summary: List milestones
+      summary: List progress actions
       responses:
         "200":
           description: List of milestones

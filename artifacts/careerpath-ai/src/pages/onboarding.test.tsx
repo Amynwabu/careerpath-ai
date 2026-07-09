@@ -33,7 +33,7 @@ const intake = {
     {
       id: "education-programme-manager",
       title: "Education Programme Manager",
-      durationMonths: 12,
+      durationMonths: 6,
       rationale: "The updated evidence shows programme ownership across several staff groups.",
       skills: ["Programme delivery"],
       matchScore: 92,
@@ -69,7 +69,7 @@ beforeEach(() => {
             "Your pathway changed from Head of Department / Curriculum Leader to Education Programme Manager based on your updated evidence.",
         },
         analysis: { id: 9, readinessScore: 58 },
-        journey: { id: 12, targetRole: "Education Programme Manager", durationMonths: 12 },
+        journey: { id: 12, targetRole: "Education Programme Manager", durationMonths: 6 },
         refreshedAt: "2026-06-22T12:00:00.000Z",
       });
     }

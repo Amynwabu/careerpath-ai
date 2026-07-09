@@ -7,7 +7,7 @@ import Analysis from "./analysis";
 const mocks = vi.hoisted(() => ({
   analysis: undefined as unknown,
   analysisError: undefined as unknown,
-  goal: { targetYears: 5 } as unknown,
+  goal: { targetRole: "Advanced Clinical Practitioner", targetYears: 5 } as unknown,
   isLoading: false,
   mutateAsync: vi.fn(),
   toast: vi.fn(),
@@ -40,7 +40,7 @@ function renderAnalysis() {
 beforeEach(() => {
   mocks.analysis = undefined;
   mocks.analysisError = { status: 404 };
-  mocks.goal = { targetYears: 5 };
+  mocks.goal = { targetRole: "Advanced Clinical Practitioner", targetYears: 5 };
   mocks.isLoading = false;
   mocks.mutateAsync.mockResolvedValue({});
 });
@@ -55,7 +55,7 @@ describe("analysis page", () => {
     renderAnalysis();
 
     expect(screen.getByText("No Analysis Yet")).toBeInTheDocument();
-    expect(screen.getByText(/Complete your profile and set your 5-year career target/)).toBeInTheDocument();
+    expect(screen.getByText(/Complete your profile and set your target role/)).toBeInTheDocument();
   });
 
   it("renders the latest readiness result", () => {
@@ -70,6 +70,9 @@ describe("analysis page", () => {
       certificationRecommendations: "Independent prescribing",
       suggestedProjects: "Lead a quality improvement programme",
       jobProgressionLadder: "Senior nurse to advanced practitioner",
+      immediateActions: "Months 1-2 focus: confirm clinical requirements.",
+      year1Priorities: "Months 3-4 focus: build portfolio evidence.",
+      year2To3Plan: "Months 5-6 focus: apply and review progress.",
       createdAt: "2026-06-20T08:00:00.000Z",
     };
 
@@ -77,7 +80,8 @@ describe("analysis page", () => {
 
     expect(screen.getByTestId("readiness-score")).toHaveTextContent("72%");
     expect(screen.getByText("Experienced healthcare leader ready for advanced practice.")).toBeInTheDocument();
-    expect(screen.getByText("Current Strengths")).toBeInTheDocument();
+    expect(screen.getByText("Top transferable strengths")).toBeInTheDocument();
+    expect(screen.getByText("Months 5 to 6")).toBeInTheDocument();
   });
 
   it("runs analysis, refreshes dependent data, and reports success", async () => {

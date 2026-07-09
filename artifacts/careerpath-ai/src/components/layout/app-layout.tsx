@@ -87,12 +87,12 @@ export function AppLayout({ children }: AppLayoutProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button asChild variant="ghost" size="icon" className="hidden border-white/[0.06] text-muted-foreground hover:text-primary sm:inline-flex">
-                  <Link href="/advisors" aria-label="Open AI advisor">
+                  <Link href="/advisors" aria-label="Open advisor">
                     <Bot className="h-4 w-4" />
                   </Link>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>AI advisor</TooltipContent>
+              <TooltipContent>Advisor</TooltipContent>
             </Tooltip>
 
             <DropdownMenu>
@@ -107,8 +107,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <TooltipContent>Notifications</TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="end" className="w-72 border-white/10 bg-[#0d1114] p-3">
-                <DropdownMenuLabel className="px-1 text-xs uppercase text-muted-foreground">Signals</DropdownMenuLabel>
-                <p className="px-1 py-3 text-sm leading-6 text-muted-foreground">Your next career action is ready in Mission Control.</p>
+                <DropdownMenuLabel className="px-1 text-xs uppercase text-muted-foreground">Updates</DropdownMenuLabel>
+                <p className="px-1 py-3 text-sm leading-6 text-muted-foreground">Your next career action is ready on the dashboard.</p>
               </DropdownMenuContent>
             </DropdownMenu>
 

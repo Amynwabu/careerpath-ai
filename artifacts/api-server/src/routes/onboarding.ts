@@ -203,7 +203,7 @@ router.post(
           {
             id: "career-goal",
             title: targetRole,
-            durationMonths: 12,
+            durationMonths: 6,
             rationale:
               "Use your stated target as the primary direction, grounded in the experience we extracted.",
             skills: [

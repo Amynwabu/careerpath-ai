@@ -1996,7 +1996,7 @@ export const useSetCareerGoal = <
 };
 
 /**
- * @summary Run AI career analysis
+ * @summary Run analysis
  */
 export const getRunAnalysisUrl = () => {
   return `/api/analysis`;
@@ -2054,7 +2054,7 @@ export type RunAnalysisMutationResult = NonNullable<
 export type RunAnalysisMutationError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Run AI career analysis
+ * @summary Run analysis
  */
 export const useRunAnalysis = <
   TError = ErrorType<ErrorResponse>,
@@ -2152,7 +2152,7 @@ export function useGetLatestAnalysis<
 }
 
 /**
- * @summary Get analysis history
+ * @summary Get past results
  */
 export const getListAnalysisHistoryUrl = () => {
   return `/api/analysis/history`;
@@ -2203,7 +2203,7 @@ export type ListAnalysisHistoryQueryResult = NonNullable<
 export type ListAnalysisHistoryQueryError = ErrorType<unknown>;
 
 /**
- * @summary Get analysis history
+ * @summary Get past results
  */
 
 export function useListAnalysisHistory<

@@ -3,7 +3,7 @@ import { rankCareerDirections } from "./career-directions";
 export type GrowthDirection = "deeper" | "wider" | "adjacent";
 
 export const MIN_TRAINING_MONTHS = 3;
-export const MAX_TRAINING_MONTHS = 12;
+export const MAX_TRAINING_MONTHS = 6;
 
 export function clampTrainingDurationMonths(durationMonths: number) {
   if (!Number.isFinite(durationMonths)) return MAX_TRAINING_MONTHS;

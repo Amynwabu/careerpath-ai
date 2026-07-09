@@ -17,10 +17,10 @@ export default function Roadmap() {
           <div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                Career Roadmap
+                Your Roadmap
               </h1>
               <p className="text-muted-foreground mt-1">
-                Follow the phases from your latest career analysis.
+                Follow the 6-month plan from your latest analysis.
               </p>
             </div>
           </div>
@@ -49,8 +49,7 @@ export default function Roadmap() {
               <div>
                 <h2 className="text-2xl font-bold">No Roadmap Yet</h2>
                 <p className="text-muted-foreground mt-2 max-w-md">
-                  Run your career analysis to generate a phased roadmap for your
-                  target role.
+                  Run your analysis to create a focused roadmap for your target role.
                 </p>
               </div>
               <Button
@@ -58,7 +57,7 @@ export default function Roadmap() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Link href="/analysis">
-                  Run Career Analysis
+                  Run Analysis
                 </Link>
               </Button>
             </CardContent>

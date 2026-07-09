@@ -107,7 +107,7 @@ export default function Dashboard() {
   const incompleteMilestones = milestones?.filter((milestone) => !milestone.completed) ?? [];
   const completedMilestones = milestones?.filter((milestone) => milestone.completed).length ?? 0;
   const nextMilestone = incompleteMilestones[0];
-  const nextAction = liveSummary?.nextAction ?? nextMilestone?.title ?? "Run your first career analysis";
+  const nextAction = liveSummary?.nextAction ?? nextMilestone?.title ?? "Run your first analysis";
   const topGap = skillGaps?.[0];
 
   const atCurrentPace = hasAnalysis
@@ -120,7 +120,7 @@ export default function Dashboard() {
 
   const coachTip = topGap
     ? `Focus on ${topGap.skill} this week. It is your highest-priority capability gap on the path to ${targetRole}.`
-    : `Run your career analysis to identify the highest-leverage move on your path to ${targetRole}.`;
+    : `Run your analysis to identify the highest-leverage move on your path to ${targetRole}.`;
 
   const getPhaseState = (index: number, phaseCount: number): PhaseState => {
     const total = milestones?.length ?? 0;
@@ -138,11 +138,11 @@ export default function Dashboard() {
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 text-[10px] font-semibold uppercase text-primary/75">
               <span className="h-1.5 w-1.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)]" />
-              Live career intelligence
+              Live career plan
             </div>
-            <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Career Mission Control</h1>
+            <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Your Dashboard</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-              Track readiness, close evidence gaps, and accelerate your path to leadership.
+              Track readiness, close evidence gaps, and move toward your target role.
             </p>
           </div>
           <Button asChild className="h-11 self-start bg-primary px-5 text-primary-foreground shadow-[0_0_24px_hsl(var(--primary)/0.12)] hover:bg-primary/90 xl:self-auto">
@@ -251,7 +251,7 @@ export default function Dashboard() {
               <div className="mt-8 grid gap-4 border-t border-white/[0.07] pt-5 sm:grid-cols-[1fr_auto] sm:items-end">
                 <div>
                   <div className="flex items-center justify-between gap-4 text-xs">
-                    <span className="text-muted-foreground">Journey execution</span>
+                    <span className="text-muted-foreground">Journey progress</span>
                     <span className="font-semibold text-primary">{journeyProgress}%</span>
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden bg-white/[0.06]">
@@ -269,7 +269,7 @@ export default function Dashboard() {
           <section className={cn(panelClass, "relative flex flex-col overflow-hidden border-primary/20 p-5 sm:p-6 xl:col-span-4")}>
             <div className="absolute inset-y-0 left-0 w-0.5 bg-primary" aria-hidden="true" />
             <PanelHeading
-              eyebrow="Weekly mission"
+              eyebrow="Weekly focus"
               title="Highest-leverage action"
               action={<Focus className="h-5 w-5 text-primary" />}
             />
@@ -294,7 +294,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
           <section className={cn(panelClass, "p-5 sm:p-6 xl:col-span-5")}>
-            <PanelHeading eyebrow="Time acceleration" title="Projected time to goal" action={<TrendingUp className="h-5 w-5 text-primary" />} />
+            <PanelHeading eyebrow="Timeline" title="Projected time to goal" action={<TrendingUp className="h-5 w-5 text-primary" />} />
             {!hasAnalysis ? (
               <div className="mt-7 border-t border-white/[0.07] pt-6">
                 <p className="text-sm leading-6 text-muted-foreground">Run an analysis to model your current pace against a structured, evidence-led pathway.</p>
@@ -324,13 +324,13 @@ export default function Dashboard() {
                   </div>
                   <div className="mt-3 h-1.5 bg-white/[0.06]"><div className="h-full w-[34%] bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.6)]" /></div>
                 </div>
-                <div className="border-t border-white/[0.07] pt-4 text-sm text-primary">Save about {timeSaved} year{timeSaved !== 1 ? "s" : ""} with focused AI coaching.</div>
+                <div className="border-t border-white/[0.07] pt-4 text-sm text-primary">Save about {timeSaved} year{timeSaved !== 1 ? "s" : ""} with focused coaching.</div>
               </div>
             )}
           </section>
 
           <section className={cn(panelClass, "relative overflow-hidden p-5 sm:p-6 xl:col-span-7")}>
-            <PanelHeading eyebrow="AI strategist" title="This week's coaching signal" action={<Bot className="h-5 w-5 text-primary" />} />
+            <PanelHeading eyebrow="Career coach" title="This week's coaching note" action={<Bot className="h-5 w-5 text-primary" />} />
             <div className="mt-7 border-l-2 border-primary bg-primary/[0.035] px-5 py-4">
               <p className="text-base leading-7 text-white">“{coachTip}”</p>
             </div>
@@ -346,7 +346,7 @@ export default function Dashboard() {
             </div>
             <Button asChild variant="ghost" className="mt-5 justify-start px-0 text-primary hover:bg-transparent">
               <Link href="/advisors">
-                Open AI advisor
+                Open advisor
                 <ChevronRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -355,7 +355,7 @@ export default function Dashboard() {
 
         <section className={cn(panelClass, "overflow-hidden p-5 sm:p-6")}>
           <PanelHeading
-            eyebrow="Strategic pathway"
+              eyebrow="Pathway"
             title="Career path roadmap"
             action={(
               <Button asChild variant="ghost" size="sm" className="hidden text-muted-foreground hover:text-primary sm:inline-flex">
@@ -393,7 +393,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="mt-7 flex flex-col items-start border-t border-white/[0.07] pt-6">
-              <p className="text-sm text-muted-foreground">Generate your analysis to unlock a staged career roadmap.</p>
+              <p className="text-sm text-muted-foreground">Generate your analysis to create a staged roadmap.</p>
               <Button asChild size="sm" className="mt-4"><Link href="/analysis">Generate roadmap</Link></Button>
             </div>
           )}
@@ -402,7 +402,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
           <section className={cn(panelClass, "p-5 sm:p-6 xl:col-span-7")}>
             <PanelHeading
-              eyebrow="Capability intelligence"
+              eyebrow="Skill gaps"
               title="Priority skill gaps"
               action={<span className="text-xs text-muted-foreground">{skillGaps?.length ?? 0} signals</span>}
             />
@@ -464,7 +464,7 @@ export default function Dashboard() {
               <div className="mt-6 border-t border-white/[0.07] pt-6"><p className="text-sm text-muted-foreground">Your next actions will appear after analysis.</p></div>
             )}
             <Button asChild variant="ghost" className="mt-5 w-full justify-between border border-white/[0.07] text-muted-foreground hover:text-primary">
-              <Link href="/milestones">View all milestones <ArrowRight className="h-4 w-4" /></Link>
+              <Link href="/milestones">View all progress <ArrowRight className="h-4 w-4" /></Link>
             </Button>
           </section>
         </div>
@@ -475,7 +475,7 @@ export default function Dashboard() {
             <div>
               <p className="text-[10px] font-semibold uppercase text-primary/75">Career evidence update</p>
               <h2 className="mt-1.5 text-base font-semibold text-white">Changed role, responsibilities, or CV?</h2>
-              <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Replace your description or upload a newer CV, review career options again, and rerun profile analysis.</p>
+              <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">Replace your description or upload a newer CV, review career options again, and rerun your analysis.</p>
             </div>
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">

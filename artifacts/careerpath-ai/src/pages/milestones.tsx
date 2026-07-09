@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
-const PHASE_ORDER = ["Immediate (0-90 days)", "Year 1", "Year 2-3", "Year 4-5"];
+const PHASE_ORDER = ["Months 1-2", "Months 3-4", "Months 5-6"];
 
 export default function Milestones() {
   const qc = useQueryClient();
@@ -45,8 +45,8 @@ export default function Milestones() {
         <div className="flex items-center justify-between">
           <div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Milestones</h1>
-              <p className="text-muted-foreground mt-1">Track your progress through each phase of your career journey.</p>
+              <h1 className="text-3xl font-bold tracking-tight">Progress</h1>
+              <p className="text-muted-foreground mt-1">Track the actions in your 6-month plan.</p>
             </div>
           </div>
           {total > 0 && (
@@ -76,13 +76,13 @@ export default function Milestones() {
           <Card className="border-border bg-card">
             <CardContent className="pt-12 pb-12 flex flex-col items-center text-center gap-6">
               <div>
-                <h2 className="text-2xl font-bold">No Milestones Yet</h2>
+                <h2 className="text-2xl font-bold">No Progress Yet</h2>
                 <p className="text-muted-foreground mt-2 max-w-md">
-                  Run your career analysis to auto-generate a set of milestones tailored to your career target and development timeline.
+                  Run your analysis to create a short action plan for your target role.
                 </p>
               </div>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90">
-                <Link href="/analysis">Run Career Analysis</Link>
+                <Link href="/analysis">Run Analysis</Link>
               </Button>
             </CardContent>
           </Card>

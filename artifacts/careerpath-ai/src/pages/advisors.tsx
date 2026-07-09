@@ -64,7 +64,7 @@ export default function Advisors() {
       <div className="p-8 max-w-6xl mx-auto space-y-8">
         <div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Career Advisors</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Support</h1>
             <p className="text-muted-foreground mt-1">Book focused human guidance when your journey needs judgement.</p>
           </div>
         </div>
@@ -78,8 +78,8 @@ export default function Advisors() {
         {!isLoading && advisors.length === 0 && (
           <Card className="border-border bg-card">
             <CardContent className="py-12 text-center">
-              <h2 className="text-xl font-semibold">No advisors are currently available</h2>
-              <p className="text-muted-foreground mt-2">Check again after advisor availability has been published.</p>
+              <h2 className="text-xl font-semibold">No support sessions are currently available</h2>
+              <p className="text-muted-foreground mt-2">Check again after availability has been published.</p>
             </CardContent>
           </Card>
         )}

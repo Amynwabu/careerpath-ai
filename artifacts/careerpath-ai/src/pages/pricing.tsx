@@ -13,13 +13,13 @@ const PLANS = [
     href: "/register",
     highlight: false,
     features: [
-      { text: "Basic AI career roadmap", included: true },
+      { text: "Basic roadmap", included: true },
       { text: "Skill gap overview (top 5 gaps)", included: true },
-      { text: "3 AI analysis runs", included: true },
-      { text: "Core milestone tracking", included: true },
+      { text: "3 analysis runs", included: true },
+      { text: "Core progress tracking", included: true },
       { text: "Profile completion tracker", included: true },
       { text: "Unlimited analysis runs", included: false },
-      { text: "AI mentor coaching tips", included: false },
+      { text: "Career coaching tips", included: false },
       { text: "Advanced course recommendations", included: false },
       { text: "Portfolio project guidance", included: false },
       { text: "Full skill gap breakdown", included: false },
@@ -28,20 +28,20 @@ const PLANS = [
   },
   {
     name: "Premium",
-    price: "£19",
+    price: "£10",
     period: "per month",
-    desc: "The full career execution system. Unlimited AI guidance.",
+    desc: "The full career planning workspace.",
     cta: "Start Premium",
     href: "/register",
     highlight: true,
     badge: "Most Popular",
     features: [
-      { text: "Full AI career roadmap", included: true },
+      { text: "Full roadmap", included: true },
       { text: "Complete skill gap breakdown", included: true },
       { text: "Unlimited analysis runs", included: true },
-      { text: "Full milestone tracking & history", included: true },
+      { text: "Full progress tracking and past results", included: true },
       { text: "Profile completion tracker", included: true },
-      { text: "AI mentor coaching tips", included: true },
+      { text: "Career coaching tips", included: true },
       { text: "Advanced course recommendations", included: true },
       { text: "Portfolio project guidance", included: true },
       { text: "Certification path recommendations", included: true },
@@ -50,12 +50,12 @@ const PLANS = [
     ],
   },
   {
-    name: "Teams",
-    price: "£49",
-    period: "per seat / month",
+    name: "Team",
+    price: "£20",
+    period: "per month",
     desc: "For L&D teams, bootcamps, and cohort-based programmes.",
     cta: "Contact Us",
-    href: "mailto:hello@careerpathAI.com",
+    href: "mailto:hello@careerpathx.ai",
     highlight: false,
     badge: "Coming Soon",
     features: [
@@ -77,7 +77,7 @@ const PLANS = [
 const FAQ = [
   {
     q: "Is the free plan really free forever?",
-    a: "Yes. The Free plan has no time limit. You get 3 AI analysis runs and core features to explore your career direction without paying anything.",
+    a: "Yes. The Free plan has no time limit. You get 3 analysis runs and core features to explore your career direction without paying anything.",
   },
   {
     q: "What happens when I run out of analysis runs on Free?",
@@ -88,8 +88,8 @@ const FAQ = [
     a: "Yes, you can cancel anytime. You'll keep access to Premium features until the end of your billing period.",
   },
   {
-    q: "How does the AI analysis work?",
-    a: "Our AI reads your profile — current role, skills, experience, education — and compares it against real requirements for your target role. It then generates a personalised gap report, roadmap, and coaching tips.",
+    q: "How does the analysis work?",
+    a: "We review your profile, current role, skills, experience, and education against practical requirements for your target role. You get a personalised gap report, roadmap, and coaching tips.",
   },
   {
     q: "What if I change my career goal?",
@@ -97,7 +97,7 @@ const FAQ = [
   },
   {
     q: "Is there a student or academic discount?",
-    a: "We're working on student pricing. Contact us at hello@careerpathAI.com and we'll see what we can do.",
+    a: "We're working on student pricing. Contact us at hello@careerpathx.ai and we'll see what we can do.",
   },
 ];
 
@@ -113,7 +113,7 @@ export default function Pricing() {
             <span className="font-bold text-xl tracking-tight">CareerPathX</span>
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-            <Link href="/intelligence" className="hover:text-primary transition-colors">Intelligence</Link>
+            <Link href="/intelligence" className="hover:text-primary transition-colors">Features</Link>
             <Link href="/#how-it-works" className="hover:text-primary transition-colors">How It Works</Link>
             <Link href="/pricing" className="text-primary">Pricing</Link>
           </div>
@@ -133,7 +133,7 @@ export default function Pricing() {
           <Badge className="bg-primary/10 text-primary border-primary/20 mb-6">Simple Pricing</Badge>
           <h1 className="text-4xl md:text-5xl font-bold mb-5">Start Free. Upgrade When Ready.</h1>
           <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-            No credit card required to get started. Upgrade to unlock the full AI career execution system.
+            No credit card required to get started. Upgrade when you need the full planning workspace.
           </p>
         </div>
       </section>
@@ -214,11 +214,11 @@ export default function Pricing() {
               </thead>
               <tbody>
                 {[
-                  { label: "AI Analysis Runs", values: ["3 runs", "Unlimited", "Unlimited"] },
+                  { label: "Analysis Runs", values: ["3 runs", "Unlimited", "Unlimited"] },
                   { label: "Skill Gap Detection", values: ["Top 5", "Full breakdown", "Full breakdown"] },
-                  { label: "Career Roadmap", values: ["Basic", "Full phases", "Full phases"] },
-                  { label: "Milestone Tracking", values: ["Core", "Full history", "Full history"] },
-                  { label: "AI Coach Tips", values: [false, true, true] },
+                  { label: "Roadmap", values: ["Basic", "Full phases", "Full phases"] },
+                  { label: "Progress Tracking", values: ["Core", "Full history", "Full history"] },
+                  { label: "Career Coach Tips", values: [false, true, true] },
                   { label: "Course Recommendations", values: [false, true, true] },
                   { label: "Portfolio Projects", values: [false, true, true] },
                   { label: "Certification Paths", values: [false, true, true] },

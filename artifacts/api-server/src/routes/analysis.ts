@@ -61,7 +61,7 @@ router.post("/analysis", requireAuth, async (req, res): Promise<void> => {
 
   logger.info(
     { userId, targetRole: goal.targetRole, targetYears },
-    "Running career analysis",
+    "Running analysis",
   );
 
   const analysis = generateCareerAnalysis({
@@ -107,7 +107,7 @@ router.post("/analysis", requireAuth, async (req, res): Promise<void> => {
   await db.insert(activityLogTable).values({
     userId,
     type: "analysis",
-    description: `Ran career analysis for ${goal.targetRole} — readiness score: ${analysis.readinessScore}%`,
+    description: `Ran analysis for ${goal.targetRole} - readiness score: ${analysis.readinessScore}%`,
   });
 
   res.status(201).json({ ...saved, createdAt: saved.createdAt.toISOString() });
