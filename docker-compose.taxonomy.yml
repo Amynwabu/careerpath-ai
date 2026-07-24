@@ -1,0 +1,22 @@
+services:
+  careerpathx-taxonomy-db:
+    image: postgres:16-alpine
+    container_name: careerpathx_taxonomy_db
+    environment:
+      POSTGRES_DB: careerpathx
+      POSTGRES_USER: careerpathx
+      POSTGRES_PASSWORD: ${CAREERPATHX_LOCAL_DB_PASSWORD:-careerpathx-local-only}
+    ports:
+      - "127.0.0.1:55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U careerpathx -d careerpathx"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - careerpathx_taxonomy_data:/var/lib/postgresql/data
+      - ./scripts/taxonomy-db-init.sql:/docker-entrypoint-initdb.d/001-careerpathx-ownership.sql:ro
+
+volumes:
+  careerpathx_taxonomy_data:
+    name: careerpathx_taxonomy_data

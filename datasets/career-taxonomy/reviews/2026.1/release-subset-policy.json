@@ -1,0 +1,20 @@
+{
+  "taxonomyVersion": "2026.1",
+  "include": [
+    "human-approved occupations",
+    "human-resolved skills selected for publication",
+    "approved aliases",
+    "approved occupation-skill relationships",
+    "approved transitions",
+    "approved skill relationships",
+    "complete provenance"
+  ],
+  "exclude": [
+    "pending records",
+    "rejected records",
+    "deferred relationships",
+    "unresolved aliases",
+    "unapproved transitions",
+    "unsupported professional-body mappings"
+  ]
+}

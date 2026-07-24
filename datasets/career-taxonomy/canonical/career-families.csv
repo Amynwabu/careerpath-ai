@@ -1,0 +1,7 @@
+code,name,slug,description,parent_family_code,taxonomy_version,verification_status,review_status,reviewed_by,reviewed_at,review_notes,is_active,display_order
+CPX-FAM-BUSINESS_AND_OPERATIONS,Business and Operations,business-and-operations,CareerPathX canonical family candidate for Business and Operations.,,2026.1,source_mapped,not_reviewed,,,,true,1
+CPX-FAM-CONSTRUCTION_AND_BUILT_ENVIRONMENT,Construction and Built Environment,construction-and-built-environment,CareerPathX canonical family candidate for Construction and Built Environment.,,2026.1,source_mapped,not_reviewed,,,,true,2
+CPX-FAM-DIGITAL_DATA_AND_ARTIFICIAL_INTELLIGENCE,Digital Data and Artificial Intelligence,digital-data-and-artificial-intelligence,CareerPathX canonical family candidate for Digital Data and Artificial Intelligence.,,2026.1,source_mapped,not_reviewed,,,,true,3
+CPX-FAM-ENGINEERING_AND_INFRASTRUCTURE,Engineering and Infrastructure,engineering-and-infrastructure,CareerPathX canonical family candidate for Engineering and Infrastructure.,,2026.1,source_mapped,not_reviewed,,,,true,4
+CPX-FAM-PROJECT_AND_PROGRAMME_MANAGEMENT,Project and Programme Management,project-and-programme-management,CareerPathX canonical family candidate for Project and Programme Management.,,2026.1,source_mapped,not_reviewed,,,,true,5
+CPX-FAM-UTILITIES_AND_ENERGY,Utilities and Energy,utilities-and-energy,CareerPathX canonical family candidate for Utilities and Energy.,,2026.1,source_mapped,not_reviewed,,,,true,6

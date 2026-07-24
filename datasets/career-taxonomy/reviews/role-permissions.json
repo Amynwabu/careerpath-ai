@@ -1,0 +1,40 @@
+{
+  "roles": {
+    "taxonomy_editor": [
+      "review_occupation_wording",
+      "review_skill_wording",
+      "review_alias",
+      "propose_merge",
+      "save_draft",
+      "submit_editorial_decision"
+    ],
+    "domain_reviewer": [
+      "review_occupation_scope",
+      "review_skill_profile",
+      "review_transition",
+      "review_regulated_status",
+      "save_draft",
+      "submit_domain_decision"
+    ],
+    "technical_validator": [
+      "validate_codes",
+      "validate_references",
+      "validate_checksums",
+      "validate_decision_pack",
+      "submit_technical_validation"
+    ],
+    "governance_approver": [
+      "validate_reviewer_evidence",
+      "adjudicate_conflict",
+      "approve_release_gate",
+      "authorise_reviewer"
+    ]
+  },
+  "separationOfDuties": [
+    "A reviewer cannot governance-approve their own content decision.",
+    "A reviewer cannot adjudicate a conflict containing their own decision.",
+    "Technical validation cannot substitute for taxonomy or domain review.",
+    "Reviewer authorisation requires a governance approver distinct from the applicant."
+  ],
+  "onboardingStatus": "awaiting_real_authorised_reviewers"
+}

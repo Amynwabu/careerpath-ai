@@ -1,0 +1,101 @@
+cpx_code,canonical_title,career_family,career_level,principal_uk_context,expected_external_source_mappings,regulated,human_review_mandatory
+CPX-OCC-ENG-001,Civil Engineer,Engineering and Infrastructure,practitioner,UK infrastructure and civil works,UK SOC 2121|ESCO civil engineer|ONET civil engineers,true,true
+CPX-OCC-ENG-002,Senior Civil Engineer,Engineering and Infrastructure,senior_practitioner,UK infrastructure and civil works,UK SOC 2121|ESCO civil engineer|ONET civil engineers,true,true
+CPX-OCC-ENG-003,Structural Engineer,Engineering and Infrastructure,practitioner,Buildings bridges and structural assets,UK SOC 2121|ESCO structural engineer|ONET civil engineers,true,true
+CPX-OCC-ENG-004,Geotechnical Engineer,Engineering and Infrastructure,specialist,Ground engineering and earthworks,UK SOC 2121|ESCO geotechnical engineer|ONET civil engineers,true,true
+CPX-OCC-ENG-005,Transportation Engineer,Engineering and Infrastructure,practitioner,Road rail and mobility infrastructure,UK SOC 2121|ESCO transport engineer|ONET transportation engineers,true,true
+CPX-OCC-ENG-006,Rail Engineer,Engineering and Infrastructure,practitioner,Rail infrastructure and rolling systems,UK SOC 2121|ESCO rail engineer|ONET rail occupations,true,true
+CPX-OCC-ENG-007,Highways Engineer,Engineering and Infrastructure,practitioner,Roads highways and local authority infrastructure,UK SOC 2121|ESCO road engineer|ONET civil engineers,true,true
+CPX-OCC-ENG-008,Bridge Engineer,Engineering and Infrastructure,specialist,Bridge design inspection and asset management,UK SOC 2121|ESCO bridge engineer|ONET civil engineers,true,true
+CPX-OCC-ENG-009,Water Engineer,Engineering and Infrastructure,practitioner,Water infrastructure and flood risk,UK SOC 2121|ESCO water engineer|ONET civil engineers,true,true
+CPX-OCC-ENG-010,Drainage Engineer,Engineering and Infrastructure,practitioner,Drainage flood and surface-water systems,UK SOC 2121|ESCO drainage engineer|ONET civil engineers,true,true
+CPX-OCC-ENG-011,Electrical Engineer,Engineering and Infrastructure,practitioner,Electrical engineering design and assurance,UK SOC 2123|ESCO electrical engineer|ONET electrical engineers,true,true
+CPX-OCC-ENG-012,Power Systems Engineer,Engineering and Infrastructure,specialist,Power networks and electrical systems,UK SOC 2123|ESCO power engineer|ONET electrical engineers,true,true
+CPX-OCC-ENG-013,Mechanical Engineer,Engineering and Infrastructure,practitioner,Mechanical systems and plant,UK SOC 2122|ESCO mechanical engineer|ONET mechanical engineers,true,true
+CPX-OCC-ENG-014,Systems Engineer,Engineering and Infrastructure,practitioner,Complex engineered systems,UK SOC 2129|ESCO systems engineer|ONET systems engineers,false,true
+CPX-OCC-ENG-015,Control and Instrumentation Engineer,Engineering and Infrastructure,specialist,Industrial control and instrumentation,UK SOC 2123|ESCO control engineer|ONET electrical engineers,true,true
+CPX-OCC-ENG-016,Maintenance Engineer,Engineering and Infrastructure,practitioner,Maintenance engineering and reliability,UK SOC 5241|ESCO maintenance engineer|ONET maintenance engineers,false,true
+CPX-OCC-ENG-017,Reliability Engineer,Engineering and Infrastructure,specialist,Asset reliability and maintenance strategy,UK SOC 2129|ESCO reliability engineer|ONET industrial engineers,false,true
+CPX-OCC-ENG-018,Engineering Manager,Engineering and Infrastructure,manager,Engineering teams and technical delivery,UK SOC 2129|ESCO engineering manager|ONET architectural and engineering managers,false,true
+CPX-OCC-ENG-019,Project Engineer,Engineering and Infrastructure,practitioner,Engineering delivery coordination,UK SOC 2129|ESCO project engineer|ONET engineers,false,true
+CPX-OCC-ENG-020,Infrastructure Engineer,Engineering and Infrastructure,practitioner,Infrastructure systems and assets,UK SOC 2121|ESCO infrastructure engineer|ONET civil engineers,false,true
+CPX-OCC-ENG-021,Asset Engineer,Engineering and Infrastructure,practitioner,Infrastructure asset management,UK SOC 2129|ESCO asset engineer|ONET industrial engineers,false,true
+CPX-OCC-ENG-022,Commissioning Engineer,Engineering and Infrastructure,practitioner,Testing commissioning and handover,UK SOC 2129|ESCO commissioning engineer|ONET engineers,false,true
+CPX-OCC-PPM-001,Project Manager,Project and Programme Management,manager,Cross-sector project delivery,UK SOC 2439|ESCO project manager|ONET project management specialists,false,true
+CPX-OCC-PPM-002,Senior Project Manager,Project and Programme Management,senior_manager,Complex project delivery,UK SOC 2439|ESCO senior project manager|ONET project management specialists,false,true
+CPX-OCC-PPM-003,Programme Manager,Project and Programme Management,senior_manager,Multi-project programme delivery,UK SOC 1139|ESCO programme manager|ONET project management specialists,false,true
+CPX-OCC-PPM-004,Portfolio Manager,Project and Programme Management,senior_manager,Portfolio governance and investment prioritisation,UK SOC 1139|ESCO portfolio manager|ONET project management specialists,false,true
+CPX-OCC-PPM-005,Project Coordinator,Project and Programme Management,entry,Project administration and coordination,UK SOC 4159|ESCO project coordinator|ONET project management specialists,false,true
+CPX-OCC-PPM-006,Project Planner,Project and Programme Management,practitioner,Project planning and scheduling,UK SOC 2439|ESCO project planner|ONET project management specialists,false,true
+CPX-OCC-PPM-007,Planning Engineer,Project and Programme Management,practitioner,Engineering planning and schedule control,UK SOC 2439|ESCO planning engineer|ONET project management specialists,false,true
+CPX-OCC-PPM-008,Project Controls Manager,Project and Programme Management,manager,Integrated cost schedule and risk controls,UK SOC 2439|ESCO project controls manager|ONET project management specialists,false,true
+CPX-OCC-PPM-009,Cost Engineer,Project and Programme Management,practitioner,Cost estimating and cost control,UK SOC 2439|ESCO cost engineer|ONET cost estimators,false,true
+CPX-OCC-PPM-010,Risk Manager,Project and Programme Management,manager,Project and enterprise risk management,UK SOC 2425|ESCO risk manager|ONET risk management specialists,false,true
+CPX-OCC-PPM-011,Commercial Manager,Project and Programme Management,manager,Commercial governance contracts and claims,UK SOC 1259|ESCO commercial manager|ONET business operations specialists,false,true
+CPX-OCC-PPM-012,Contracts Manager,Project and Programme Management,manager,Contract administration and supplier performance,UK SOC 1259|ESCO contracts manager|ONET business operations specialists,false,true
+CPX-OCC-PPM-013,PMO Analyst,Project and Programme Management,practitioner,Portfolio and project office analysis,UK SOC 2429|ESCO project management office analyst|ONET management analysts,false,true
+CPX-OCC-PPM-014,PMO Manager,Project and Programme Management,manager,Project management office leadership,UK SOC 2429|ESCO project management office manager|ONET management analysts,false,true
+CPX-OCC-PPM-015,Delivery Manager,Project and Programme Management,manager,Delivery leadership across workstreams,UK SOC 1139|ESCO delivery manager|ONET project management specialists,false,true
+CPX-OCC-PPM-016,Change Manager,Project and Programme Management,manager,Business change and adoption,UK SOC 2429|ESCO change manager|ONET management analysts,false,true
+CPX-OCC-PPM-017,Scrum Master,Project and Programme Management,practitioner,Agile team facilitation,UK SOC 2134|ESCO scrum master|ONET project management specialists,false,true
+CPX-OCC-PPM-018,Product Owner,Project and Programme Management,practitioner,Digital product ownership and backlog management,UK SOC 2134|ESCO product owner|ONET project management specialists,false,true
+CPX-OCC-PPM-019,Construction Project Manager,Project and Programme Management,manager,Construction delivery management,UK SOC 2439|ESCO construction project manager|ONET construction managers,false,true
+CPX-OCC-PPM-020,Infrastructure Programme Director,Project and Programme Management,executive,Major infrastructure programme leadership,UK SOC 1139|ESCO programme director|ONET general operations managers,false,true
+CPX-OCC-DDA-001,Software Developer,Digital Data and Artificial Intelligence,practitioner,Software application development,UK SOC 2134|ESCO software developer|ONET software developers,false,false
+CPX-OCC-DDA-002,Software Engineer,Digital Data and Artificial Intelligence,practitioner,Software engineering and delivery,UK SOC 2134|ESCO software engineer|ONET software developers,false,false
+CPX-OCC-DDA-003,Front End Developer,Digital Data and Artificial Intelligence,practitioner,Client-side web and application development,UK SOC 2134|ESCO front end developer|ONET web developers,false,false
+CPX-OCC-DDA-004,Back End Developer,Digital Data and Artificial Intelligence,practitioner,Server-side software and APIs,UK SOC 2134|ESCO back end developer|ONET software developers,false,false
+CPX-OCC-DDA-005,Full Stack Developer,Digital Data and Artificial Intelligence,practitioner,End-to-end web and application development,UK SOC 2134|ESCO full stack developer|ONET web developers,false,false
+CPX-OCC-DDA-006,DevOps Engineer,Digital Data and Artificial Intelligence,practitioner,Platform automation and deployment operations,UK SOC 2139|ESCO devops engineer|ONET software developers,false,false
+CPX-OCC-DDA-007,Cloud Engineer,Digital Data and Artificial Intelligence,practitioner,Cloud infrastructure and platform engineering,UK SOC 2139|ESCO cloud engineer|ONET network and computer systems administrators,false,false
+CPX-OCC-DDA-008,Cyber Security Analyst,Digital Data and Artificial Intelligence,practitioner,Security monitoring risk and response,UK SOC 2139|ESCO cyber security analyst|ONET information security analysts,false,false
+CPX-OCC-DDA-009,Data Analyst,Digital Data and Artificial Intelligence,practitioner,Data analysis and insight reporting,UK SOC 2133|ESCO data analyst|ONET data scientists,false,false
+CPX-OCC-DDA-010,Data Scientist,Digital Data and Artificial Intelligence,specialist,Statistical modelling and applied data science,UK SOC 2133|ESCO data scientist|ONET data scientists,false,false
+CPX-OCC-DDA-011,Data Engineer,Digital Data and Artificial Intelligence,practitioner,Data pipelines platforms and integration,UK SOC 2133|ESCO data engineer|ONET database architects,false,false
+CPX-OCC-DDA-012,Machine Learning Engineer,Digital Data and Artificial Intelligence,specialist,Machine learning systems and model deployment,UK SOC 2133|ESCO machine learning engineer|ONET data scientists,false,false
+CPX-OCC-DDA-013,Artificial Intelligence Specialist,Digital Data and Artificial Intelligence,specialist,Applied AI solution design and governance,UK SOC 2133|ESCO artificial intelligence specialist|ONET data scientists,false,false
+CPX-OCC-DDA-014,Business Intelligence Analyst,Digital Data and Artificial Intelligence,practitioner,BI reporting analytics and decision support,UK SOC 2133|ESCO business intelligence analyst|ONET business intelligence analysts,false,false
+CPX-OCC-DDA-015,Database Administrator,Digital Data and Artificial Intelligence,practitioner,Database administration and performance,UK SOC 2135|ESCO database administrator|ONET database administrators,false,false
+CPX-OCC-DDA-016,Systems Analyst,Digital Data and Artificial Intelligence,practitioner,Systems requirements and solution analysis,UK SOC 2139|ESCO systems analyst|ONET computer systems analysts,false,false
+CPX-OCC-DDA-017,Product Manager,Digital Data and Artificial Intelligence,manager,Digital product strategy and discovery,UK SOC 2139|ESCO product manager|ONET product managers,false,true
+CPX-OCC-DDA-018,User Experience Designer,Digital Data and Artificial Intelligence,practitioner,User research interaction and service design,UK SOC 2137|ESCO user experience designer|ONET web and digital interface designers,false,false
+CPX-OCC-DDA-019,Robotics Engineer,Digital Data and Artificial Intelligence,specialist,Robotics systems and automation,UK SOC 2122|ESCO robotics engineer|ONET robotics engineers,false,false
+CPX-OCC-DDA-020,Automation Engineer,Digital Data and Artificial Intelligence,practitioner,Automation design and process control,UK SOC 2122|ESCO automation engineer|ONET automation engineers,false,false
+CPX-OCC-CBE-001,Construction Manager,Construction and Built Environment,manager,Construction management and site delivery,UK SOC 1122|ESCO construction manager|ONET construction managers,false,true
+CPX-OCC-CBE-002,Site Manager,Construction and Built Environment,manager,Site supervision and construction delivery,UK SOC 1122|ESCO site manager|ONET construction managers,false,true
+CPX-OCC-CBE-003,Quantity Surveyor,Construction and Built Environment,practitioner,Cost and commercial surveying,UK SOC 2433|ESCO quantity surveyor|ONET cost estimators,false,true
+CPX-OCC-CBE-004,Building Surveyor,Construction and Built Environment,practitioner,Building inspection defects and compliance,UK SOC 2433|ESCO building surveyor|ONET construction inspectors,true,true
+CPX-OCC-CBE-005,Construction Planner,Construction and Built Environment,practitioner,Construction programme planning,UK SOC 2439|ESCO construction planner|ONET project management specialists,false,true
+CPX-OCC-CBE-006,Construction Estimator,Construction and Built Environment,practitioner,Construction estimating and bid support,UK SOC 2439|ESCO construction estimator|ONET cost estimators,false,true
+CPX-OCC-CBE-007,Building Services Engineer,Construction and Built Environment,practitioner,MEP building systems design and assurance,UK SOC 2123|ESCO building services engineer|ONET mechanical engineers,true,true
+CPX-OCC-CBE-008,Construction Design Manager,Construction and Built Environment,manager,Design coordination and buildability,UK SOC 1122|ESCO construction design manager|ONET construction managers,false,true
+CPX-OCC-CBE-009,Health and Safety Manager,Construction and Built Environment,manager,Construction and workplace safety management,UK SOC 3567|ESCO health and safety manager|ONET occupational health and safety specialists,false,true
+CPX-OCC-CBE-010,BIM Manager,Construction and Built Environment,manager,Building information modelling governance,UK SOC 2433|ESCO BIM manager|ONET architectural occupations,false,true
+CPX-OCC-CBE-011,Architect,Construction and Built Environment,practitioner,Architecture and built-environment design,UK SOC 2451|ESCO architect|ONET architects,true,true
+CPX-OCC-CBE-012,Town Planner,Construction and Built Environment,practitioner,Planning policy development and consent,UK SOC 2432|ESCO urban planner|ONET urban and regional planners,true,true
+CPX-OCC-CBE-013,Facilities Manager,Construction and Built Environment,manager,Facilities services and estates operations,UK SOC 1259|ESCO facilities manager|ONET facilities managers,false,true
+CPX-OCC-CBE-014,Clerk of Works,Construction and Built Environment,practitioner,Construction inspection and quality assurance,UK SOC 5319|ESCO clerk of works|ONET construction inspectors,false,true
+CPX-OCC-ENE-001,Energy Manager,Utilities and Energy,manager,Energy efficiency and demand management,UK SOC 1123|ESCO energy manager|ONET energy managers,false,true
+CPX-OCC-ENE-002,Renewable Energy Engineer,Utilities and Energy,practitioner,Renewable generation engineering,UK SOC 2129|ESCO renewable energy engineer|ONET energy engineers,false,true
+CPX-OCC-ENE-003,Electrical Distribution Engineer,Utilities and Energy,practitioner,Electricity distribution networks,UK SOC 2123|ESCO electrical distribution engineer|ONET electrical engineers,true,true
+CPX-OCC-ENE-004,Transmission Engineer,Utilities and Energy,practitioner,Electricity transmission systems,UK SOC 2123|ESCO transmission engineer|ONET electrical engineers,true,true
+CPX-OCC-ENE-005,Grid Connection Engineer,Utilities and Energy,specialist,Grid connection studies and compliance,UK SOC 2123|ESCO power engineer|ONET electrical engineers,true,true
+CPX-OCC-ENE-006,Utilities Project Manager,Utilities and Energy,manager,Utilities infrastructure project delivery,UK SOC 2439|ESCO project manager|ONET project management specialists,false,true
+CPX-OCC-ENE-007,Power Plant Operator,Utilities and Energy,practitioner,Power generation operations,UK SOC 8113|ESCO power plant operator|ONET power plant operators,false,true
+CPX-OCC-ENE-008,Wind Turbine Technician,Utilities and Energy,practitioner,Wind generation maintenance and operations,UK SOC 5241|ESCO wind turbine technician|ONET wind turbine service technicians,false,true
+CPX-OCC-ENE-009,Solar Energy Technician,Utilities and Energy,practitioner,Solar generation installation and maintenance,UK SOC 5249|ESCO solar energy technician|ONET solar photovoltaic installers,false,true
+CPX-OCC-ENE-010,Water Treatment Engineer,Utilities and Energy,practitioner,Water treatment process engineering,UK SOC 2121|ESCO water treatment engineer|ONET water engineers,false,true
+CPX-OCC-ENE-011,Wastewater Engineer,Utilities and Energy,practitioner,Wastewater networks and treatment,UK SOC 2121|ESCO wastewater engineer|ONET civil engineers,false,true
+CPX-OCC-ENE-012,Energy Analyst,Utilities and Energy,practitioner,Energy data analysis and forecasting,UK SOC 2133|ESCO energy analyst|ONET operations research analysts,false,true
+CPX-OCC-ENE-013,Sustainability Manager,Utilities and Energy,manager,Sustainability strategy and reporting,UK SOC 2429|ESCO sustainability manager|ONET sustainability specialists,false,true
+CPX-OCC-ENE-014,Smart Metering Engineer,Utilities and Energy,practitioner,Smart metering systems and field engineering,UK SOC 5249|ESCO smart meter engineer|ONET electrical occupations,false,true
+CPX-OCC-BOP-001,Operations Manager,Business and Operations,manager,Operational leadership and performance,UK SOC 1259|ESCO operations manager|ONET general operations managers,false,true
+CPX-OCC-BOP-002,Business Analyst,Business and Operations,practitioner,Business process and requirements analysis,UK SOC 2429|ESCO business analyst|ONET management analysts,false,true
+CPX-OCC-BOP-003,Process Improvement Manager,Business and Operations,manager,Continuous improvement and operational excellence,UK SOC 2429|ESCO process improvement manager|ONET management analysts,false,true
+CPX-OCC-BOP-004,Supply Chain Manager,Business and Operations,manager,Supply chain planning and resilience,UK SOC 1259|ESCO supply chain manager|ONET supply chain managers,false,true
+CPX-OCC-BOP-005,Procurement Manager,Business and Operations,manager,Procurement sourcing and contract management,UK SOC 3551|ESCO procurement manager|ONET purchasing managers,false,true
+CPX-OCC-BOP-006,Logistics Manager,Business and Operations,manager,Logistics networks and transport operations,UK SOC 1259|ESCO logistics manager|ONET logistics managers,false,true
+CPX-OCC-BOP-007,Quality Manager,Business and Operations,manager,Quality systems assurance and improvement,UK SOC 2461|ESCO quality manager|ONET quality control systems managers,false,true
+CPX-OCC-BOP-008,Compliance Manager,Business and Operations,manager,Compliance governance controls and assurance,UK SOC 2425|ESCO compliance manager|ONET compliance managers,false,true
+CPX-OCC-BOP-009,Customer Operations Manager,Business and Operations,manager,Customer service operations and performance,UK SOC 1259|ESCO customer operations manager|ONET customer service managers,false,true
+CPX-OCC-BOP-010,Service Delivery Manager,Business and Operations,manager,Service operations and delivery governance,UK SOC 1259|ESCO service delivery manager|ONET business operations specialists,false,true

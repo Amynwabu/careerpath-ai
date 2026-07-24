@@ -1,0 +1,26 @@
+code,canonical_name,slug,description,skill_category,parent_skill_code,proficiency_framework,verification_status,review_status,reviewed_by,reviewed_at,review_notes,is_active,taxonomy_version
+CPX-SKL-AUTO-00CA60A1,ensure regulatory compliance in pipeline infrastructures,ensure-regulatory-compliance-in-pipeline-infrastructures,ESCO skill linked to selected occupations.,regulatory,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-0128A4B5,advise on environmental remediation,advise-on-environmental-remediation,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-0157CCD9,transportation methods,transportation-methods,ESCO knowledge linked to selected occupations.,domain_knowledge,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-01B92F1B,geodesy,geodesy,ESCO knowledge linked to selected occupations.,domain_knowledge,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-02174F4C,perform surveying calculations,perform-surveying-calculations,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-021C61CC,promote environmental awareness,promote-environmental-awareness,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-0279C024,engineering principles,engineering-principles,ESCO knowledge linked to selected occupations.,domain_knowledge,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-0319B6D4,inspect quality of products,inspect-quality-of-products,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-0384E53A,multimodal transport logistics,multimodal-transport-logistics,ESCO knowledge linked to selected occupations.,domain_knowledge,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-038CEC42,operate road roller,operate-road-roller,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-052B962E,use CAD software,use-cad-software,ESCO skill linked to selected occupations.,technical,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-056270FE,process incoming construction supplies,process-incoming-construction-supplies,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-05B6A341,keep personal administration,keep-personal-administration,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-067EB21B,maintain electromechanical equipment,maintain-electromechanical-equipment,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-06DC0CB9,manage product testing,manage-product-testing,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-073A34F6,prepare timelines for pipeline development projects,prepare-timelines-for-pipeline-development-projects,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-073DE116,manoeuvre heavy trucks,manoeuvre-heavy-trucks,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-081400C1,electromechanics,electromechanics,ESCO knowledge linked to selected occupations.,domain_knowledge,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-085F11EF,geographic information systems,geographic-information-systems,ESCO knowledge linked to selected occupations.,domain_knowledge,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-088ADB45,guide operation of heavy construction equipment,guide-operation-of-heavy-construction-equipment,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-091726A7,components of air conditioning systems,components-of-air-conditioning-systems,ESCO knowledge linked to selected occupations.,domain_knowledge,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-09B61CE4,work in a construction team,work-in-a-construction-team,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-09D9D6C3,parking regulations,parking-regulations,ESCO knowledge linked to selected occupations.,domain_knowledge,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-0A83E75B,document survey operations,document-survey-operations,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1
+CPX-SKL-AUTO-0BD6497B,provide technical expertise,provide-technical-expertise,ESCO skill linked to selected occupations.,transferable,,cpx_1_5,source_mapped,not_reviewed,,,,true,2026.1

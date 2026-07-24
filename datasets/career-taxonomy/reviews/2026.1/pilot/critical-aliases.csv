@@ -1,0 +1,26 @@
+occupation_code,alias,normalised_alias,classification,ambiguous,duplicate_count,ambiguity_type,decision
+CPX-OCC-ENG-001,}}}},,common,true,9,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-002,}}}},,common,true,9,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,}}}},,common,true,9,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,}}}}/}},/,common,true,9,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-002,}}}}/}},/,common,true,9,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,}}}}/}},/,common,true,9,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Acoustic engineers,acoustic engineers,common,true,3,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Acoustic engineers,acoustic engineers,common,true,3,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Aerospace engineers,aerospace engineers,common,true,10,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Aerospace engineers,aerospace engineers,common,true,10,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Aerospace engineers,aerospace engineers,common,true,10,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Aerospace engineers n.e.c.,aerospace engineers n.e.c.,common,true,3,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Aircraft maintenance and related trades,aircraft maintenance and related trades,common,true,3,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Airport Engineer,airport engineer,common,true,2,generic_title,excluded_from_exact_matching
+CPX-OCC-ENG-005,Airport Engineer,airport engineer,common,true,2,generic_title,excluded_from_exact_matching
+CPX-OCC-ENG-001,Avionics engineers,avionics engineers,common,true,4,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Biochemists and biomedical scientists,biochemists and biomedical scientists,common,true,5,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Bridge Engineer,bridge engineer,common,true,2,generic_title,excluded_from_exact_matching
+CPX-OCC-ENG-008,bridge engineer,bridge engineer,common,true,2,generic_title,excluded_from_exact_matching
+CPX-OCC-ENG-008,bridge inspector,bridge inspector,preferred,true,2,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Broadcast engineers (professional),broadcast engineers professional,common,true,4,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Broadcast engineers (professional),broadcast engineers professional,common,true,4,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Broadcast engineers (professional),broadcast engineers professional,common,true,4,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Building and building services engineers,building and building services engineers,common,true,4,occupation_ambiguity,excluded_from_exact_matching
+CPX-OCC-ENG-001,Building and building services engineers,building and building services engineers,common,true,4,occupation_ambiguity,excluded_from_exact_matching

@@ -1,0 +1,13 @@
+{
+  "taxonomyVersion": "2026.1",
+  "careerFamily": "CPX-FAM-ENGINEERING_AND_INFRASTRUCTURE",
+  "occupationCount": 10,
+  "skillCount": 25,
+  "criticalAliasCount": 25,
+  "transitionCount": 10,
+  "skillProfileRelationshipCount": 512,
+  "status": "prepared_unexecuted",
+  "reviewerIdentitiesIncluded": false,
+  "decisionsIncluded": false,
+  "publicationSideEffects": false
+}

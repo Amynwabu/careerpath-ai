@@ -16,6 +16,8 @@ import advisorsRouter from "./advisors";
 import remindersRouter from "./reminders";
 import onboardingRouter from "./onboarding";
 import certificatesRouter from "./certificates";
+import taxonomyRouter from "./taxonomy";
+import careerIntelligenceRouter from "./career-intelligence";
 
 const router: IRouter = Router();
 
@@ -36,5 +38,7 @@ router.use(advisorsRouter);
 router.use(remindersRouter);
 router.use(onboardingRouter);
 router.use(certificatesRouter);
+router.use(taxonomyRouter);
+router.use(careerIntelligenceRouter);
 
 export default router;

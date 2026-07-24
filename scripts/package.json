@@ -5,10 +5,46 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "taxonomy": "tsx ./src/taxonomy/cli.ts",
+    "taxonomy:source:prepare": "tsx ./src/taxonomy/cli.ts source:prepare",
+    "taxonomy:source:inspect": "tsx ./src/taxonomy/cli.ts source:inspect",
+    "taxonomy:source:validate": "tsx ./src/taxonomy/cli.ts source:validate",
+    "taxonomy:ingest": "tsx ./src/taxonomy/cli.ts ingest",
+    "taxonomy:reconcile": "tsx ./src/taxonomy/cli.ts reconcile",
+    "taxonomy:review-report": "tsx ./src/taxonomy/cli.ts review-report",
+    "taxonomy:generate-canonical": "tsx ./src/taxonomy/cli.ts generate-canonical",
+    "taxonomy:validate": "tsx ./src/taxonomy/cli.ts validate",
+    "taxonomy:import": "tsx ./src/taxonomy/cli.ts import",
+    "taxonomy:review": "tsx ./src/taxonomy/cli.ts review",
+    "taxonomy:review:summary": "tsx ./src/taxonomy/cli.ts review:summary",
+    "taxonomy:review:occupations": "tsx ./src/taxonomy/cli.ts review:occupations",
+    "taxonomy:review:skills": "tsx ./src/taxonomy/cli.ts review:skills",
+    "taxonomy:review:aliases": "tsx ./src/taxonomy/cli.ts review:aliases",
+    "taxonomy:review:relationships": "tsx ./src/taxonomy/cli.ts review:relationships",
+    "taxonomy:review:transitions": "tsx ./src/taxonomy/cli.ts review:transitions",
+    "taxonomy:governance:validate": "tsx ./src/taxonomy/cli.ts governance:validate",
+    "taxonomy:review:prepare": "tsx ./src/taxonomy/cli.ts review:prepare",
+    "taxonomy:review:progress": "tsx ./src/taxonomy/cli.ts review:progress",
+    "taxonomy:review:validate": "tsx ./src/taxonomy/cli.ts review:validate",
+    "taxonomy:review:apply": "tsx ./src/taxonomy/cli.ts review:apply",
+    "taxonomy:review:conflicts": "tsx ./src/taxonomy/cli.ts review:conflicts",
+    "taxonomy:review:readiness": "tsx ./src/taxonomy/cli.ts review:readiness",
+    "taxonomy:review:onboarding:prepare": "tsx ./src/taxonomy/cli.ts review:onboarding:prepare",
+    "taxonomy:review:onboarding:validate": "tsx ./src/taxonomy/cli.ts review:onboarding:validate",
+    "taxonomy:review:pilot:prepare": "tsx ./src/taxonomy/cli.ts review:pilot:prepare",
+    "taxonomy:review:pilot:status": "tsx ./src/taxonomy/cli.ts review:pilot:status",
+    "taxonomy:publish": "tsx ./src/taxonomy/cli.ts publish",
+    "verify:career-taxonomy": "tsx ./src/verify-career-taxonomy.ts",
+    "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "tsx": "catalog:"
+    "tsx": "catalog:",
+    "vitest": "^4.1.9"
   }
 }

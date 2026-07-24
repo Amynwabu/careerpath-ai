@@ -5,6 +5,7 @@ const migrationFiles = [
   "supabase/migrations/20260618090000_journeys_advisors_reminders_certificates.sql",
   "supabase/migrations/20260618091500_add_google_oauth_auth_columns.sql",
   "supabase/migrations/20260618103000_rotating_refresh_tokens.sql",
+  "supabase/migrations/20260724083857_add_career_taxonomy_foundation.sql",
 ];
 
 function cleanEnv(value) {
@@ -23,7 +24,9 @@ const connectionString = migrationDatabaseUrl?.startsWith("postgres")
   : databaseUrl;
 
 if (!connectionString || !connectionString.startsWith("postgres")) {
-  throw new Error("A valid MIGRATION_DATABASE_URL or DATABASE_URL is required.");
+  throw new Error(
+    "A valid MIGRATION_DATABASE_URL or DATABASE_URL is required.",
+  );
 }
 
 const client = new pg.Client({

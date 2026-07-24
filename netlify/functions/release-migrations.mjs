@@ -6,6 +6,7 @@ const migrationFiles = [
   "supabase/migrations/20260618090000_journeys_advisors_reminders_certificates.sql",
   "supabase/migrations/20260618091500_add_google_oauth_auth_columns.sql",
   "supabase/migrations/20260618103000_rotating_refresh_tokens.sql",
+  "supabase/migrations/20260724083857_add_career_taxonomy_foundation.sql",
 ];
 
 let migrationPromise;
@@ -33,7 +34,9 @@ async function applyReleaseMigrations() {
 
   await client.connect();
   try {
-    await client.query("select pg_advisory_lock(hashtext($1))", ["careerpathx-release-migrations"]);
+    await client.query("select pg_advisory_lock(hashtext($1))", [
+      "careerpathx-release-migrations",
+    ]);
     await client.query(`
       create table if not exists public.careerpath_schema_migrations (
         name text primary key,
@@ -64,7 +67,10 @@ async function applyReleaseMigrations() {
       }
     }
   } finally {
-    await client.query("select pg_advisory_unlock(hashtext($1))", ["careerpathx-release-migrations"])
+    await client
+      .query("select pg_advisory_unlock(hashtext($1))", [
+        "careerpathx-release-migrations",
+      ])
       .catch(() => {});
     await client.end();
   }

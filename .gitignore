@@ -20,3 +20,8 @@ build/
 # Supabase CLI state
 supabase/.branches/
 supabase/.temp/
+
+# Local authoritative taxonomy source files may have redistribution limits.
+.local-data/
+datasets/career-taxonomy/generated/
+reports/taxonomy/

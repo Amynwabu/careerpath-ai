@@ -1,0 +1,28 @@
+{
+  "roles": {
+    "taxonomy_editor": [
+      "wording",
+      "titles",
+      "aliases",
+      "classification"
+    ],
+    "domain_reviewer": [
+      "occupational_realism",
+      "skills",
+      "levels",
+      "transitions"
+    ],
+    "governance_approver": [
+      "evidence",
+      "conflicts",
+      "release_gates"
+    ],
+    "technical_validator": [
+      "codes",
+      "references",
+      "checksums",
+      "database_readiness"
+    ]
+  },
+  "note": "No reviewer identities are preconfigured."
+}

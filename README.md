@@ -139,6 +139,24 @@ pnpm --filter @workspace/db run push
 Use this only against the intended database. For production, prefer reviewed
 migrations and deployment-time environment variables.
 
+The CareerPathX taxonomy foundation is documented in
+[docs/career-taxonomy-schema.md](docs/career-taxonomy-schema.md). After applying
+release migrations to a safe development database, verify the taxonomy schema
+with:
+
+```sh
+DATABASE_URL=postgres://... pnpm --filter @workspace/scripts run verify:career-taxonomy
+```
+
+The governed source-ingestion pipeline for UK SOC, ESCO, O\*NET, and controlled
+professional-body inputs is documented in
+[docs/taxonomy-ingestion-pipeline.md](docs/taxonomy-ingestion-pipeline.md).
+Inspect authorised local source files with:
+
+```sh
+pnpm taxonomy:source:inspect --source=all
+```
+
 ### API Codegen
 
 Regenerate API hooks and Zod schemas from the OpenAPI spec with:

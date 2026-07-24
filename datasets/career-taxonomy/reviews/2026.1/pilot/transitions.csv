@@ -1,0 +1,11 @@
+from_occupation_code,to_occupation_code,source_id,source_record_id,transition_type,difficulty_score,transferability_score,verification_status,review_status,reviewed_by,reviewed_at,review_notes,taxonomy_version
+CPX-OCC-BOP-001,CPX-OCC-ENG-009,onet,11-3051.02:17-2051.02,lateral,3,0.5,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-BOP-008,CPX-OCC-ENG-001,onet,13-1041.01:17-2081.00,lateral,3,0.8,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-BOP-008,CPX-OCC-ENG-009,onet,13-1041.01:17-2051.02,lateral,3,0.5,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-DDA-017,CPX-OCC-ENG-009,onet,11-9041.01:17-2051.02,lateral,3,0.65,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-ENE-013,CPX-OCC-ENG-001,onet,11-1011.03:17-2081.00,lateral,3,0.5,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-ENG-014,CPX-OCC-ENG-001,onet,13-1081.01:17-3022.00,lateral,3,0.5,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-ENG-018,CPX-OCC-ENG-001,onet,11-9041.00:17-2051.00,lateral,3,0.5,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-PPM-001,CPX-OCC-ENG-001,onet,11-9199.10:17-2051.00,lateral,3,0.5,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-PPM-001,CPX-OCC-ENG-009,onet,11-3051.06:17-2051.02,lateral,3,0.5,source_mapped,not_reviewed,,,,2026.1
+CPX-OCC-PPM-003,CPX-OCC-ENG-001,onet,11-9199.11:17-2051.00,lateral,3,0.5,source_mapped,not_reviewed,,,,2026.1
