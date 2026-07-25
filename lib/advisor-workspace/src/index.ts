@@ -9,6 +9,22 @@ export const advisorScopes = [
 export type AdvisorScope = typeof advisorScopes[number];
 export type CaseStatus = "requested"|"pending_acceptance"|"active"|"on_hold"|"awaiting_client"|"awaiting_advisor"|"completed"|"closed"|"cancelled"|"access_revoked";
 export type CaseStage = "intake"|"profile_review"|"goal_definition"|"assessment_review"|"plan_review"|"opportunity_review"|"cv_review"|"interview_review"|"application_support"|"follow_up"|"outcome_tracking";
+export type ActionStatus = "not_started"|"in_progress"|"blocked"|"completed"|"verified"|"deferred"|"cancelled";
+export type EvidenceRequestStatus = "requested"|"submitted"|"under_review"|"accepted"|"rejected"|"withdrawn"|"expired";
+export type EvidenceReviewDecision = "accepted_as_supporting_evidence"|"accepted_with_limitations"|"needs_clarification"|"insufficient"|"conflicting"|"out_of_scope";
+export type ReviewStatus = "requested"|"awaiting_advisor"|"awaiting_client"|"resolved"|"withdrawn";
+export type SessionStatus = "scheduled"|"confirmed"|"in_progress"|"completed"|"cancelled"|"rescheduled";
+export type FollowUpStatus = "scheduled"|"due"|"overdue"|"completed"|"cancelled";
+export type ReviewResourceType =
+  | "career_profile"|"career_goal"|"career_plan"|"career_action"|"opportunity"|"evidence_record"
+  | "cv_optimisation_session"|"cv_draft"|"interview_session"|"interview_response";
+
+export const durableReviewResources = [
+  "career_profile","career_goal","career_plan","career_action","evidence_record",
+] as const satisfies readonly ReviewResourceType[];
+export const processLocalReviewResources = [
+  "opportunity","cv_optimisation_session","cv_draft","interview_session","interview_response",
+] as const satisfies readonly ReviewResourceType[];
 
 export interface GrantContext {
   grantId: string; ownerUserId: number; advisorUserId: number; scopes: AdvisorScope[];
@@ -58,4 +74,59 @@ export function transitionCase(record:AdvisorCase,next:CaseStatus,expectedVersio
 export function revokeCase(record:AdvisorCase,now=new Date()){return {...record,caseStatus:"access_revoked" as const,closedAt:now.toISOString(),recordVersion:record.recordVersion+1};}
 export function clientVisibleNotes<T extends {visibilityScope:string}>(notes:T[]){return notes.filter(n=>n.visibilityScope==="client_and_advisor");}
 export function reviewDecisionState(decision:string){return {decision,verificationStatus:"advisor_reviewed" as const,changesDeterministicScore:false,changesCanonicalMapping:false};}
+export function transitionAction(current:ActionStatus,next:ActionStatus){
+  const allowed:Record<ActionStatus,ActionStatus[]> = {
+    not_started:["in_progress","deferred","cancelled"],
+    in_progress:["completed","blocked","deferred","cancelled"],
+    blocked:["in_progress","deferred","cancelled"],
+    completed:["verified","in_progress"],
+    verified:[], deferred:["not_started","cancelled"], cancelled:[],
+  };
+  if(!allowed[current].includes(next)) throw coded("invalid_action_transition");
+  return next;
+}
+export function transitionEvidenceRequest(current:EvidenceRequestStatus,next:EvidenceRequestStatus){
+  const allowed:Record<EvidenceRequestStatus,EvidenceRequestStatus[]> = {
+    requested:["submitted","withdrawn","expired"],
+    submitted:["under_review","withdrawn"],
+    under_review:["accepted","rejected","submitted"],
+    accepted:[], rejected:["submitted"], withdrawn:[], expired:[],
+  };
+  if(!allowed[current].includes(next)) throw coded("invalid_evidence_transition");
+  return next;
+}
+export function transitionReview(current:ReviewStatus,next:ReviewStatus){
+  const allowed:Record<ReviewStatus,ReviewStatus[]> = {
+    requested:["awaiting_advisor","withdrawn"],
+    awaiting_advisor:["awaiting_client","resolved","withdrawn"],
+    awaiting_client:["awaiting_advisor","resolved","withdrawn"],
+    resolved:[], withdrawn:[],
+  };
+  if(!allowed[current].includes(next)) throw coded("invalid_review_transition");
+  return next;
+}
+export function transitionSession(current:SessionStatus,next:SessionStatus){
+  const allowed:Record<SessionStatus,SessionStatus[]> = {
+    scheduled:["confirmed","cancelled","rescheduled"],
+    confirmed:["in_progress","cancelled","rescheduled"],
+    in_progress:["completed","cancelled"],
+    completed:[], cancelled:[], rescheduled:[],
+  };
+  if(!allowed[current].includes(next)) throw coded("invalid_session_transition");
+  return next;
+}
+export function calculateFollowUpStatus(input:{dueAt:Date|string;completedAt?:Date|string|null;cancelledAt?:Date|string|null;now?:Date}):FollowUpStatus{
+  if(input.cancelledAt) return "cancelled";
+  if(input.completedAt) return "completed";
+  const dueAt=new Date(input.dueAt).getTime();
+  const now=(input.now??new Date()).getTime();
+  if(dueAt<now) return "overdue";
+  if(dueAt-now<=24*60*60*1000) return "due";
+  return "scheduled";
+}
+export function requireDurableReviewResource(resourceType:ReviewResourceType){
+  if((processLocalReviewResources as readonly string[]).includes(resourceType)) throw coded("durable_source_required");
+  if(!(durableReviewResources as readonly string[]).includes(resourceType)) throw coded("unsupported_resource_type");
+  return resourceType;
+}
 function coded(code:string){return Object.assign(new Error(code),{code});}

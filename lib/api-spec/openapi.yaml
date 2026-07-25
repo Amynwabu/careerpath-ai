@@ -1829,6 +1829,149 @@ paths:
         "200": { description: Persisted closure, content: { application/json: { schema: { $ref: "#/components/schemas/AdvisorCaseResponse" } } } }
         "409": { $ref: "#/components/responses/RecordVersionConflict" }
 
+  /advisor/queues:
+    get: { operationId: getAdvisorOperationalQueues, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Scoped operational queues } } }
+  /advisor/cases/{caseId}/actions:
+    parameters: [{ $ref: "#/components/parameters/AdvisorCaseId" }]
+    get: { operationId: listAdvisorCaseActions, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Scoped case actions } } }
+    post: { operationId: createAdvisorCaseAction, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted action } } }
+  /advisor/actions/{actionId}:
+    parameters: [{ name: actionId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: getAdvisorAction, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Authorized action } } }
+    patch: { operationId: updateAdvisorAction, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Updated action }, "409": { $ref: "#/components/responses/RecordVersionConflict" } } }
+  /advisor/actions/{actionId}/complete:
+    parameters: [{ name: actionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: completeAdvisorAction, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Client-completed action } } }
+  /advisor/actions/{actionId}/verify:
+    parameters: [{ name: actionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: verifyAdvisorAction, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Advisor-verified action } } }
+  /advisor/actions/{actionId}/defer:
+    parameters: [{ name: actionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: deferAdvisorAction, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Deferred action } } }
+  /advisor/actions/{actionId}/cancel:
+    parameters: [{ name: actionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: cancelAdvisorAction, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Cancelled action } } }
+  /advisor/actions/{actionId}/status:
+    parameters: [{ name: actionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: transitionAdvisorAction, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Transitioned action } } }
+  /advisor/cases/{caseId}/evidence-requests:
+    parameters: [{ $ref: "#/components/parameters/AdvisorCaseId" }]
+    get: { operationId: listAdvisorEvidenceRequests, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Scoped evidence requests } } }
+    post: { operationId: createAdvisorEvidenceRequest, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted evidence request } } }
+  /advisor/evidence-requests/{requestId}:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: getAdvisorEvidenceRequest, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Authorized evidence request } } }
+  /advisor/evidence-requests/{requestId}/submit:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: submitAdvisorEvidence, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Submitted evidence } } }
+  /advisor/evidence-requests/{requestId}/review:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: reviewAdvisorEvidence, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Advisor-reviewed evidence } } }
+  /advisor/evidence-requests/{requestId}/clarify:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: clarifyAdvisorEvidence, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Clarification requested } } }
+  /advisor/evidence-requests/{requestId}/withdraw:
+    parameters: [{ name: requestId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: withdrawAdvisorEvidence, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Withdrawn evidence request } } }
+  /advisor/cases/{caseId}/reviews:
+    parameters: [{ $ref: "#/components/parameters/AdvisorCaseId" }]
+    get: { operationId: listAdvisorCaseReviews, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Durable case reviews } } }
+    post: { operationId: createAdvisorCaseReview, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted durable review }, "409": { description: Durable source required } } }
+  /advisor/reviews/{reviewId}:
+    parameters: [{ name: reviewId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: getAdvisorReview, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Authorized review } } }
+  /advisor/reviews/{reviewId}/advisor-decision:
+    parameters: [{ name: reviewId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: submitAdvisorReviewDecision, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted advisor decision } } }
+  /advisor/reviews/{reviewId}/client-response:
+    parameters: [{ name: reviewId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: submitAdvisorReviewClientResponse, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted client response } } }
+  /advisor/reviews/{reviewId}/resolve:
+    parameters: [{ name: reviewId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: resolveAdvisorReview, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Resolved review } } }
+  /advisor/reviews/{reviewId}/withdraw:
+    parameters: [{ name: reviewId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: withdrawAdvisorReview, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Withdrawn review } } }
+  /advisor/reviews/{reviewId}/comments:
+    parameters: [{ name: reviewId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: listAdvisorReviewComments, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Visibility-filtered comments } } }
+    post: { operationId: createAdvisorReviewComment, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted comment } } }
+  /advisor/comments/{commentId}:
+    parameters: [{ name: commentId, in: path, required: true, schema: { type: string } }]
+    patch: { operationId: updateAdvisorComment, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Updated comment } } }
+    delete: { operationId: deleteAdvisorComment, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Deleted comment } } }
+  /advisor/comments/{commentId}/resolve:
+    parameters: [{ name: commentId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: resolveAdvisorComment, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Resolved comment } } }
+  /advisor/cases/{caseId}/outcomes:
+    parameters: [{ $ref: "#/components/parameters/AdvisorCaseId" }]
+    get: { operationId: listAdvisorCaseOutcomes, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Scoped case outcomes } } }
+    post: { operationId: createAdvisorCaseOutcome, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted sourced outcome } } }
+  /advisor/outcomes/{outcomeId}:
+    parameters: [{ name: outcomeId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: getAdvisorOutcome, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Authorized outcome } } }
+    patch: { operationId: updateAdvisorOutcome, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Superseding outcome correction } } }
+  /advisor/cases/{caseId}/placements:
+    parameters: [{ $ref: "#/components/parameters/AdvisorCaseId" }]
+    get: { operationId: listAdvisorCasePlacements, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Scoped case placements } } }
+    post: { operationId: createAdvisorCasePlacement, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted sourced placement } } }
+  /advisor/placements/{placementId}:
+    parameters: [{ name: placementId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: getAdvisorPlacement, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Authorized placement } } }
+    patch: { operationId: updateAdvisorPlacement, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Superseding placement correction } } }
+  /advisor/cases/{caseId}/follow-ups:
+    parameters: [{ $ref: "#/components/parameters/AdvisorCaseId" }]
+    get: { operationId: listAdvisorCaseFollowUps, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Scoped follow-ups } } }
+    post: { operationId: createAdvisorCaseFollowUp, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted follow-up } } }
+  /advisor/follow-ups/{followUpId}:
+    parameters: [{ name: followUpId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: getAdvisorFollowUp, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Authorized follow-up } } }
+    patch: { operationId: updateAdvisorFollowUp, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Updated follow-up } } }
+  /advisor/follow-ups/{followUpId}/complete:
+    parameters: [{ name: followUpId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: completeAdvisorFollowUp, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Completed follow-up } } }
+  /advisor/follow-ups/{followUpId}/cancel:
+    parameters: [{ name: followUpId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: cancelAdvisorFollowUp, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Cancelled follow-up } } }
+  /advisor/cases/{caseId}/sessions:
+    parameters: [{ $ref: "#/components/parameters/AdvisorCaseId" }]
+    get: { operationId: listAdvisorCaseSessions, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Scoped sessions } } }
+    post: { operationId: createAdvisorCaseSession, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted session } } }
+  /advisor/sessions/{sessionId}:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: getAdvisorSession, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Authorized session } } }
+    patch: { operationId: updateAdvisorSession, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Updated session } } }
+  /advisor/sessions/{sessionId}/confirm:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: confirmAdvisorSession, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Confirmed session } } }
+  /advisor/sessions/{sessionId}/start:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: startAdvisorSession, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Started session } } }
+  /advisor/sessions/{sessionId}/complete:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: completeAdvisorSession, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Completed session } } }
+  /advisor/sessions/{sessionId}/cancel:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: cancelAdvisorSession, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Cancelled session } } }
+  /advisor/sessions/{sessionId}/reschedule:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+    post: { operationId: rescheduleAdvisorSession, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Cancelled original and persisted replacement } } }
+  /advisor/sessions/{sessionId}/notes:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: listAdvisorSessionNotes, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Visibility-filtered session notes } } }
+    post: { operationId: createAdvisorSessionNote, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted session note } } }
+  /advisor/session-notes/{noteId}:
+    parameters: [{ name: noteId, in: path, required: true, schema: { type: string } }]
+    patch: { operationId: updateAdvisorSessionNote, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Updated session note } } }
+    delete: { operationId: deleteAdvisorSessionNote, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Deleted session note } } }
+  /advisor/sessions/{sessionId}/summaries:
+    parameters: [{ name: sessionId, in: path, required: true, schema: { type: string } }]
+    get: { operationId: listAdvisorSessionSummaries, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Immutable summary versions } } }
+    post: { operationId: createAdvisorSessionSummary, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Persisted immutable summary } } }
+  /advisor/cases/{caseId}/exports:
+    parameters: [{ $ref: "#/components/parameters/AdvisorCaseId" }]
+    post: { operationId: exportAdvisorCase, tags: [advisor-workspace], security: [{ cookieAuth: [] }, { bearerAuth: [] }], responses: { "200": { description: Privacy-filtered durable case export } } }
+
 components:
   securitySchemes:
     cookieAuth:

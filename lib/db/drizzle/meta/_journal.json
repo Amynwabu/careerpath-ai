@@ -43,6 +43,20 @@
       "when": 1784978846400,
       "tag": "0005_advisor_workspace_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784981297403,
+      "tag": "0006_clumsy_gwen_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1784981297404,
+      "tag": "0007_advisor_operational_rls",
+      "breakpoints": true
     }
   ]
 }

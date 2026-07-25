@@ -120,7 +120,6 @@ export const getHealthCheckQueryKey = () => {
     ] as const;
     }
 
-
 export const getHealthCheckQueryOptions = <TData = Awaited<ReturnType<typeof healthCheck>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof healthCheck>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
@@ -9438,4 +9437,3906 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getCloseAssignedAdvisorCaseMutationOptions(options));
+    }
+
+export const getGetAdvisorOperationalQueuesUrl = () => {
+
+
+
+
+  return `/api/advisor/queues`
+}
+
+export const getAdvisorOperationalQueues = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetAdvisorOperationalQueuesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdvisorOperationalQueuesQueryKey = () => {
+    return [
+    `/api/advisor/queues`
+    ] as const;
+    }
+
+
+export const getGetAdvisorOperationalQueuesQueryOptions = <TData = Awaited<ReturnType<typeof getAdvisorOperationalQueues>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorOperationalQueues>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdvisorOperationalQueuesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdvisorOperationalQueues>>> = ({ signal }) => getAdvisorOperationalQueues({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdvisorOperationalQueues>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdvisorOperationalQueuesQueryResult = NonNullable<Awaited<ReturnType<typeof getAdvisorOperationalQueues>>>
+export type GetAdvisorOperationalQueuesQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdvisorOperationalQueues<TData = Awaited<ReturnType<typeof getAdvisorOperationalQueues>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorOperationalQueues>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdvisorOperationalQueuesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListAdvisorCaseActionsUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/actions`
+}
+
+export const listAdvisorCaseActions = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorCaseActionsUrl(caseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorCaseActionsQueryKey = (caseId: string,) => {
+    return [
+    `/api/advisor/cases/${caseId}/actions`
+    ] as const;
+    }
+
+
+export const getListAdvisorCaseActionsQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorCaseActions>>, TError = ErrorType<unknown>>(caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseActions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorCaseActionsQueryKey(caseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorCaseActions>>> = ({ signal }) => listAdvisorCaseActions(caseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: caseId !== null && caseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseActions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorCaseActionsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorCaseActions>>>
+export type ListAdvisorCaseActionsQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorCaseActions<TData = Awaited<ReturnType<typeof listAdvisorCaseActions>>, TError = ErrorType<unknown>>(
+ caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseActions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorCaseActionsQueryOptions(caseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorCaseActionUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/actions`
+}
+
+export const createAdvisorCaseAction = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorCaseActionUrl(caseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorCaseActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseAction>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseAction>>, TError,{caseId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorCaseAction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorCaseAction>>, {caseId: string}> = (props) => {
+          const {caseId} = props ?? {};
+
+          return  createAdvisorCaseAction(caseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorCaseActionMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorCaseAction>>>
+
+    export type CreateAdvisorCaseActionMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorCaseAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseAction>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorCaseAction>>,
+        TError,
+        {caseId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorCaseActionMutationOptions(options));
+    }
+
+export const getGetAdvisorActionUrl = (actionId: string,) => {
+
+
+
+
+  return `/api/advisor/actions/${actionId}`
+}
+
+export const getAdvisorAction = async (actionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetAdvisorActionUrl(actionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdvisorActionQueryKey = (actionId: string,) => {
+    return [
+    `/api/advisor/actions/${actionId}`
+    ] as const;
+    }
+
+
+export const getGetAdvisorActionQueryOptions = <TData = Awaited<ReturnType<typeof getAdvisorAction>>, TError = ErrorType<unknown>>(actionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorAction>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdvisorActionQueryKey(actionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdvisorAction>>> = ({ signal }) => getAdvisorAction(actionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: actionId !== null && actionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdvisorAction>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdvisorActionQueryResult = NonNullable<Awaited<ReturnType<typeof getAdvisorAction>>>
+export type GetAdvisorActionQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdvisorAction<TData = Awaited<ReturnType<typeof getAdvisorAction>>, TError = ErrorType<unknown>>(
+ actionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorAction>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdvisorActionQueryOptions(actionId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateAdvisorActionUrl = (actionId: string,) => {
+
+
+
+
+  return `/api/advisor/actions/${actionId}`
+}
+
+export const updateAdvisorAction = async (actionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateAdvisorActionUrl(actionId),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getUpdateAdvisorActionMutationOptions = <TError = ErrorType<RecordVersionConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorAction>>, TError,{actionId: string}, TContext> => {
+
+const mutationKey = ['updateAdvisorAction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdvisorAction>>, {actionId: string}> = (props) => {
+          const {actionId} = props ?? {};
+
+          return  updateAdvisorAction(actionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdvisorActionMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdvisorAction>>>
+
+    export type UpdateAdvisorActionMutationError = ErrorType<RecordVersionConflictResponse>
+
+    export const useUpdateAdvisorAction = <TError = ErrorType<RecordVersionConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdvisorAction>>,
+        TError,
+        {actionId: string},
+        TContext
+      > => {
+      return useMutation(getUpdateAdvisorActionMutationOptions(options));
+    }
+
+export const getCompleteAdvisorActionUrl = (actionId: string,) => {
+
+
+
+
+  return `/api/advisor/actions/${actionId}/complete`
+}
+
+export const completeAdvisorAction = async (actionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCompleteAdvisorActionUrl(actionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCompleteAdvisorActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorAction>>, TError,{actionId: string}, TContext> => {
+
+const mutationKey = ['completeAdvisorAction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeAdvisorAction>>, {actionId: string}> = (props) => {
+          const {actionId} = props ?? {};
+
+          return  completeAdvisorAction(actionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteAdvisorActionMutationResult = NonNullable<Awaited<ReturnType<typeof completeAdvisorAction>>>
+
+    export type CompleteAdvisorActionMutationError = ErrorType<unknown>
+
+    export const useCompleteAdvisorAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeAdvisorAction>>,
+        TError,
+        {actionId: string},
+        TContext
+      > => {
+      return useMutation(getCompleteAdvisorActionMutationOptions(options));
+    }
+
+export const getVerifyAdvisorActionUrl = (actionId: string,) => {
+
+
+
+
+  return `/api/advisor/actions/${actionId}/verify`
+}
+
+export const verifyAdvisorAction = async (actionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getVerifyAdvisorActionUrl(actionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getVerifyAdvisorActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof verifyAdvisorAction>>, TError,{actionId: string}, TContext> => {
+
+const mutationKey = ['verifyAdvisorAction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof verifyAdvisorAction>>, {actionId: string}> = (props) => {
+          const {actionId} = props ?? {};
+
+          return  verifyAdvisorAction(actionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type VerifyAdvisorActionMutationResult = NonNullable<Awaited<ReturnType<typeof verifyAdvisorAction>>>
+
+    export type VerifyAdvisorActionMutationError = ErrorType<unknown>
+
+    export const useVerifyAdvisorAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof verifyAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof verifyAdvisorAction>>,
+        TError,
+        {actionId: string},
+        TContext
+      > => {
+      return useMutation(getVerifyAdvisorActionMutationOptions(options));
+    }
+
+export const getDeferAdvisorActionUrl = (actionId: string,) => {
+
+
+
+
+  return `/api/advisor/actions/${actionId}/defer`
+}
+
+export const deferAdvisorAction = async (actionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeferAdvisorActionUrl(actionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getDeferAdvisorActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deferAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deferAdvisorAction>>, TError,{actionId: string}, TContext> => {
+
+const mutationKey = ['deferAdvisorAction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deferAdvisorAction>>, {actionId: string}> = (props) => {
+          const {actionId} = props ?? {};
+
+          return  deferAdvisorAction(actionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeferAdvisorActionMutationResult = NonNullable<Awaited<ReturnType<typeof deferAdvisorAction>>>
+
+    export type DeferAdvisorActionMutationError = ErrorType<unknown>
+
+    export const useDeferAdvisorAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deferAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deferAdvisorAction>>,
+        TError,
+        {actionId: string},
+        TContext
+      > => {
+      return useMutation(getDeferAdvisorActionMutationOptions(options));
+    }
+
+export const getCancelAdvisorActionUrl = (actionId: string,) => {
+
+
+
+
+  return `/api/advisor/actions/${actionId}/cancel`
+}
+
+export const cancelAdvisorAction = async (actionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCancelAdvisorActionUrl(actionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCancelAdvisorActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorAction>>, TError,{actionId: string}, TContext> => {
+
+const mutationKey = ['cancelAdvisorAction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelAdvisorAction>>, {actionId: string}> = (props) => {
+          const {actionId} = props ?? {};
+
+          return  cancelAdvisorAction(actionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelAdvisorActionMutationResult = NonNullable<Awaited<ReturnType<typeof cancelAdvisorAction>>>
+
+    export type CancelAdvisorActionMutationError = ErrorType<unknown>
+
+    export const useCancelAdvisorAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelAdvisorAction>>,
+        TError,
+        {actionId: string},
+        TContext
+      > => {
+      return useMutation(getCancelAdvisorActionMutationOptions(options));
+    }
+
+export const getTransitionAdvisorActionUrl = (actionId: string,) => {
+
+
+
+
+  return `/api/advisor/actions/${actionId}/status`
+}
+
+export const transitionAdvisorAction = async (actionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getTransitionAdvisorActionUrl(actionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getTransitionAdvisorActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transitionAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof transitionAdvisorAction>>, TError,{actionId: string}, TContext> => {
+
+const mutationKey = ['transitionAdvisorAction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof transitionAdvisorAction>>, {actionId: string}> = (props) => {
+          const {actionId} = props ?? {};
+
+          return  transitionAdvisorAction(actionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type TransitionAdvisorActionMutationResult = NonNullable<Awaited<ReturnType<typeof transitionAdvisorAction>>>
+
+    export type TransitionAdvisorActionMutationError = ErrorType<unknown>
+
+    export const useTransitionAdvisorAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof transitionAdvisorAction>>, TError,{actionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof transitionAdvisorAction>>,
+        TError,
+        {actionId: string},
+        TContext
+      > => {
+      return useMutation(getTransitionAdvisorActionMutationOptions(options));
+    }
+
+export const getListAdvisorEvidenceRequestsUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/evidence-requests`
+}
+
+export const listAdvisorEvidenceRequests = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorEvidenceRequestsUrl(caseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorEvidenceRequestsQueryKey = (caseId: string,) => {
+    return [
+    `/api/advisor/cases/${caseId}/evidence-requests`
+    ] as const;
+    }
+
+
+export const getListAdvisorEvidenceRequestsQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorEvidenceRequests>>, TError = ErrorType<unknown>>(caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorEvidenceRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorEvidenceRequestsQueryKey(caseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorEvidenceRequests>>> = ({ signal }) => listAdvisorEvidenceRequests(caseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: caseId !== null && caseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorEvidenceRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorEvidenceRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorEvidenceRequests>>>
+export type ListAdvisorEvidenceRequestsQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorEvidenceRequests<TData = Awaited<ReturnType<typeof listAdvisorEvidenceRequests>>, TError = ErrorType<unknown>>(
+ caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorEvidenceRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorEvidenceRequestsQueryOptions(caseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorEvidenceRequestUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/evidence-requests`
+}
+
+export const createAdvisorEvidenceRequest = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorEvidenceRequestUrl(caseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorEvidenceRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorEvidenceRequest>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorEvidenceRequest>>, TError,{caseId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorEvidenceRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorEvidenceRequest>>, {caseId: string}> = (props) => {
+          const {caseId} = props ?? {};
+
+          return  createAdvisorEvidenceRequest(caseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorEvidenceRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorEvidenceRequest>>>
+
+    export type CreateAdvisorEvidenceRequestMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorEvidenceRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorEvidenceRequest>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorEvidenceRequest>>,
+        TError,
+        {caseId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorEvidenceRequestMutationOptions(options));
+    }
+
+export const getGetAdvisorEvidenceRequestUrl = (requestId: string,) => {
+
+
+
+
+  return `/api/advisor/evidence-requests/${requestId}`
+}
+
+export const getAdvisorEvidenceRequest = async (requestId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetAdvisorEvidenceRequestUrl(requestId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdvisorEvidenceRequestQueryKey = (requestId: string,) => {
+    return [
+    `/api/advisor/evidence-requests/${requestId}`
+    ] as const;
+    }
+
+
+export const getGetAdvisorEvidenceRequestQueryOptions = <TData = Awaited<ReturnType<typeof getAdvisorEvidenceRequest>>, TError = ErrorType<unknown>>(requestId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorEvidenceRequest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdvisorEvidenceRequestQueryKey(requestId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdvisorEvidenceRequest>>> = ({ signal }) => getAdvisorEvidenceRequest(requestId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: requestId !== null && requestId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdvisorEvidenceRequest>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdvisorEvidenceRequestQueryResult = NonNullable<Awaited<ReturnType<typeof getAdvisorEvidenceRequest>>>
+export type GetAdvisorEvidenceRequestQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdvisorEvidenceRequest<TData = Awaited<ReturnType<typeof getAdvisorEvidenceRequest>>, TError = ErrorType<unknown>>(
+ requestId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorEvidenceRequest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdvisorEvidenceRequestQueryOptions(requestId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSubmitAdvisorEvidenceUrl = (requestId: string,) => {
+
+
+
+
+  return `/api/advisor/evidence-requests/${requestId}/submit`
+}
+
+export const submitAdvisorEvidence = async (requestId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getSubmitAdvisorEvidenceUrl(requestId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSubmitAdvisorEvidenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorEvidence>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorEvidence>>, TError,{requestId: string}, TContext> => {
+
+const mutationKey = ['submitAdvisorEvidence'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitAdvisorEvidence>>, {requestId: string}> = (props) => {
+          const {requestId} = props ?? {};
+
+          return  submitAdvisorEvidence(requestId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitAdvisorEvidenceMutationResult = NonNullable<Awaited<ReturnType<typeof submitAdvisorEvidence>>>
+
+    export type SubmitAdvisorEvidenceMutationError = ErrorType<unknown>
+
+    export const useSubmitAdvisorEvidence = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorEvidence>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitAdvisorEvidence>>,
+        TError,
+        {requestId: string},
+        TContext
+      > => {
+      return useMutation(getSubmitAdvisorEvidenceMutationOptions(options));
+    }
+
+export const getReviewAdvisorEvidenceUrl = (requestId: string,) => {
+
+
+
+
+  return `/api/advisor/evidence-requests/${requestId}/review`
+}
+
+export const reviewAdvisorEvidence = async (requestId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getReviewAdvisorEvidenceUrl(requestId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getReviewAdvisorEvidenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdvisorEvidence>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewAdvisorEvidence>>, TError,{requestId: string}, TContext> => {
+
+const mutationKey = ['reviewAdvisorEvidence'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewAdvisorEvidence>>, {requestId: string}> = (props) => {
+          const {requestId} = props ?? {};
+
+          return  reviewAdvisorEvidence(requestId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewAdvisorEvidenceMutationResult = NonNullable<Awaited<ReturnType<typeof reviewAdvisorEvidence>>>
+
+    export type ReviewAdvisorEvidenceMutationError = ErrorType<unknown>
+
+    export const useReviewAdvisorEvidence = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewAdvisorEvidence>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewAdvisorEvidence>>,
+        TError,
+        {requestId: string},
+        TContext
+      > => {
+      return useMutation(getReviewAdvisorEvidenceMutationOptions(options));
+    }
+
+export const getClarifyAdvisorEvidenceUrl = (requestId: string,) => {
+
+
+
+
+  return `/api/advisor/evidence-requests/${requestId}/clarify`
+}
+
+export const clarifyAdvisorEvidence = async (requestId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getClarifyAdvisorEvidenceUrl(requestId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getClarifyAdvisorEvidenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clarifyAdvisorEvidence>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof clarifyAdvisorEvidence>>, TError,{requestId: string}, TContext> => {
+
+const mutationKey = ['clarifyAdvisorEvidence'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof clarifyAdvisorEvidence>>, {requestId: string}> = (props) => {
+          const {requestId} = props ?? {};
+
+          return  clarifyAdvisorEvidence(requestId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClarifyAdvisorEvidenceMutationResult = NonNullable<Awaited<ReturnType<typeof clarifyAdvisorEvidence>>>
+
+    export type ClarifyAdvisorEvidenceMutationError = ErrorType<unknown>
+
+    export const useClarifyAdvisorEvidence = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clarifyAdvisorEvidence>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof clarifyAdvisorEvidence>>,
+        TError,
+        {requestId: string},
+        TContext
+      > => {
+      return useMutation(getClarifyAdvisorEvidenceMutationOptions(options));
+    }
+
+export const getWithdrawAdvisorEvidenceUrl = (requestId: string,) => {
+
+
+
+
+  return `/api/advisor/evidence-requests/${requestId}/withdraw`
+}
+
+export const withdrawAdvisorEvidence = async (requestId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getWithdrawAdvisorEvidenceUrl(requestId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getWithdrawAdvisorEvidenceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawAdvisorEvidence>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof withdrawAdvisorEvidence>>, TError,{requestId: string}, TContext> => {
+
+const mutationKey = ['withdrawAdvisorEvidence'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof withdrawAdvisorEvidence>>, {requestId: string}> = (props) => {
+          const {requestId} = props ?? {};
+
+          return  withdrawAdvisorEvidence(requestId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WithdrawAdvisorEvidenceMutationResult = NonNullable<Awaited<ReturnType<typeof withdrawAdvisorEvidence>>>
+
+    export type WithdrawAdvisorEvidenceMutationError = ErrorType<unknown>
+
+    export const useWithdrawAdvisorEvidence = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawAdvisorEvidence>>, TError,{requestId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof withdrawAdvisorEvidence>>,
+        TError,
+        {requestId: string},
+        TContext
+      > => {
+      return useMutation(getWithdrawAdvisorEvidenceMutationOptions(options));
+    }
+
+export const getListAdvisorCaseReviewsUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/reviews`
+}
+
+export const listAdvisorCaseReviews = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorCaseReviewsUrl(caseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorCaseReviewsQueryKey = (caseId: string,) => {
+    return [
+    `/api/advisor/cases/${caseId}/reviews`
+    ] as const;
+    }
+
+
+export const getListAdvisorCaseReviewsQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorCaseReviews>>, TError = ErrorType<unknown>>(caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseReviews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorCaseReviewsQueryKey(caseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorCaseReviews>>> = ({ signal }) => listAdvisorCaseReviews(caseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: caseId !== null && caseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseReviews>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorCaseReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorCaseReviews>>>
+export type ListAdvisorCaseReviewsQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorCaseReviews<TData = Awaited<ReturnType<typeof listAdvisorCaseReviews>>, TError = ErrorType<unknown>>(
+ caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseReviews>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorCaseReviewsQueryOptions(caseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorCaseReviewUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/reviews`
+}
+
+export const createAdvisorCaseReview = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorCaseReviewUrl(caseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorCaseReviewMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseReview>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseReview>>, TError,{caseId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorCaseReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorCaseReview>>, {caseId: string}> = (props) => {
+          const {caseId} = props ?? {};
+
+          return  createAdvisorCaseReview(caseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorCaseReviewMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorCaseReview>>>
+
+    export type CreateAdvisorCaseReviewMutationError = ErrorType<void>
+
+    export const useCreateAdvisorCaseReview = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseReview>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorCaseReview>>,
+        TError,
+        {caseId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorCaseReviewMutationOptions(options));
+    }
+
+export const getGetAdvisorReviewUrl = (reviewId: string,) => {
+
+
+
+
+  return `/api/advisor/reviews/${reviewId}`
+}
+
+export const getAdvisorReview = async (reviewId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetAdvisorReviewUrl(reviewId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdvisorReviewQueryKey = (reviewId: string,) => {
+    return [
+    `/api/advisor/reviews/${reviewId}`
+    ] as const;
+    }
+
+
+export const getGetAdvisorReviewQueryOptions = <TData = Awaited<ReturnType<typeof getAdvisorReview>>, TError = ErrorType<unknown>>(reviewId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorReview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdvisorReviewQueryKey(reviewId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdvisorReview>>> = ({ signal }) => getAdvisorReview(reviewId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: reviewId !== null && reviewId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdvisorReview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdvisorReviewQueryResult = NonNullable<Awaited<ReturnType<typeof getAdvisorReview>>>
+export type GetAdvisorReviewQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdvisorReview<TData = Awaited<ReturnType<typeof getAdvisorReview>>, TError = ErrorType<unknown>>(
+ reviewId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorReview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdvisorReviewQueryOptions(reviewId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSubmitAdvisorReviewDecisionUrl = (reviewId: string,) => {
+
+
+
+
+  return `/api/advisor/reviews/${reviewId}/advisor-decision`
+}
+
+export const submitAdvisorReviewDecision = async (reviewId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getSubmitAdvisorReviewDecisionUrl(reviewId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSubmitAdvisorReviewDecisionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorReviewDecision>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorReviewDecision>>, TError,{reviewId: string}, TContext> => {
+
+const mutationKey = ['submitAdvisorReviewDecision'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitAdvisorReviewDecision>>, {reviewId: string}> = (props) => {
+          const {reviewId} = props ?? {};
+
+          return  submitAdvisorReviewDecision(reviewId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitAdvisorReviewDecisionMutationResult = NonNullable<Awaited<ReturnType<typeof submitAdvisorReviewDecision>>>
+
+    export type SubmitAdvisorReviewDecisionMutationError = ErrorType<unknown>
+
+    export const useSubmitAdvisorReviewDecision = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorReviewDecision>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitAdvisorReviewDecision>>,
+        TError,
+        {reviewId: string},
+        TContext
+      > => {
+      return useMutation(getSubmitAdvisorReviewDecisionMutationOptions(options));
+    }
+
+export const getSubmitAdvisorReviewClientResponseUrl = (reviewId: string,) => {
+
+
+
+
+  return `/api/advisor/reviews/${reviewId}/client-response`
+}
+
+export const submitAdvisorReviewClientResponse = async (reviewId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getSubmitAdvisorReviewClientResponseUrl(reviewId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSubmitAdvisorReviewClientResponseMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorReviewClientResponse>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorReviewClientResponse>>, TError,{reviewId: string}, TContext> => {
+
+const mutationKey = ['submitAdvisorReviewClientResponse'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitAdvisorReviewClientResponse>>, {reviewId: string}> = (props) => {
+          const {reviewId} = props ?? {};
+
+          return  submitAdvisorReviewClientResponse(reviewId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitAdvisorReviewClientResponseMutationResult = NonNullable<Awaited<ReturnType<typeof submitAdvisorReviewClientResponse>>>
+
+    export type SubmitAdvisorReviewClientResponseMutationError = ErrorType<unknown>
+
+    export const useSubmitAdvisorReviewClientResponse = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitAdvisorReviewClientResponse>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof submitAdvisorReviewClientResponse>>,
+        TError,
+        {reviewId: string},
+        TContext
+      > => {
+      return useMutation(getSubmitAdvisorReviewClientResponseMutationOptions(options));
+    }
+
+export const getResolveAdvisorReviewUrl = (reviewId: string,) => {
+
+
+
+
+  return `/api/advisor/reviews/${reviewId}/resolve`
+}
+
+export const resolveAdvisorReview = async (reviewId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getResolveAdvisorReviewUrl(reviewId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getResolveAdvisorReviewMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveAdvisorReview>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resolveAdvisorReview>>, TError,{reviewId: string}, TContext> => {
+
+const mutationKey = ['resolveAdvisorReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resolveAdvisorReview>>, {reviewId: string}> = (props) => {
+          const {reviewId} = props ?? {};
+
+          return  resolveAdvisorReview(reviewId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResolveAdvisorReviewMutationResult = NonNullable<Awaited<ReturnType<typeof resolveAdvisorReview>>>
+
+    export type ResolveAdvisorReviewMutationError = ErrorType<unknown>
+
+    export const useResolveAdvisorReview = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveAdvisorReview>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resolveAdvisorReview>>,
+        TError,
+        {reviewId: string},
+        TContext
+      > => {
+      return useMutation(getResolveAdvisorReviewMutationOptions(options));
+    }
+
+export const getWithdrawAdvisorReviewUrl = (reviewId: string,) => {
+
+
+
+
+  return `/api/advisor/reviews/${reviewId}/withdraw`
+}
+
+export const withdrawAdvisorReview = async (reviewId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getWithdrawAdvisorReviewUrl(reviewId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getWithdrawAdvisorReviewMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawAdvisorReview>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof withdrawAdvisorReview>>, TError,{reviewId: string}, TContext> => {
+
+const mutationKey = ['withdrawAdvisorReview'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof withdrawAdvisorReview>>, {reviewId: string}> = (props) => {
+          const {reviewId} = props ?? {};
+
+          return  withdrawAdvisorReview(reviewId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WithdrawAdvisorReviewMutationResult = NonNullable<Awaited<ReturnType<typeof withdrawAdvisorReview>>>
+
+    export type WithdrawAdvisorReviewMutationError = ErrorType<unknown>
+
+    export const useWithdrawAdvisorReview = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof withdrawAdvisorReview>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof withdrawAdvisorReview>>,
+        TError,
+        {reviewId: string},
+        TContext
+      > => {
+      return useMutation(getWithdrawAdvisorReviewMutationOptions(options));
+    }
+
+export const getListAdvisorReviewCommentsUrl = (reviewId: string,) => {
+
+
+
+
+  return `/api/advisor/reviews/${reviewId}/comments`
+}
+
+export const listAdvisorReviewComments = async (reviewId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorReviewCommentsUrl(reviewId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorReviewCommentsQueryKey = (reviewId: string,) => {
+    return [
+    `/api/advisor/reviews/${reviewId}/comments`
+    ] as const;
+    }
+
+
+export const getListAdvisorReviewCommentsQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorReviewComments>>, TError = ErrorType<unknown>>(reviewId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorReviewComments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorReviewCommentsQueryKey(reviewId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorReviewComments>>> = ({ signal }) => listAdvisorReviewComments(reviewId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: reviewId !== null && reviewId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorReviewComments>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorReviewCommentsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorReviewComments>>>
+export type ListAdvisorReviewCommentsQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorReviewComments<TData = Awaited<ReturnType<typeof listAdvisorReviewComments>>, TError = ErrorType<unknown>>(
+ reviewId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorReviewComments>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorReviewCommentsQueryOptions(reviewId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorReviewCommentUrl = (reviewId: string,) => {
+
+
+
+
+  return `/api/advisor/reviews/${reviewId}/comments`
+}
+
+export const createAdvisorReviewComment = async (reviewId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorReviewCommentUrl(reviewId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorReviewCommentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorReviewComment>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorReviewComment>>, TError,{reviewId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorReviewComment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorReviewComment>>, {reviewId: string}> = (props) => {
+          const {reviewId} = props ?? {};
+
+          return  createAdvisorReviewComment(reviewId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorReviewCommentMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorReviewComment>>>
+
+    export type CreateAdvisorReviewCommentMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorReviewComment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorReviewComment>>, TError,{reviewId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorReviewComment>>,
+        TError,
+        {reviewId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorReviewCommentMutationOptions(options));
+    }
+
+export const getUpdateAdvisorCommentUrl = (commentId: string,) => {
+
+
+
+
+  return `/api/advisor/comments/${commentId}`
+}
+
+export const updateAdvisorComment = async (commentId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateAdvisorCommentUrl(commentId),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getUpdateAdvisorCommentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorComment>>, TError,{commentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorComment>>, TError,{commentId: string}, TContext> => {
+
+const mutationKey = ['updateAdvisorComment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdvisorComment>>, {commentId: string}> = (props) => {
+          const {commentId} = props ?? {};
+
+          return  updateAdvisorComment(commentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdvisorCommentMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdvisorComment>>>
+
+    export type UpdateAdvisorCommentMutationError = ErrorType<unknown>
+
+    export const useUpdateAdvisorComment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorComment>>, TError,{commentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdvisorComment>>,
+        TError,
+        {commentId: string},
+        TContext
+      > => {
+      return useMutation(getUpdateAdvisorCommentMutationOptions(options));
+    }
+
+export const getDeleteAdvisorCommentUrl = (commentId: string,) => {
+
+
+
+
+  return `/api/advisor/comments/${commentId}`
+}
+
+export const deleteAdvisorComment = async (commentId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteAdvisorCommentUrl(commentId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAdvisorCommentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdvisorComment>>, TError,{commentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAdvisorComment>>, TError,{commentId: string}, TContext> => {
+
+const mutationKey = ['deleteAdvisorComment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAdvisorComment>>, {commentId: string}> = (props) => {
+          const {commentId} = props ?? {};
+
+          return  deleteAdvisorComment(commentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAdvisorCommentMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAdvisorComment>>>
+
+    export type DeleteAdvisorCommentMutationError = ErrorType<unknown>
+
+    export const useDeleteAdvisorComment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdvisorComment>>, TError,{commentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAdvisorComment>>,
+        TError,
+        {commentId: string},
+        TContext
+      > => {
+      return useMutation(getDeleteAdvisorCommentMutationOptions(options));
+    }
+
+export const getResolveAdvisorCommentUrl = (commentId: string,) => {
+
+
+
+
+  return `/api/advisor/comments/${commentId}/resolve`
+}
+
+export const resolveAdvisorComment = async (commentId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getResolveAdvisorCommentUrl(commentId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getResolveAdvisorCommentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveAdvisorComment>>, TError,{commentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resolveAdvisorComment>>, TError,{commentId: string}, TContext> => {
+
+const mutationKey = ['resolveAdvisorComment'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resolveAdvisorComment>>, {commentId: string}> = (props) => {
+          const {commentId} = props ?? {};
+
+          return  resolveAdvisorComment(commentId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResolveAdvisorCommentMutationResult = NonNullable<Awaited<ReturnType<typeof resolveAdvisorComment>>>
+
+    export type ResolveAdvisorCommentMutationError = ErrorType<unknown>
+
+    export const useResolveAdvisorComment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resolveAdvisorComment>>, TError,{commentId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resolveAdvisorComment>>,
+        TError,
+        {commentId: string},
+        TContext
+      > => {
+      return useMutation(getResolveAdvisorCommentMutationOptions(options));
+    }
+
+export const getListAdvisorCaseOutcomesUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/outcomes`
+}
+
+export const listAdvisorCaseOutcomes = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorCaseOutcomesUrl(caseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorCaseOutcomesQueryKey = (caseId: string,) => {
+    return [
+    `/api/advisor/cases/${caseId}/outcomes`
+    ] as const;
+    }
+
+
+export const getListAdvisorCaseOutcomesQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorCaseOutcomes>>, TError = ErrorType<unknown>>(caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseOutcomes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorCaseOutcomesQueryKey(caseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorCaseOutcomes>>> = ({ signal }) => listAdvisorCaseOutcomes(caseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: caseId !== null && caseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseOutcomes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorCaseOutcomesQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorCaseOutcomes>>>
+export type ListAdvisorCaseOutcomesQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorCaseOutcomes<TData = Awaited<ReturnType<typeof listAdvisorCaseOutcomes>>, TError = ErrorType<unknown>>(
+ caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseOutcomes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorCaseOutcomesQueryOptions(caseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorCaseOutcomeUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/outcomes`
+}
+
+export const createAdvisorCaseOutcome = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorCaseOutcomeUrl(caseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorCaseOutcomeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseOutcome>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseOutcome>>, TError,{caseId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorCaseOutcome'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorCaseOutcome>>, {caseId: string}> = (props) => {
+          const {caseId} = props ?? {};
+
+          return  createAdvisorCaseOutcome(caseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorCaseOutcomeMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorCaseOutcome>>>
+
+    export type CreateAdvisorCaseOutcomeMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorCaseOutcome = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseOutcome>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorCaseOutcome>>,
+        TError,
+        {caseId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorCaseOutcomeMutationOptions(options));
+    }
+
+export const getGetAdvisorOutcomeUrl = (outcomeId: string,) => {
+
+
+
+
+  return `/api/advisor/outcomes/${outcomeId}`
+}
+
+export const getAdvisorOutcome = async (outcomeId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetAdvisorOutcomeUrl(outcomeId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdvisorOutcomeQueryKey = (outcomeId: string,) => {
+    return [
+    `/api/advisor/outcomes/${outcomeId}`
+    ] as const;
+    }
+
+
+export const getGetAdvisorOutcomeQueryOptions = <TData = Awaited<ReturnType<typeof getAdvisorOutcome>>, TError = ErrorType<unknown>>(outcomeId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorOutcome>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdvisorOutcomeQueryKey(outcomeId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdvisorOutcome>>> = ({ signal }) => getAdvisorOutcome(outcomeId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: outcomeId !== null && outcomeId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdvisorOutcome>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdvisorOutcomeQueryResult = NonNullable<Awaited<ReturnType<typeof getAdvisorOutcome>>>
+export type GetAdvisorOutcomeQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdvisorOutcome<TData = Awaited<ReturnType<typeof getAdvisorOutcome>>, TError = ErrorType<unknown>>(
+ outcomeId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorOutcome>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdvisorOutcomeQueryOptions(outcomeId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateAdvisorOutcomeUrl = (outcomeId: string,) => {
+
+
+
+
+  return `/api/advisor/outcomes/${outcomeId}`
+}
+
+export const updateAdvisorOutcome = async (outcomeId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateAdvisorOutcomeUrl(outcomeId),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getUpdateAdvisorOutcomeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorOutcome>>, TError,{outcomeId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorOutcome>>, TError,{outcomeId: string}, TContext> => {
+
+const mutationKey = ['updateAdvisorOutcome'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdvisorOutcome>>, {outcomeId: string}> = (props) => {
+          const {outcomeId} = props ?? {};
+
+          return  updateAdvisorOutcome(outcomeId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdvisorOutcomeMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdvisorOutcome>>>
+
+    export type UpdateAdvisorOutcomeMutationError = ErrorType<unknown>
+
+    export const useUpdateAdvisorOutcome = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorOutcome>>, TError,{outcomeId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdvisorOutcome>>,
+        TError,
+        {outcomeId: string},
+        TContext
+      > => {
+      return useMutation(getUpdateAdvisorOutcomeMutationOptions(options));
+    }
+
+export const getListAdvisorCasePlacementsUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/placements`
+}
+
+export const listAdvisorCasePlacements = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorCasePlacementsUrl(caseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorCasePlacementsQueryKey = (caseId: string,) => {
+    return [
+    `/api/advisor/cases/${caseId}/placements`
+    ] as const;
+    }
+
+
+export const getListAdvisorCasePlacementsQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorCasePlacements>>, TError = ErrorType<unknown>>(caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCasePlacements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorCasePlacementsQueryKey(caseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorCasePlacements>>> = ({ signal }) => listAdvisorCasePlacements(caseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: caseId !== null && caseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCasePlacements>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorCasePlacementsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorCasePlacements>>>
+export type ListAdvisorCasePlacementsQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorCasePlacements<TData = Awaited<ReturnType<typeof listAdvisorCasePlacements>>, TError = ErrorType<unknown>>(
+ caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCasePlacements>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorCasePlacementsQueryOptions(caseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorCasePlacementUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/placements`
+}
+
+export const createAdvisorCasePlacement = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorCasePlacementUrl(caseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorCasePlacementMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCasePlacement>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCasePlacement>>, TError,{caseId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorCasePlacement'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorCasePlacement>>, {caseId: string}> = (props) => {
+          const {caseId} = props ?? {};
+
+          return  createAdvisorCasePlacement(caseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorCasePlacementMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorCasePlacement>>>
+
+    export type CreateAdvisorCasePlacementMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorCasePlacement = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCasePlacement>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorCasePlacement>>,
+        TError,
+        {caseId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorCasePlacementMutationOptions(options));
+    }
+
+export const getGetAdvisorPlacementUrl = (placementId: string,) => {
+
+
+
+
+  return `/api/advisor/placements/${placementId}`
+}
+
+export const getAdvisorPlacement = async (placementId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetAdvisorPlacementUrl(placementId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdvisorPlacementQueryKey = (placementId: string,) => {
+    return [
+    `/api/advisor/placements/${placementId}`
+    ] as const;
+    }
+
+
+export const getGetAdvisorPlacementQueryOptions = <TData = Awaited<ReturnType<typeof getAdvisorPlacement>>, TError = ErrorType<unknown>>(placementId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorPlacement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdvisorPlacementQueryKey(placementId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdvisorPlacement>>> = ({ signal }) => getAdvisorPlacement(placementId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: placementId !== null && placementId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdvisorPlacement>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdvisorPlacementQueryResult = NonNullable<Awaited<ReturnType<typeof getAdvisorPlacement>>>
+export type GetAdvisorPlacementQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdvisorPlacement<TData = Awaited<ReturnType<typeof getAdvisorPlacement>>, TError = ErrorType<unknown>>(
+ placementId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorPlacement>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdvisorPlacementQueryOptions(placementId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateAdvisorPlacementUrl = (placementId: string,) => {
+
+
+
+
+  return `/api/advisor/placements/${placementId}`
+}
+
+export const updateAdvisorPlacement = async (placementId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateAdvisorPlacementUrl(placementId),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getUpdateAdvisorPlacementMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorPlacement>>, TError,{placementId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorPlacement>>, TError,{placementId: string}, TContext> => {
+
+const mutationKey = ['updateAdvisorPlacement'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdvisorPlacement>>, {placementId: string}> = (props) => {
+          const {placementId} = props ?? {};
+
+          return  updateAdvisorPlacement(placementId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdvisorPlacementMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdvisorPlacement>>>
+
+    export type UpdateAdvisorPlacementMutationError = ErrorType<unknown>
+
+    export const useUpdateAdvisorPlacement = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorPlacement>>, TError,{placementId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdvisorPlacement>>,
+        TError,
+        {placementId: string},
+        TContext
+      > => {
+      return useMutation(getUpdateAdvisorPlacementMutationOptions(options));
+    }
+
+export const getListAdvisorCaseFollowUpsUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/follow-ups`
+}
+
+export const listAdvisorCaseFollowUps = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorCaseFollowUpsUrl(caseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorCaseFollowUpsQueryKey = (caseId: string,) => {
+    return [
+    `/api/advisor/cases/${caseId}/follow-ups`
+    ] as const;
+    }
+
+
+export const getListAdvisorCaseFollowUpsQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorCaseFollowUps>>, TError = ErrorType<unknown>>(caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseFollowUps>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorCaseFollowUpsQueryKey(caseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorCaseFollowUps>>> = ({ signal }) => listAdvisorCaseFollowUps(caseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: caseId !== null && caseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseFollowUps>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorCaseFollowUpsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorCaseFollowUps>>>
+export type ListAdvisorCaseFollowUpsQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorCaseFollowUps<TData = Awaited<ReturnType<typeof listAdvisorCaseFollowUps>>, TError = ErrorType<unknown>>(
+ caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseFollowUps>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorCaseFollowUpsQueryOptions(caseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorCaseFollowUpUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/follow-ups`
+}
+
+export const createAdvisorCaseFollowUp = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorCaseFollowUpUrl(caseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorCaseFollowUpMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseFollowUp>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseFollowUp>>, TError,{caseId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorCaseFollowUp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorCaseFollowUp>>, {caseId: string}> = (props) => {
+          const {caseId} = props ?? {};
+
+          return  createAdvisorCaseFollowUp(caseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorCaseFollowUpMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorCaseFollowUp>>>
+
+    export type CreateAdvisorCaseFollowUpMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorCaseFollowUp = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseFollowUp>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorCaseFollowUp>>,
+        TError,
+        {caseId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorCaseFollowUpMutationOptions(options));
+    }
+
+export const getGetAdvisorFollowUpUrl = (followUpId: string,) => {
+
+
+
+
+  return `/api/advisor/follow-ups/${followUpId}`
+}
+
+export const getAdvisorFollowUp = async (followUpId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetAdvisorFollowUpUrl(followUpId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdvisorFollowUpQueryKey = (followUpId: string,) => {
+    return [
+    `/api/advisor/follow-ups/${followUpId}`
+    ] as const;
+    }
+
+
+export const getGetAdvisorFollowUpQueryOptions = <TData = Awaited<ReturnType<typeof getAdvisorFollowUp>>, TError = ErrorType<unknown>>(followUpId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorFollowUp>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdvisorFollowUpQueryKey(followUpId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdvisorFollowUp>>> = ({ signal }) => getAdvisorFollowUp(followUpId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: followUpId !== null && followUpId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdvisorFollowUp>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdvisorFollowUpQueryResult = NonNullable<Awaited<ReturnType<typeof getAdvisorFollowUp>>>
+export type GetAdvisorFollowUpQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdvisorFollowUp<TData = Awaited<ReturnType<typeof getAdvisorFollowUp>>, TError = ErrorType<unknown>>(
+ followUpId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorFollowUp>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdvisorFollowUpQueryOptions(followUpId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateAdvisorFollowUpUrl = (followUpId: string,) => {
+
+
+
+
+  return `/api/advisor/follow-ups/${followUpId}`
+}
+
+export const updateAdvisorFollowUp = async (followUpId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateAdvisorFollowUpUrl(followUpId),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getUpdateAdvisorFollowUpMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorFollowUp>>, TError,{followUpId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorFollowUp>>, TError,{followUpId: string}, TContext> => {
+
+const mutationKey = ['updateAdvisorFollowUp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdvisorFollowUp>>, {followUpId: string}> = (props) => {
+          const {followUpId} = props ?? {};
+
+          return  updateAdvisorFollowUp(followUpId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdvisorFollowUpMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdvisorFollowUp>>>
+
+    export type UpdateAdvisorFollowUpMutationError = ErrorType<unknown>
+
+    export const useUpdateAdvisorFollowUp = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorFollowUp>>, TError,{followUpId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdvisorFollowUp>>,
+        TError,
+        {followUpId: string},
+        TContext
+      > => {
+      return useMutation(getUpdateAdvisorFollowUpMutationOptions(options));
+    }
+
+export const getCompleteAdvisorFollowUpUrl = (followUpId: string,) => {
+
+
+
+
+  return `/api/advisor/follow-ups/${followUpId}/complete`
+}
+
+export const completeAdvisorFollowUp = async (followUpId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCompleteAdvisorFollowUpUrl(followUpId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCompleteAdvisorFollowUpMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorFollowUp>>, TError,{followUpId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorFollowUp>>, TError,{followUpId: string}, TContext> => {
+
+const mutationKey = ['completeAdvisorFollowUp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeAdvisorFollowUp>>, {followUpId: string}> = (props) => {
+          const {followUpId} = props ?? {};
+
+          return  completeAdvisorFollowUp(followUpId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteAdvisorFollowUpMutationResult = NonNullable<Awaited<ReturnType<typeof completeAdvisorFollowUp>>>
+
+    export type CompleteAdvisorFollowUpMutationError = ErrorType<unknown>
+
+    export const useCompleteAdvisorFollowUp = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorFollowUp>>, TError,{followUpId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeAdvisorFollowUp>>,
+        TError,
+        {followUpId: string},
+        TContext
+      > => {
+      return useMutation(getCompleteAdvisorFollowUpMutationOptions(options));
+    }
+
+export const getCancelAdvisorFollowUpUrl = (followUpId: string,) => {
+
+
+
+
+  return `/api/advisor/follow-ups/${followUpId}/cancel`
+}
+
+export const cancelAdvisorFollowUp = async (followUpId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCancelAdvisorFollowUpUrl(followUpId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCancelAdvisorFollowUpMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorFollowUp>>, TError,{followUpId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorFollowUp>>, TError,{followUpId: string}, TContext> => {
+
+const mutationKey = ['cancelAdvisorFollowUp'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelAdvisorFollowUp>>, {followUpId: string}> = (props) => {
+          const {followUpId} = props ?? {};
+
+          return  cancelAdvisorFollowUp(followUpId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelAdvisorFollowUpMutationResult = NonNullable<Awaited<ReturnType<typeof cancelAdvisorFollowUp>>>
+
+    export type CancelAdvisorFollowUpMutationError = ErrorType<unknown>
+
+    export const useCancelAdvisorFollowUp = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorFollowUp>>, TError,{followUpId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelAdvisorFollowUp>>,
+        TError,
+        {followUpId: string},
+        TContext
+      > => {
+      return useMutation(getCancelAdvisorFollowUpMutationOptions(options));
+    }
+
+export const getListAdvisorCaseSessionsUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/sessions`
+}
+
+export const listAdvisorCaseSessions = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorCaseSessionsUrl(caseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorCaseSessionsQueryKey = (caseId: string,) => {
+    return [
+    `/api/advisor/cases/${caseId}/sessions`
+    ] as const;
+    }
+
+
+export const getListAdvisorCaseSessionsQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorCaseSessions>>, TError = ErrorType<unknown>>(caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseSessions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorCaseSessionsQueryKey(caseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorCaseSessions>>> = ({ signal }) => listAdvisorCaseSessions(caseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: caseId !== null && caseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseSessions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorCaseSessionsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorCaseSessions>>>
+export type ListAdvisorCaseSessionsQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorCaseSessions<TData = Awaited<ReturnType<typeof listAdvisorCaseSessions>>, TError = ErrorType<unknown>>(
+ caseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorCaseSessions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorCaseSessionsQueryOptions(caseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorCaseSessionUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/sessions`
+}
+
+export const createAdvisorCaseSession = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorCaseSessionUrl(caseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorCaseSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseSession>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseSession>>, TError,{caseId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorCaseSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorCaseSession>>, {caseId: string}> = (props) => {
+          const {caseId} = props ?? {};
+
+          return  createAdvisorCaseSession(caseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorCaseSessionMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorCaseSession>>>
+
+    export type CreateAdvisorCaseSessionMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorCaseSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorCaseSession>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorCaseSession>>,
+        TError,
+        {caseId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorCaseSessionMutationOptions(options));
+    }
+
+export const getGetAdvisorSessionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}`
+}
+
+export const getAdvisorSession = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetAdvisorSessionUrl(sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdvisorSessionQueryKey = (sessionId: string,) => {
+    return [
+    `/api/advisor/sessions/${sessionId}`
+    ] as const;
+    }
+
+
+export const getGetAdvisorSessionQueryOptions = <TData = Awaited<ReturnType<typeof getAdvisorSession>>, TError = ErrorType<unknown>>(sessionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdvisorSessionQueryKey(sessionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdvisorSession>>> = ({ signal }) => getAdvisorSession(sessionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: sessionId !== null && sessionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdvisorSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAdvisorSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getAdvisorSession>>>
+export type GetAdvisorSessionQueryError = ErrorType<unknown>
+
+
+
+export function useGetAdvisorSession<TData = Awaited<ReturnType<typeof getAdvisorSession>>, TError = ErrorType<unknown>>(
+ sessionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAdvisorSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAdvisorSessionQueryOptions(sessionId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateAdvisorSessionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}`
+}
+
+export const updateAdvisorSession = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateAdvisorSessionUrl(sessionId),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getUpdateAdvisorSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorSession>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['updateAdvisorSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdvisorSession>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  updateAdvisorSession(sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdvisorSessionMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdvisorSession>>>
+
+    export type UpdateAdvisorSessionMutationError = ErrorType<unknown>
+
+    export const useUpdateAdvisorSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdvisorSession>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+      return useMutation(getUpdateAdvisorSessionMutationOptions(options));
+    }
+
+export const getConfirmAdvisorSessionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/confirm`
+}
+
+export const confirmAdvisorSession = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getConfirmAdvisorSessionUrl(sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getConfirmAdvisorSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof confirmAdvisorSession>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['confirmAdvisorSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmAdvisorSession>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  confirmAdvisorSession(sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConfirmAdvisorSessionMutationResult = NonNullable<Awaited<ReturnType<typeof confirmAdvisorSession>>>
+
+    export type ConfirmAdvisorSessionMutationError = ErrorType<unknown>
+
+    export const useConfirmAdvisorSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof confirmAdvisorSession>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+      return useMutation(getConfirmAdvisorSessionMutationOptions(options));
+    }
+
+export const getStartAdvisorSessionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/start`
+}
+
+export const startAdvisorSession = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getStartAdvisorSessionUrl(sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getStartAdvisorSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startAdvisorSession>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['startAdvisorSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startAdvisorSession>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  startAdvisorSession(sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartAdvisorSessionMutationResult = NonNullable<Awaited<ReturnType<typeof startAdvisorSession>>>
+
+    export type StartAdvisorSessionMutationError = ErrorType<unknown>
+
+    export const useStartAdvisorSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startAdvisorSession>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+      return useMutation(getStartAdvisorSessionMutationOptions(options));
+    }
+
+export const getCompleteAdvisorSessionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/complete`
+}
+
+export const completeAdvisorSession = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCompleteAdvisorSessionUrl(sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCompleteAdvisorSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorSession>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['completeAdvisorSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeAdvisorSession>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  completeAdvisorSession(sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteAdvisorSessionMutationResult = NonNullable<Awaited<ReturnType<typeof completeAdvisorSession>>>
+
+    export type CompleteAdvisorSessionMutationError = ErrorType<unknown>
+
+    export const useCompleteAdvisorSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeAdvisorSession>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+      return useMutation(getCompleteAdvisorSessionMutationOptions(options));
+    }
+
+export const getCancelAdvisorSessionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/cancel`
+}
+
+export const cancelAdvisorSession = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCancelAdvisorSessionUrl(sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCancelAdvisorSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorSession>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['cancelAdvisorSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelAdvisorSession>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  cancelAdvisorSession(sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelAdvisorSessionMutationResult = NonNullable<Awaited<ReturnType<typeof cancelAdvisorSession>>>
+
+    export type CancelAdvisorSessionMutationError = ErrorType<unknown>
+
+    export const useCancelAdvisorSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelAdvisorSession>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+      return useMutation(getCancelAdvisorSessionMutationOptions(options));
+    }
+
+export const getRescheduleAdvisorSessionUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/reschedule`
+}
+
+export const rescheduleAdvisorSession = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRescheduleAdvisorSessionUrl(sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRescheduleAdvisorSessionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rescheduleAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rescheduleAdvisorSession>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['rescheduleAdvisorSession'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rescheduleAdvisorSession>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  rescheduleAdvisorSession(sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RescheduleAdvisorSessionMutationResult = NonNullable<Awaited<ReturnType<typeof rescheduleAdvisorSession>>>
+
+    export type RescheduleAdvisorSessionMutationError = ErrorType<unknown>
+
+    export const useRescheduleAdvisorSession = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rescheduleAdvisorSession>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof rescheduleAdvisorSession>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+      return useMutation(getRescheduleAdvisorSessionMutationOptions(options));
+    }
+
+export const getListAdvisorSessionNotesUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/notes`
+}
+
+export const listAdvisorSessionNotes = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorSessionNotesUrl(sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorSessionNotesQueryKey = (sessionId: string,) => {
+    return [
+    `/api/advisor/sessions/${sessionId}/notes`
+    ] as const;
+    }
+
+
+export const getListAdvisorSessionNotesQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorSessionNotes>>, TError = ErrorType<unknown>>(sessionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorSessionNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorSessionNotesQueryKey(sessionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorSessionNotes>>> = ({ signal }) => listAdvisorSessionNotes(sessionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: sessionId !== null && sessionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorSessionNotes>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorSessionNotesQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorSessionNotes>>>
+export type ListAdvisorSessionNotesQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorSessionNotes<TData = Awaited<ReturnType<typeof listAdvisorSessionNotes>>, TError = ErrorType<unknown>>(
+ sessionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorSessionNotes>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorSessionNotesQueryOptions(sessionId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorSessionNoteUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/notes`
+}
+
+export const createAdvisorSessionNote = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorSessionNoteUrl(sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorSessionNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorSessionNote>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorSessionNote>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorSessionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorSessionNote>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  createAdvisorSessionNote(sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorSessionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorSessionNote>>>
+
+    export type CreateAdvisorSessionNoteMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorSessionNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorSessionNote>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorSessionNote>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorSessionNoteMutationOptions(options));
+    }
+
+export const getUpdateAdvisorSessionNoteUrl = (noteId: string,) => {
+
+
+
+
+  return `/api/advisor/session-notes/${noteId}`
+}
+
+export const updateAdvisorSessionNote = async (noteId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateAdvisorSessionNoteUrl(noteId),
+  {
+    ...options,
+    method: 'PATCH'
+
+
+  }
+);}
+
+
+
+
+export const getUpdateAdvisorSessionNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorSessionNote>>, TError,{noteId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorSessionNote>>, TError,{noteId: string}, TContext> => {
+
+const mutationKey = ['updateAdvisorSessionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateAdvisorSessionNote>>, {noteId: string}> = (props) => {
+          const {noteId} = props ?? {};
+
+          return  updateAdvisorSessionNote(noteId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateAdvisorSessionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof updateAdvisorSessionNote>>>
+
+    export type UpdateAdvisorSessionNoteMutationError = ErrorType<unknown>
+
+    export const useUpdateAdvisorSessionNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateAdvisorSessionNote>>, TError,{noteId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateAdvisorSessionNote>>,
+        TError,
+        {noteId: string},
+        TContext
+      > => {
+      return useMutation(getUpdateAdvisorSessionNoteMutationOptions(options));
+    }
+
+export const getDeleteAdvisorSessionNoteUrl = (noteId: string,) => {
+
+
+
+
+  return `/api/advisor/session-notes/${noteId}`
+}
+
+export const deleteAdvisorSessionNote = async (noteId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteAdvisorSessionNoteUrl(noteId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteAdvisorSessionNoteMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdvisorSessionNote>>, TError,{noteId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteAdvisorSessionNote>>, TError,{noteId: string}, TContext> => {
+
+const mutationKey = ['deleteAdvisorSessionNote'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteAdvisorSessionNote>>, {noteId: string}> = (props) => {
+          const {noteId} = props ?? {};
+
+          return  deleteAdvisorSessionNote(noteId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteAdvisorSessionNoteMutationResult = NonNullable<Awaited<ReturnType<typeof deleteAdvisorSessionNote>>>
+
+    export type DeleteAdvisorSessionNoteMutationError = ErrorType<unknown>
+
+    export const useDeleteAdvisorSessionNote = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteAdvisorSessionNote>>, TError,{noteId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteAdvisorSessionNote>>,
+        TError,
+        {noteId: string},
+        TContext
+      > => {
+      return useMutation(getDeleteAdvisorSessionNoteMutationOptions(options));
+    }
+
+export const getListAdvisorSessionSummariesUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/summaries`
+}
+
+export const listAdvisorSessionSummaries = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListAdvisorSessionSummariesUrl(sessionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdvisorSessionSummariesQueryKey = (sessionId: string,) => {
+    return [
+    `/api/advisor/sessions/${sessionId}/summaries`
+    ] as const;
+    }
+
+
+export const getListAdvisorSessionSummariesQueryOptions = <TData = Awaited<ReturnType<typeof listAdvisorSessionSummaries>>, TError = ErrorType<unknown>>(sessionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorSessionSummaries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdvisorSessionSummariesQueryKey(sessionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdvisorSessionSummaries>>> = ({ signal }) => listAdvisorSessionSummaries(sessionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: sessionId !== null && sessionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdvisorSessionSummaries>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAdvisorSessionSummariesQueryResult = NonNullable<Awaited<ReturnType<typeof listAdvisorSessionSummaries>>>
+export type ListAdvisorSessionSummariesQueryError = ErrorType<unknown>
+
+
+
+export function useListAdvisorSessionSummaries<TData = Awaited<ReturnType<typeof listAdvisorSessionSummaries>>, TError = ErrorType<unknown>>(
+ sessionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAdvisorSessionSummaries>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAdvisorSessionSummariesQueryOptions(sessionId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateAdvisorSessionSummaryUrl = (sessionId: string,) => {
+
+
+
+
+  return `/api/advisor/sessions/${sessionId}/summaries`
+}
+
+export const createAdvisorSessionSummary = async (sessionId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateAdvisorSessionSummaryUrl(sessionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getCreateAdvisorSessionSummaryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorSessionSummary>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAdvisorSessionSummary>>, TError,{sessionId: string}, TContext> => {
+
+const mutationKey = ['createAdvisorSessionSummary'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAdvisorSessionSummary>>, {sessionId: string}> = (props) => {
+          const {sessionId} = props ?? {};
+
+          return  createAdvisorSessionSummary(sessionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAdvisorSessionSummaryMutationResult = NonNullable<Awaited<ReturnType<typeof createAdvisorSessionSummary>>>
+
+    export type CreateAdvisorSessionSummaryMutationError = ErrorType<unknown>
+
+    export const useCreateAdvisorSessionSummary = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAdvisorSessionSummary>>, TError,{sessionId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAdvisorSessionSummary>>,
+        TError,
+        {sessionId: string},
+        TContext
+      > => {
+      return useMutation(getCreateAdvisorSessionSummaryMutationOptions(options));
+    }
+
+export const getExportAdvisorCaseUrl = (caseId: string,) => {
+
+
+
+
+  return `/api/advisor/cases/${caseId}/exports`
+}
+
+export const exportAdvisorCase = async (caseId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getExportAdvisorCaseUrl(caseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getExportAdvisorCaseMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof exportAdvisorCase>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof exportAdvisorCase>>, TError,{caseId: string}, TContext> => {
+
+const mutationKey = ['exportAdvisorCase'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof exportAdvisorCase>>, {caseId: string}> = (props) => {
+          const {caseId} = props ?? {};
+
+          return  exportAdvisorCase(caseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExportAdvisorCaseMutationResult = NonNullable<Awaited<ReturnType<typeof exportAdvisorCase>>>
+
+    export type ExportAdvisorCaseMutationError = ErrorType<unknown>
+
+    export const useExportAdvisorCase = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof exportAdvisorCase>>, TError,{caseId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof exportAdvisorCase>>,
+        TError,
+        {caseId: string},
+        TContext
+      > => {
+      return useMutation(getExportAdvisorCaseMutationOptions(options));
     }

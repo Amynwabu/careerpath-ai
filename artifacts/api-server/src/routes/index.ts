@@ -25,6 +25,7 @@ import opportunitiesRouter from "./opportunities";
 import applicationIntelligenceRouter from "./application-intelligence";
 import interviewIntelligenceRouter from "./interview-intelligence";
 import advisorWorkspaceRouter from "./advisor-workspace";
+import advisorOperationsRouter from "./advisor-operations";
 
 const router: IRouter = Router();
 
@@ -54,5 +55,6 @@ router.use(opportunitiesRouter);
 router.use(applicationIntelligenceRouter);
 router.use(interviewIntelligenceRouter);
 router.use(advisorWorkspaceRouter);
+router.use(advisorOperationsRouter);
 
 export default router;

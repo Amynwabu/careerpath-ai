@@ -22,7 +22,7 @@ VALUES
 INSERT INTO career_data_advisor_grants
   (id, owner_user_id, created_by, updated_by, retention_class, advisor_user_id, scopes, status, granted_at, expires_at, revoked_at)
 VALUES
-  ('grant_active', 91001, 91001, 91001, 'fixture', 91003, '["case_manage","evidence_review"]', 'active', now(), now() + interval '1 day', null),
+  ('grant_active', 91001, 91001, 91001, 'fixture', 91003, '["case_manage","evidence_review","profile_read","outcome_record","session_summary_read","plan_action_review"]', 'active', now(), now() + interval '1 day', null),
   ('grant_other_owner', 91002, 91002, 91002, 'fixture', 91003, '["case_manage"]', 'active', now(), now() + interval '1 day', null),
   ('grant_expired', 91001, 91001, 91001, 'fixture', 91003, '["case_manage"]', 'active', now() - interval '2 days', now() - interval '1 day', null),
   ('grant_revoked', 91001, 91001, 91001, 'fixture', 91003, '["case_manage"]', 'active', now() - interval '1 day', now() + interval '1 day', now()),
@@ -49,6 +49,22 @@ INSERT INTO career_data_advisor_session_notes
 VALUES
   ('note_shared', 91001, 91003, 91003, 'fixture', 'session_active', 'case_active', 91003, 'client_visible', 'client_and_advisor', 'fixture shared'),
   ('note_private', 91001, 91003, 91003, 'fixture', 'session_active', 'case_active', 91003, 'advisor_private', 'advisor_private', 'fixture private');
+
+INSERT INTO career_data_profiles
+  (id, owner_user_id, created_by, updated_by, retention_class, profile_version, status, summary, completeness, confidence, validation_status, source_document_ids, active)
+VALUES
+  ('career_profile_fixture', 91001, 91001, 91001, 'fixture', '1', 'active', 'fixture', '{}', '{}', 'valid', '[]', true);
+
+INSERT INTO career_data_evidence
+  (id, owner_user_id, created_by, updated_by, retention_class, profile_id, evidence_type, title, description, verification_status, linked_skill_codes)
+VALUES
+  ('evidence_fixture', 91001, 91001, 91001, 'fixture', 'career_profile_fixture', 'document', 'Fixture evidence', 'Fixture only', 'unverified', '[]');
+
+INSERT INTO career_data_advisor_case_resources
+  (case_resource_id, case_id, owner_user_id, resource_type, resource_id, required_scope, created_by)
+VALUES
+  ('case_resource_profile_fixture', 'case_active', 91001, 'career_profile', 'career_profile_fixture', 'profile_read', 91001),
+  ('case_resource_evidence_fixture', 'case_active', 91001, 'evidence_record', 'evidence_fixture', 'evidence_review', 91001);
 
 SET ROLE cpx_advisor_rls_test;
 

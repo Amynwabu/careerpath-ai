@@ -194,7 +194,6 @@ export type CvOptimisationSessionRequestSourceCv = {
   embeddedScripts?: boolean;
   hiddenTextDetected?: boolean;
 };
-
 export type CvOptimisationSessionRequestTargetFormat = typeof CvOptimisationSessionRequestTargetFormat[keyof typeof CvOptimisationSessionRequestTargetFormat];
 
 

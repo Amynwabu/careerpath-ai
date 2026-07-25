@@ -39,6 +39,7 @@ import {
   malwareScanner,
   quotaProvider,
 } from "../lib/career-data-controls";
+import { recordAdvisorMetric } from "../lib/advisor-observability";
 
 const router: IRouter = Router();
 router.use(requireAuth);
@@ -310,11 +311,17 @@ export async function persistentResponse(
     res.json(await operation());
   } catch (error) {
     const code = (error as { code?: string }).code ?? "persistence_failed";
+    if (code === "durable_source_required") recordAdvisorMetric("durable_source_failures");
     const retryAfter = (error as { retryAfterSeconds?: number }).retryAfterSeconds;
     const status = code === "authentication_required" ? 401 :
-      code === "record_version_conflict" || code === "idempotency_conflict" ? 409 :
+      code === "record_version_conflict" || code === "idempotency_conflict" || code === "durable_source_required" ? 409 :
       code === "rate_limit_exceeded" || code === "quota_exceeded" ? 429 :
       code === "storage_unavailable" || code === "database_unavailable" ? 503 :
+      [
+        "advisor_scope_insufficient", "advisor_grant_required", "advisor_grant_expired",
+        "advisor_grant_revoked", "advisor_not_verified", "advisor_suspended",
+        "advisor_verification_required", "verification_status_forbidden",
+      ].includes(code) ? 403 :
       code === "resource_not_found" || code === "forbidden" ? 404 : 400;
     if (retryAfter) res.setHeader("Retry-After", String(retryAfter));
     res.status(status).json({
@@ -379,6 +386,17 @@ function safeMessage(code: string) {
     document_not_clean: "The document is not cleared for processing.",
     storage_unavailable: "Private document storage is unavailable.",
     database_unavailable: "Career-data persistence is temporarily unavailable.",
+    advisor_scope_insufficient: "The active advisor grant does not include the required scope.",
+    advisor_grant_required: "An active advisor grant is required.",
+    advisor_grant_expired: "Advisor access has expired.",
+    advisor_grant_revoked: "Advisor access has been revoked.",
+    advisor_not_verified: "A verified advisor profile is required.",
+    advisor_suspended: "The advisor account is suspended.",
+    advisor_verification_required: "This decision requires an assigned verified advisor.",
+    verification_status_forbidden: "The requested verification status is not permitted.",
+    durable_source_required: "A persistent source record is required before advisor review can begin.",
+    idempotency_key_required: "An Idempotency-Key header is required.",
+    validation_failed: "The request did not pass validation.",
     persistence_failed: "The career-data request could not be completed.",
   };
   return messages[code] ?? messages.persistence_failed;

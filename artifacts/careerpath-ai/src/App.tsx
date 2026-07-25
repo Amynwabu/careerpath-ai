@@ -76,6 +76,7 @@ function Router() {
       <Route path="/advisor/actions"><ProtectedRoute component={AdvisorWorkspace} /></Route>
       <Route path="/advisor"><ProtectedRoute component={AdvisorWorkspace} /></Route>
       <Route path="/career-data/advisor-support"><ProtectedRoute component={AdvisorSupport} /></Route>
+      <Route path="/career-data/advisor-support/:caseId"><ProtectedRoute component={AdvisorSupport} /></Route>
       <Route path="/history"><ProtectedRoute component={AnalysisHistory} /></Route>
 
       {/* 404 */}

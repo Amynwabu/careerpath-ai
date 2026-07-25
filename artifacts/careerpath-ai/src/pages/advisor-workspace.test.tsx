@@ -25,6 +25,6 @@ describe("advisor browser workspace", () => {
     expect(screen.getByRole("heading", { name: "Scoped client cases" })).toBeInTheDocument();
     await waitFor(() => expect(apiRequest).toHaveBeenCalledWith("/advisor/cases"));
     expect(await screen.findByText("No accessible cases.")).toBeInTheDocument();
-    expect(screen.getByText(/verified advisor profile, current grant/)).toBeInTheDocument();
+    expect(screen.getByText(/verified profile, current grant/i)).toBeInTheDocument();
   });
 });

@@ -15,7 +15,6 @@ export const HealthCheckResponse = zod.object({
   "status": zod.string()
 })
 
-
 /**
  * @summary Register a new user
  */
@@ -2150,4 +2149,339 @@ export const CloseAssignedAdvisorCaseResponse = zod.object({
   "recordVersion": zod.number().min(1)
 }),
   "persistenceStatus": zod.literal("persistent")
+})
+
+
+
+
+
+export const ListAdvisorCaseActionsParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+
+
+
+export const CreateAdvisorCaseActionParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+export const GetAdvisorActionParams = zod.object({
+  "actionId": zod.coerce.string()
+})
+
+
+export const UpdateAdvisorActionParams = zod.object({
+  "actionId": zod.coerce.string()
+})
+
+
+export const CompleteAdvisorActionParams = zod.object({
+  "actionId": zod.coerce.string()
+})
+
+
+export const VerifyAdvisorActionParams = zod.object({
+  "actionId": zod.coerce.string()
+})
+
+
+export const DeferAdvisorActionParams = zod.object({
+  "actionId": zod.coerce.string()
+})
+
+
+export const CancelAdvisorActionParams = zod.object({
+  "actionId": zod.coerce.string()
+})
+
+
+export const TransitionAdvisorActionParams = zod.object({
+  "actionId": zod.coerce.string()
+})
+
+
+
+
+
+export const ListAdvisorEvidenceRequestsParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+
+
+
+export const CreateAdvisorEvidenceRequestParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+export const GetAdvisorEvidenceRequestParams = zod.object({
+  "requestId": zod.coerce.string()
+})
+
+
+export const SubmitAdvisorEvidenceParams = zod.object({
+  "requestId": zod.coerce.string()
+})
+
+
+export const ReviewAdvisorEvidenceParams = zod.object({
+  "requestId": zod.coerce.string()
+})
+
+
+export const ClarifyAdvisorEvidenceParams = zod.object({
+  "requestId": zod.coerce.string()
+})
+
+
+export const WithdrawAdvisorEvidenceParams = zod.object({
+  "requestId": zod.coerce.string()
+})
+
+
+
+
+
+export const ListAdvisorCaseReviewsParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+
+
+
+export const CreateAdvisorCaseReviewParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+export const GetAdvisorReviewParams = zod.object({
+  "reviewId": zod.coerce.string()
+})
+
+
+export const SubmitAdvisorReviewDecisionParams = zod.object({
+  "reviewId": zod.coerce.string()
+})
+
+
+export const SubmitAdvisorReviewClientResponseParams = zod.object({
+  "reviewId": zod.coerce.string()
+})
+
+
+export const ResolveAdvisorReviewParams = zod.object({
+  "reviewId": zod.coerce.string()
+})
+
+
+export const WithdrawAdvisorReviewParams = zod.object({
+  "reviewId": zod.coerce.string()
+})
+
+
+export const ListAdvisorReviewCommentsParams = zod.object({
+  "reviewId": zod.coerce.string()
+})
+
+
+export const CreateAdvisorReviewCommentParams = zod.object({
+  "reviewId": zod.coerce.string()
+})
+
+
+export const UpdateAdvisorCommentParams = zod.object({
+  "commentId": zod.coerce.string()
+})
+
+
+export const DeleteAdvisorCommentParams = zod.object({
+  "commentId": zod.coerce.string()
+})
+
+
+export const ResolveAdvisorCommentParams = zod.object({
+  "commentId": zod.coerce.string()
+})
+
+
+
+
+
+export const ListAdvisorCaseOutcomesParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+
+
+
+export const CreateAdvisorCaseOutcomeParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+export const GetAdvisorOutcomeParams = zod.object({
+  "outcomeId": zod.coerce.string()
+})
+
+
+export const UpdateAdvisorOutcomeParams = zod.object({
+  "outcomeId": zod.coerce.string()
+})
+
+
+
+
+
+export const ListAdvisorCasePlacementsParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+
+
+
+export const CreateAdvisorCasePlacementParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+export const GetAdvisorPlacementParams = zod.object({
+  "placementId": zod.coerce.string()
+})
+
+
+export const UpdateAdvisorPlacementParams = zod.object({
+  "placementId": zod.coerce.string()
+})
+
+
+
+
+
+export const ListAdvisorCaseFollowUpsParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+
+
+
+export const CreateAdvisorCaseFollowUpParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+export const GetAdvisorFollowUpParams = zod.object({
+  "followUpId": zod.coerce.string()
+})
+
+
+export const UpdateAdvisorFollowUpParams = zod.object({
+  "followUpId": zod.coerce.string()
+})
+
+
+export const CompleteAdvisorFollowUpParams = zod.object({
+  "followUpId": zod.coerce.string()
+})
+
+
+export const CancelAdvisorFollowUpParams = zod.object({
+  "followUpId": zod.coerce.string()
+})
+
+
+
+
+
+export const ListAdvisorCaseSessionsParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+
+
+
+export const CreateAdvisorCaseSessionParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
+})
+
+
+export const GetAdvisorSessionParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const UpdateAdvisorSessionParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const ConfirmAdvisorSessionParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const StartAdvisorSessionParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const CompleteAdvisorSessionParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const CancelAdvisorSessionParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const RescheduleAdvisorSessionParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const ListAdvisorSessionNotesParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const CreateAdvisorSessionNoteParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const UpdateAdvisorSessionNoteParams = zod.object({
+  "noteId": zod.coerce.string()
+})
+
+
+export const DeleteAdvisorSessionNoteParams = zod.object({
+  "noteId": zod.coerce.string()
+})
+
+
+export const ListAdvisorSessionSummariesParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+export const CreateAdvisorSessionSummaryParams = zod.object({
+  "sessionId": zod.coerce.string()
+})
+
+
+
+
+
+export const ExportAdvisorCaseParams = zod.object({
+  "caseId": zod.coerce.string().min(1)
 })
