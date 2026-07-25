@@ -8,7 +8,7 @@ import {
 } from "@workspace/career-intelligence";
 import { taxonomyCatalogue } from "./taxonomy-catalogue";
 
-class PublishedCatalogueProvider implements TaxonomyProvider {
+export class PublishedCatalogueProvider implements TaxonomyProvider {
   async getPublishedSnapshot(
     version = "2026.1",
   ): Promise<PublishedTaxonomySnapshot> {
@@ -90,8 +90,9 @@ class PublishedCatalogueProvider implements TaxonomyProvider {
   }
 }
 
+export const publishedTaxonomyProvider = new PublishedCatalogueProvider();
 export const careerIntelligenceEngine = new CareerIntelligenceEngine(
-  new PublishedCatalogueProvider(),
+  publishedTaxonomyProvider,
 );
 
 function normalise(value: string) {
