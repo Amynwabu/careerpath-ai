@@ -31,6 +31,12 @@ tags:
     description: Progress actions
   - name: dashboard
     description: Dashboard summary data
+  - name: opportunities
+    description: Deterministic vacancy ingestion, matching, ranking and explanation
+  - name: application-intelligence
+    description: Evidence-grounded CV analysis, claim-safe tailoring and application readiness
+  - name: interview-intelligence
+    description: Evidence-grounded interview planning, STAR coaching and practice readiness
 paths:
   /healthz:
     get:
@@ -1080,6 +1086,590 @@ paths:
         "200":
           description: Cancelled deletion request
 
+  /jobs/import:
+    post:
+      operationId: importJobs
+      tags: [opportunities]
+      summary: Validate and normalize vacancies against the published taxonomy
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VacancyImportRequest"
+      responses:
+        "200":
+          description: Normalized vacancies
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VacancyListResponse" }
+        "400":
+          description: Structured vacancy validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OpportunityError" }
+        "503":
+          description: Published taxonomy unavailable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OpportunityError" }
+
+  /jobs:
+    get:
+      operationId: listJobs
+      tags: [opportunities]
+      summary: List normalized vacancies using privacy-safe filters
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { in: query, name: minimumSalary, schema: { type: number, minimum: 0 } }
+        - { in: query, name: remoteType, schema: { type: string } }
+        - { in: query, name: industry, schema: { type: string } }
+        - { in: query, name: employmentType, schema: { type: string } }
+        - { in: query, name: visaSponsorship, schema: { type: boolean } }
+        - { in: query, name: securityClearance, schema: { type: boolean } }
+        - { in: query, name: location, schema: { type: string } }
+        - { in: query, name: postedSince, schema: { type: string, format: date-time } }
+      responses:
+        "200":
+          description: Vacancy results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VacancyListResponse" }
+
+  /jobs/search:
+    get:
+      operationId: searchJobs
+      tags: [opportunities]
+      summary: Search normalized vacancy text and published occupation titles
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { in: query, name: q, schema: { type: string, maxLength: 200 } }
+        - { in: query, name: minimumSalary, schema: { type: number, minimum: 0 } }
+        - { in: query, name: remoteType, schema: { type: string } }
+        - { in: query, name: location, schema: { type: string } }
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VacancyListResponse" }
+
+  /jobs/{id}:
+    get:
+      operationId: getJob
+      tags: [opportunities]
+      summary: Get a normalized vacancy
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Vacancy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [vacancy]
+                properties:
+                  vacancy: { $ref: "#/components/schemas/CanonicalVacancy" }
+        "404":
+          description: Vacancy not found
+
+  /job-matches:
+    post:
+      operationId: calculateJobMatches
+      tags: [opportunities]
+      summary: Calculate and rank deterministic job matches
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MatchRequest" }
+      responses:
+        "200":
+          description: Ranked, explainable matches subject to membership entitlements
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MatchListResponse" }
+        "403":
+          description: Membership entitlement required
+        "400":
+          description: Invalid evidence or weights
+    get:
+      operationId: listJobMatches
+      tags: [opportunities]
+      summary: List the authenticated user's current match results
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200":
+          description: Owner-scoped match results
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MatchListResponse" }
+
+  /job-matches/compare:
+    post:
+      operationId: compareJobMatches
+      tags: [opportunities]
+      summary: Compare selected match evidence when entitled
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [jobIds]
+              properties:
+                jobIds:
+                  type: array
+                  minItems: 2
+                  maxItems: 5
+                  items: { type: string }
+      responses:
+        "200": { description: Comparison }
+        "403": { description: Membership entitlement required }
+
+  /employability-score:
+    post:
+      operationId: calculateEmployabilityScore
+      tags: [opportunities]
+      summary: Calculate an evidence-based employability score for one vacancy
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MatchRequest" }
+      responses:
+        "200":
+          description: Explainable employability result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: { $ref: "#/components/schemas/EmployabilityResult" }
+
+  /jobs/explain:
+    post:
+      operationId: explainJobRecommendation
+      tags: [opportunities]
+      summary: Explain score components, strengths and evidence-linked gaps
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [jobId]
+              properties:
+                jobId: { type: string }
+      responses:
+        "200": { description: Deterministic recommendation explanation }
+        "404": { description: Match not found }
+
+  /cv-optimisation/sessions:
+    post:
+      operationId: createCvOptimisationSession
+      tags: [application-intelligence]
+      summary: Start an owner-scoped CV optimisation session
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CvOptimisationSessionRequest" }
+      responses:
+        "200": { description: Session created or idempotently replayed }
+        "400": { description: Invalid profile, vacancy or source CV }
+        "403": { description: Entitlement required }
+    get:
+      operationId: listCvOptimisationSessions
+      tags: [application-intelligence]
+      summary: List the authenticated owner's sessions without raw profile or CV content
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200": { description: Owner-scoped sessions }
+
+  /cv-optimisation/sessions/{sessionId}:
+    get:
+      operationId: getCvOptimisationSession
+      tags: [application-intelligence]
+      summary: Get an owner-scoped optimisation session
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvSessionId" }]
+      responses:
+        "200": { description: Session without raw profile or CV content }
+        "404": { description: Session not found or not owned by caller }
+
+  /cv-optimisation/sessions/{sessionId}/analyse:
+    post:
+      operationId: analyseCvOptimisationSession
+      tags: [application-intelligence]
+      summary: Run deterministic requirement, evidence, ATS and keyword analysis
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/CvSessionId" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: CV analysis and recommendations }
+        "403": { description: Entitlement required }
+
+  /cv-optimisation/sessions/{sessionId}/analysis:
+    get:
+      operationId: getCvOptimisationAnalysis
+      tags: [application-intelligence]
+      summary: Get analysis with ATS detail restricted by entitlement
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvSessionId" }]
+      responses:
+        "200": { description: Deterministic CV analysis }
+
+  /cv-optimisation/sessions/{sessionId}/recommendations:
+    get:
+      operationId: listCvOptimisationRecommendations
+      tags: [application-intelligence]
+      summary: List vacancy-, ATS-, claim- and evidence-linked recommendations
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvSessionId" }]
+      responses:
+        "200": { description: Recommendations }
+
+  /cv-optimisation/sessions/{sessionId}/recommendations/{recommendationId}/accept:
+    post:
+      operationId: acceptCvRecommendation
+      tags: [application-intelligence]
+      summary: Accept a recommendation using optimistic concurrency
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/CvSessionId" }
+        - { $ref: "#/components/parameters/RecommendationId" }
+        - { $ref: "#/components/parameters/RecordVersion" }
+      responses:
+        "200": { description: Recommendation accepted }
+        "409": { description: Record version conflict }
+
+  /cv-optimisation/sessions/{sessionId}/recommendations/{recommendationId}/reject:
+    post:
+      operationId: rejectCvRecommendation
+      tags: [application-intelligence]
+      summary: Reject a recommendation using optimistic concurrency
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/CvSessionId" }
+        - { $ref: "#/components/parameters/RecommendationId" }
+        - { $ref: "#/components/parameters/RecordVersion" }
+      responses:
+        "200": { description: Recommendation rejected }
+        "409": { description: Record version conflict }
+
+  /cv-optimisation/sessions/{sessionId}/drafts:
+    post:
+      operationId: createTailoredCvDraft
+      tags: [application-intelligence]
+      summary: Assemble a versioned draft from supported Career Profile evidence
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/CvSessionId" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: Claim-validated tailored draft }
+        "400": { description: Unsupported claim or incomplete analysis }
+        "403": { description: Tailored generation entitlement required }
+    get:
+      operationId: listTailoredCvDrafts
+      tags: [application-intelligence]
+      summary: List draft versions subject to version-history entitlement
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvSessionId" }]
+      responses:
+        "200": { description: Draft versions }
+
+  /cv-optimisation/drafts/{draftId}:
+    get:
+      operationId: getTailoredCvDraft
+      tags: [application-intelligence]
+      summary: Get an owner-scoped draft
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvDraftId" }]
+      responses:
+        "200": { description: Tailored CV draft }
+        "404": { description: Draft not found or not owned by caller }
+    patch:
+      operationId: editTailoredCvDraft
+      tags: [application-intelligence]
+      summary: Create a new immutable version after claim validation
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/CvDraftId" }
+        - { $ref: "#/components/parameters/RecordVersion" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text, sourceEvidenceIds]
+              properties:
+                text: { type: string }
+                sourceEvidenceIds: { type: array, items: { type: string } }
+      responses:
+        "200": { description: New draft version }
+        "400": { description: Unsupported claim detected or confirmation required }
+        "409": { description: Record version conflict }
+
+  /cv-optimisation/drafts/{draftId}/validate:
+    post:
+      operationId: validateTailoredCvDraft
+      tags: [application-intelligence]
+      summary: Recheck claim validation before approval or export
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvDraftId" }]
+      responses:
+        "200": { description: Claim-validation result }
+
+  /cv-optimisation/drafts/{draftId}/compare:
+    post:
+      operationId: compareTailoredCvDrafts
+      tags: [application-intelligence]
+      summary: Build an evidence-linked structured redline
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvDraftId" }]
+      responses:
+        "200": { description: Structured redline changes }
+
+  /cv-optimisation/drafts/{draftId}/approve:
+    post:
+      operationId: approveTailoredCvDraft
+      tags: [application-intelligence]
+      summary: Approve a draft only when all claims are automatically includable
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/CvDraftId" }
+        - { $ref: "#/components/parameters/RecordVersion" }
+      responses:
+        "200": { description: Draft approved }
+        "400": { description: Unsupported claim detected }
+
+  /cv-optimisation/drafts/{draftId}/reviews:
+    post:
+      operationId: requestCvAdvisorReview
+      tags: [application-intelligence]
+      summary: Fail closed until a persistent scoped advisor grant is available
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvDraftId" }]
+      responses:
+        "403": { description: Advisor scope required }
+    get:
+      operationId: listCvAdvisorReviews
+      tags: [application-intelligence]
+      summary: List persisted scoped reviews when available
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/CvDraftId" }]
+      responses:
+        "200": { description: Empty until persistent scoped advisor workflow is provisioned }
+
+  /application-support/cover-letter/context:
+    post:
+      operationId: buildCoverLetterContext
+      tags: [application-intelligence]
+      summary: Build minimized evidence context without generating prose
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200": { description: Evidence-bound cover-letter context }
+        "403": { description: Entitlement required }
+
+  /application-support/questions/context:
+    post:
+      operationId: buildApplicationQuestionContext
+      tags: [application-intelligence]
+      summary: Build evidence context or return user_input_required
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200": { description: Question context }
+        "403": { description: Entitlement required }
+
+  /application-support/readiness:
+    post:
+      operationId: calculateApplicationReadiness
+      tags: [application-intelligence]
+      summary: Calculate non-predictive document and evidence readiness
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200": { description: Readiness score and categorized blockers }
+
+  /cv-optimisation/drafts/{draftId}/export:
+    post:
+      operationId: exportTailoredCvDraft
+      tags: [application-intelligence]
+      summary: Export owner-bound plain text, Markdown or structured JSON
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/CvDraftId" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: Owner-bound process-local export record }
+        "400": { description: Unsupported export format }
+
+  /cv-optimisation/exports/{exportId}:
+    get:
+      operationId: getCvExport
+      tags: [application-intelligence]
+      summary: Get an owner-bound process-local export
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: exportId
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Export record }
+        "404": { description: Export not found or not owned by caller }
+
+  /interview-intelligence/sessions:
+    post:
+      operationId: createInterviewSession
+      tags: [interview-intelligence]
+      summary: Create an owner-scoped interview preparation session
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      responses:
+        "200": { description: Session created or idempotently replayed }
+        "400": { description: Invalid profile, expired vacancy or unresolved vacancy }
+    get:
+      operationId: listInterviewSessions
+      tags: [interview-intelligence]
+      summary: List owner-scoped sessions without Career Profile content
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200": { description: Interview sessions }
+
+  /interview-intelligence/sessions/{sessionId}:
+    get:
+      operationId: getInterviewSession
+      tags: [interview-intelligence]
+      summary: Get an owner-scoped interview session
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewSessionId" }]
+      responses:
+        "200": { description: Interview session }
+        "404": { description: Not found or not owned by caller }
+    patch:
+      operationId: updateInterviewSession
+      tags: [interview-intelligence]
+      summary: Update confirmed interview metadata using optimistic concurrency
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/InterviewSessionId" }
+        - { $ref: "#/components/parameters/RecordVersion" }
+      responses:
+        "200": { description: Updated session }
+        "409": { description: Record version conflict }
+
+  /interview-intelligence/sessions/{sessionId}/analyse:
+    post:
+      operationId: analyseInterviewSession
+      tags: [interview-intelligence]
+      summary: Build deterministic competencies, questions and evidence selections
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/InterviewSessionId" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: Analysed interview session }
+
+  /interview-intelligence/sessions/{sessionId}/competencies:
+    get:
+      operationId: listInterviewCompetencies
+      tags: [interview-intelligence]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewSessionId" }]
+      responses:
+        "200": { description: Vacancy-traceable competencies }
+
+  /interview-intelligence/sessions/{sessionId}/questions:
+    get:
+      operationId: listInterviewQuestions
+      tags: [interview-intelligence]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewSessionId" }]
+      responses:
+        "200": { description: Role-relevant question plan }
+
+  /interview-intelligence/questions/{questionId}/responses:
+    post:
+      operationId: createStarResponse
+      tags: [interview-intelligence]
+      summary: Create a claim-validated STAR response
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewQuestionId" }]
+      responses:
+        "200": { description: Supported versioned STAR response }
+        "400": { description: Unsupported or conflicting claim }
+    get:
+      operationId: listStarResponses
+      tags: [interview-intelligence]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewQuestionId" }]
+      responses:
+        "200": { description: Owner-scoped response versions }
+
+  /interview-intelligence/sessions/{sessionId}/practice:
+    post:
+      operationId: createInterviewPractice
+      tags: [interview-intelligence]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewSessionId" }]
+      responses:
+        "200": { description: Structured practice session }
+        "403": { description: Entitlement required }
+    get:
+      operationId: listInterviewPractice
+      tags: [interview-intelligence]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewSessionId" }]
+      responses:
+        "200": { description: Practice history }
+
+  /interview-intelligence/sessions/{sessionId}/readiness:
+    post:
+      operationId: calculateInterviewReadiness
+      tags: [interview-intelligence]
+      summary: Calculate non-predictive readiness and categorized blockers
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewSessionId" }]
+      responses:
+        "200": { description: Interview readiness }
+
+  /interview-intelligence/sessions/{sessionId}/progress:
+    get:
+      operationId: getInterviewProgress
+      tags: [interview-intelligence]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters: [{ $ref: "#/components/parameters/InterviewSessionId" }]
+      responses:
+        "200": { description: Completion and verified-preparation progress }
+
+  /interview-intelligence/sessions/{sessionId}/export:
+    post:
+      operationId: exportInterviewPack
+      tags: [interview-intelligence]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/InterviewSessionId" }
+        - { $ref: "#/components/parameters/IdempotencyKey" }
+      responses:
+        "200": { description: Owner-bound structured interview pack }
+        "403": { description: Entitlement required }
+
 components:
   securitySchemes:
     cookieAuth:
@@ -1103,6 +1693,31 @@ components:
       name: If-Match
       required: true
       description: Current integer record version
+    CvSessionId:
+      in: path
+      name: sessionId
+      required: true
+      schema: { type: string }
+    CvDraftId:
+      in: path
+      name: draftId
+      required: true
+      schema: { type: string }
+    RecommendationId:
+      in: path
+      name: recommendationId
+      required: true
+      schema: { type: string }
+    InterviewSessionId:
+      in: path
+      name: sessionId
+      required: true
+      schema: { type: string }
+    InterviewQuestionId:
+      in: path
+      name: questionId
+      required: true
+      schema: { type: string }
       schema:
         type: integer
         minimum: 1
@@ -1153,6 +1768,162 @@ components:
             required: [error, code]
 
   schemas:
+    CvOptimisationSessionRequest:
+      type: object
+      required: [profile, vacancy, matchResult, sourceCv]
+      properties:
+        profile: { type: object, additionalProperties: true }
+        vacancy: { $ref: "#/components/schemas/CanonicalVacancy" }
+        matchResult: { $ref: "#/components/schemas/EmployabilityResult" }
+        sourceCv:
+          type: object
+          required: [fileType, text, sectionHeadings]
+          properties:
+            fileType:
+              type: string
+              enum: [pdf, docx, text, markdown, other]
+            text: { type: string }
+            sectionHeadings: { type: array, items: { type: string } }
+            tableCount: { type: integer, minimum: 0 }
+            columnCount: { type: integer, minimum: 1 }
+            textBoxCount: { type: integer, minimum: 0 }
+            headerHasCriticalContent: { type: boolean }
+            footerHasCriticalContent: { type: boolean }
+            imageOnlyContent: { type: boolean }
+            embeddedScripts: { type: boolean }
+            hiddenTextDetected: { type: boolean }
+        targetFormat:
+          type: string
+          enum: [one_page_cv, two_page_cv, extended_academic_cv, executive_cv, technical_cv, graduate_cv]
+        targetLocale: { type: string }
+        selectedTemplate:
+          type: string
+          enum: [professional, technical, executive, graduate, academic, career_change]
+    RawVacancy:
+      type: object
+      additionalProperties: false
+      required: [source, sourceReference, title, description, postedDate]
+      properties:
+        jobId: { type: string }
+        source:
+          type: string
+          enum: [manual, employer_portal, csv, json, xml, rest_api]
+        sourceReference: { type: string }
+        title: { type: string }
+        description: { type: string }
+        location: { type: string }
+        remoteType: { type: string }
+        employmentType: { type: string }
+        salaryMin: { type: number, minimum: 0 }
+        salaryMax: { type: number, minimum: 0 }
+        salaryPeriod:
+          type: string
+          enum: [hourly, daily, weekly, monthly, annual]
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        postedDate: { type: string, format: date-time }
+        expiryDate: { type: string, format: date-time }
+        applicationUrl: { type: string, format: uri }
+        occupationCode: { type: string }
+        taxonomyVersion: { type: string }
+        requiredSkills: { type: array, items: { type: string } }
+        preferredSkills: { type: array, items: { type: string } }
+        qualifications: { type: array, items: { type: string } }
+        certifications: { type: array, items: { type: string } }
+        visaSponsorship: { type: boolean }
+        securityClearance: { type: boolean }
+        industry: { type: string }
+    CanonicalVacancy:
+      allOf:
+        - { $ref: "#/components/schemas/RawVacancy" }
+        - type: object
+          required: [jobId, occupationCode, occupationTitle, careerFamily, taxonomyVersion]
+          properties:
+            jobId: { type: string }
+            occupationCode: { type: string }
+            occupationTitle: { type: string }
+            careerFamily: { type: string }
+            requiredSkills: { type: array, items: { type: string } }
+            preferredSkills: { type: array, items: { type: string } }
+            unresolvedRequiredSkills: { type: array, items: { type: string } }
+            unresolvedPreferredSkills: { type: array, items: { type: string } }
+            taxonomyVersion: { type: string }
+    VacancyImportRequest:
+      type: object
+      properties:
+        vacancy: { $ref: "#/components/schemas/RawVacancy" }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/RawVacancy" }
+        taxonomyVersion: { type: string }
+    VacancyListResponse:
+      type: object
+      required: [items, persistenceStatus]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/CanonicalVacancy" }
+        count: { type: integer }
+        persistenceStatus:
+          type: string
+          enum: [process_local]
+    MatchRequest:
+      type: object
+      required: [profile]
+      properties:
+        jobId: { type: string }
+        jobIds: { type: array, items: { type: string } }
+        profile: { type: object, additionalProperties: true }
+        preferences: { type: object, additionalProperties: true }
+        weights: { type: object, additionalProperties: { type: number } }
+        experienceYears: { type: number, minimum: 0 }
+        qualifications: { type: array, items: { type: string } }
+        certifications: { type: array, items: { type: string } }
+    EmployabilityResult:
+      type: object
+      required: [jobId, overallScore, matchBand, confidence, gaps, explanations, disclaimer]
+      properties:
+        jobId: { type: string }
+        overallScore: { type: integer, minimum: 0, maximum: 100 }
+        matchBand:
+          type: string
+          enum: [Perfect Match, Excellent Match, Strong Match, Moderate Match, Weak Match, Poor Match]
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        gaps: { type: array, items: { type: object, additionalProperties: true } }
+        strengths: { type: array, items: { type: object, additionalProperties: true } }
+        explanations: { type: array, items: { type: string } }
+        disclaimer: { type: string }
+    MatchListResponse:
+      type: object
+      required: [items, entitlements, persistenceStatus]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              vacancy: { $ref: "#/components/schemas/CanonicalVacancy" }
+              match: { $ref: "#/components/schemas/EmployabilityResult" }
+              rankScore: { type: number }
+        entitlements: { type: object, additionalProperties: { type: boolean } }
+        persistenceStatus:
+          type: string
+          enum: [process_local]
+    OpportunityError:
+      type: object
+      required: [code, error]
+      properties:
+        code: { type: string }
+        error: { type: string }
+        taxonomyStatus: { type: string }
+        issues:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string }
+              path: { type: string }
+              message: { type: string }
+              severity: { type: string, enum: [error, warning] }
     CareerPlanningError:
       type: object
       properties:

@@ -1,0 +1,22 @@
+{
+  "name": "@workspace/interview-intelligence",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@workspace/application-intelligence": "workspace:*",
+    "@workspace/career-profile": "workspace:*",
+    "@workspace/opportunity-intelligence": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "vitest": "^4.1.9"
+  }
+}

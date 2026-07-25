@@ -23,6 +23,15 @@
     },
     {
       "path": "./lib/career-data"
+    },
+    {
+      "path": "./lib/opportunity-intelligence"
+    },
+    {
+      "path": "./lib/application-intelligence"
+    },
+    {
+      "path": "./lib/interview-intelligence"
     }
   ]
 }

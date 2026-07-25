@@ -25,6 +25,9 @@ import Onboarding from "@/pages/onboarding";
 import Start from "@/pages/start";
 import CareerPlan from "@/pages/career-plan";
 import CareerData from "@/pages/career-data";
+import Opportunities from "@/pages/opportunities";
+import CvOptimisation from "@/pages/cv-optimisation";
+import InterviewPreparation from "@/pages/interview-preparation";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +59,9 @@ function Router() {
       <Route path="/career-goal"><ProtectedRoute component={CareerGoal} /></Route>
       <Route path="/career-plan"><ProtectedRoute component={CareerPlan} /></Route>
       <Route path="/career-data"><ProtectedRoute component={CareerData} /></Route>
+      <Route path="/opportunities"><ProtectedRoute component={Opportunities} /></Route>
+      <Route path="/cv-optimisation"><ProtectedRoute component={CvOptimisation} /></Route>
+      <Route path="/interview-preparation"><ProtectedRoute component={InterviewPreparation} /></Route>
       <Route path="/analysis"><ProtectedRoute component={Analysis} /></Route>
       <Route path="/roadmap"><ProtectedRoute component={Roadmap} /></Route>
       <Route path="/journey-builder"><ProtectedRoute component={JourneyBuilder} /></Route>

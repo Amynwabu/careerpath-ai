@@ -21,6 +21,9 @@ import careerIntelligenceRouter from "./career-intelligence";
 import careerProfileRouter from "./career-profile";
 import careerPlanningRouter from "./career-planning";
 import careerDataRouter from "./career-data";
+import opportunitiesRouter from "./opportunities";
+import applicationIntelligenceRouter from "./application-intelligence";
+import interviewIntelligenceRouter from "./interview-intelligence";
 
 const router: IRouter = Router();
 
@@ -46,5 +49,8 @@ router.use(careerIntelligenceRouter);
 router.use(careerProfileRouter);
 router.use(careerPlanningRouter);
 router.use(careerDataRouter);
+router.use(opportunitiesRouter);
+router.use(applicationIntelligenceRouter);
+router.use(interviewIntelligenceRouter);
 
 export default router;
