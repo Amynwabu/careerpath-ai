@@ -1,4 +1,4 @@
-export type AdvisorScope = "profile_read" | "redacted_profile_read" | "assessment_read" | "plan_read" | "plan_comment" | "evidence_review";
+export type AdvisorScope = "profile_read" | "redacted_profile_read" | "assessment_read" | "plan_read" | "plan_comment" | "plan_action_review" | "opportunity_read" | "job_match_read" | "cv_analysis_read" | "cv_draft_read" | "cv_review" | "interview_plan_read" | "interview_response_read" | "interview_review" | "evidence_read" | "evidence_review" | "session_summary_read" | "case_manage" | "outcome_record";
 export interface AuthorizationContext {
     actorUserId: number;
     actorRole: "user" | "premium" | "coach" | "admin";

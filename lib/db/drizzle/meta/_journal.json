@@ -29,6 +29,20 @@
       "when": 1784968184901,
       "tag": "0002_career_data_rate_limit_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784978846398,
+      "tag": "0004_mighty_thing",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784978846400,
+      "tag": "0005_advisor_workspace_rls",
+      "breakpoints": true
     }
   ]
 }

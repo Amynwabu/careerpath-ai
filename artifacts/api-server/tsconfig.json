@@ -8,6 +8,9 @@
   "include": ["src"],
   "references": [
     {
+      "path": "../../lib/advisor-workspace"
+    },
+    {
       "path": "../../lib/db"
     },
     {

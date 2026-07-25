@@ -349,3 +349,189 @@ export const careerDataRateLimitsTable = pgTable("career_data_rate_limits", {
   uniqueIndex("career_data_rate_limit_window_idx").on(table.ownerUserId, table.endpointClass, table.windowStartedAt),
   index("career_data_rate_limit_cleanup_idx").on(table.windowStartedAt),
 ]);
+
+export const careerDataAdvisorProfilesTable = pgTable("career_data_advisor_profiles", {
+  id: text("advisor_profile_id").primaryKey(),
+  advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
+  displayName: text("display_name").notNull(),
+  professionalTitle: text("professional_title"),
+  verificationStatus: text("verification_status").notNull().default("unverified"),
+  accountStatus: text("account_status").notNull().default("inactive"),
+  capacityStatus: text("capacity_status").notNull().default("not_accepting_new_clients"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  recordVersion: integer("record_version").notNull().default(1),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (table) => [
+  uniqueIndex("career_data_advisor_profiles_user_idx").on(table.advisorUserId),
+  index("career_data_advisor_profiles_status_idx").on(table.verificationStatus, table.accountStatus),
+]);
+
+export const careerDataAdvisorSpecialismsTable = pgTable("career_data_advisor_specialisms", {
+  id: text("id").primaryKey(),
+  advisorProfileId: text("advisor_profile_id").notNull().references(() => careerDataAdvisorProfilesTable.id, { onDelete: "cascade" }),
+  specialismCode: text("specialism_code").notNull(),
+  declarationStatus: text("declaration_status").notNull(),
+  reviewStatus: text("review_status").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [uniqueIndex("career_data_advisor_specialism_unique_idx").on(table.advisorProfileId, table.specialismCode)]);
+
+export const careerDataAdvisorCapacityTable = pgTable("career_data_advisor_capacity", {
+  id: text("id").primaryKey(),
+  advisorProfileId: text("advisor_profile_id").notNull().references(() => careerDataAdvisorProfilesTable.id, { onDelete: "cascade" }),
+  capacityStatus: text("capacity_status").notNull(),
+  maximumActiveCases: integer("maximum_active_cases"),
+  availableSessionSlots: integer("available_session_slots"),
+  serviceCategories: jsonb("service_categories").notNull().default([]),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  recordVersion: integer("record_version").notNull().default(1),
+}, (table) => [uniqueIndex("career_data_advisor_capacity_profile_idx").on(table.advisorProfileId)]);
+
+export const careerDataAdvisorCasesTable = pgTable("career_data_advisor_cases", {
+  id: text("case_id").primaryKey(),
+  ...ownerFields,
+  ...deletionFields,
+  advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
+  advisorProfileId: text("advisor_profile_id").notNull().references(() => careerDataAdvisorProfilesTable.id, { onDelete: "restrict" }),
+  advisorGrantId: text("advisor_grant_id").notNull().references(() => careerDataAdvisorGrantsTable.id, { onDelete: "restrict" }),
+  serviceType: text("service_type").notNull(),
+  caseStatus: text("case_status").notNull(),
+  caseStage: text("case_stage").notNull(),
+  priority: text("priority").notNull().default("standard"),
+  openedAt: timestamp("opened_at", { withTimezone: true }).notNull().defaultNow(),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  nextReviewAt: timestamp("next_review_at", { withTimezone: true }),
+}, (table) => [
+  index("career_data_advisor_cases_advisor_idx").on(table.advisorUserId, table.caseStatus),
+  index("career_data_advisor_cases_owner_idx").on(table.ownerUserId, table.caseStatus),
+  index("career_data_advisor_cases_grant_idx").on(table.advisorGrantId),
+  index("career_data_advisor_cases_review_idx").on(table.nextReviewAt),
+]);
+
+export const careerDataAdvisorCaseResourcesTable = pgTable("career_data_advisor_case_resources", {
+  id: text("case_resource_id").primaryKey(),
+  caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  ownerUserId: integer("owner_user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
+  resourceType: text("resource_type").notNull(),
+  resourceId: text("resource_id").notNull(),
+  requiredScope: text("required_scope").notNull(),
+  sharedAt: timestamp("shared_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdBy: integer("created_by").notNull().references(() => usersTable.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("career_data_advisor_case_resource_unique_idx").on(table.caseId, table.resourceType, table.resourceId),
+  index("career_data_advisor_case_resource_owner_idx").on(table.ownerUserId, table.resourceType),
+]);
+
+export const careerDataAdvisorSessionsTable = pgTable("career_data_advisor_sessions", {
+  id: text("session_id").primaryKey(), ...ownerFields,
+  caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
+  sessionType: text("session_type").notNull(), sessionStatus: text("session_status").notNull(),
+  scheduledStart: timestamp("scheduled_start", { withTimezone: true }), scheduledEnd: timestamp("scheduled_end", { withTimezone: true }),
+  actualStart: timestamp("actual_start", { withTimezone: true }), actualEnd: timestamp("actual_end", { withTimezone: true }),
+  deliveryMode: text("delivery_mode").notNull(), locationOrProviderReference: text("location_or_provider_reference"),
+}, (table) => [index("career_data_advisor_sessions_case_idx").on(table.caseId, table.scheduledStart)]);
+
+export const careerDataAdvisorSessionNotesTable = pgTable("career_data_advisor_session_notes", {
+  id: text("note_id").primaryKey(), ...ownerFields, ...deletionFields,
+  sessionId: text("session_id").notNull().references(() => careerDataAdvisorSessionsTable.id, { onDelete: "restrict" }),
+  caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id, { onDelete: "restrict" }),
+  noteType: text("note_type").notNull(), visibilityScope: text("visibility_scope").notNull(), content: text("content").notNull(),
+}, (table) => [index("career_data_advisor_notes_session_idx").on(table.sessionId, table.visibilityScope)]);
+
+export const careerDataAdvisorSessionSummariesTable = pgTable("career_data_advisor_session_summaries", {
+  id: text("summary_id").primaryKey(), ownerUserId: integer("owner_user_id").notNull().references(() => usersTable.id),
+  advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id),
+  sessionId: text("session_id").notNull().references(() => careerDataAdvisorSessionsTable.id, { onDelete: "restrict" }),
+  caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  summaryVersion: integer("summary_version").notNull(), sessionObjective: text("session_objective").notNull(),
+  topicsDiscussed: jsonb("topics_discussed").notNull().default([]), keyObservations: jsonb("key_observations").notNull().default([]),
+  agreedDecisions: jsonb("agreed_decisions").notNull().default([]), risksOrBlockers: jsonb("risks_or_blockers").notNull().default([]),
+  nextReviewAt: timestamp("next_review_at", { withTimezone: true }), clientVisibleSummary: text("client_visible_summary").notNull(),
+  createdBy: integer("created_by").notNull().references(() => usersTable.id), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  supersedesSummaryId: text("supersedes_summary_id"),
+}, (table) => [uniqueIndex("career_data_advisor_summary_version_idx").on(table.sessionId, table.summaryVersion)]);
+
+export const careerDataAdvisorActionsTable = pgTable("career_data_advisor_actions", {
+  id: text("action_id").primaryKey(), ...ownerFields,
+  caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id), assignedTo: text("assigned_to").notNull(),
+  actionType: text("action_type").notNull(), title: text("title").notNull(), description: text("description").notNull(),
+  priority: text("priority").notNull(), status: text("status").notNull(), dueAt: timestamp("due_at", { withTimezone: true }),
+  sourceSessionId: text("source_session_id").references(() => careerDataAdvisorSessionsTable.id), relatedResourceType: text("related_resource_type"),
+  relatedResourceId: text("related_resource_id"), completionEvidenceRequired: boolean("completion_evidence_required").notNull().default(false),
+  completedAt: timestamp("completed_at", { withTimezone: true }), verifiedAt: timestamp("verified_at", { withTimezone: true }),
+}, (table) => [index("career_data_advisor_actions_case_idx").on(table.caseId, table.status), index("career_data_advisor_actions_due_idx").on(table.assignedTo, table.dueAt)]);
+
+export const careerDataAdvisorEvidenceRequestsTable = pgTable("career_data_advisor_evidence_requests", {
+  id: text("evidence_request_id").primaryKey(), ...ownerFields,
+  caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id), requestedBy: integer("requested_by").notNull().references(() => usersTable.id),
+  requestedFrom: integer("requested_from").notNull().references(() => usersTable.id), evidenceType: text("evidence_type").notNull(),
+  description: text("description").notNull(), relatedRequirement: text("related_requirement"), relatedResourceType: text("related_resource_type"),
+  relatedResourceId: text("related_resource_id"), dueAt: timestamp("due_at", { withTimezone: true }), status: text("status").notNull(),
+  submittedEvidenceId: text("submitted_evidence_id"), reviewDecision: text("review_decision"), reviewNotes: text("review_notes"),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+}, (table) => [index("career_data_advisor_evidence_case_idx").on(table.caseId, table.status)]);
+
+export const careerDataAdvisorReviewItemsTable = pgTable("career_data_advisor_review_items", {
+  id: text("review_item_id").primaryKey(), ...ownerFields,
+  caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id), resourceType: text("resource_type").notNull(),
+  resourceId: text("resource_id").notNull(), reviewType: text("review_type").notNull(), status: text("status").notNull(),
+  priority: text("priority").notNull(), advisorDecision: text("advisor_decision"), clientDecision: text("client_decision"),
+  decisionReason: text("decision_reason"), resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+}, (table) => [index("career_data_advisor_reviews_case_idx").on(table.caseId, table.status)]);
+
+export const careerDataAdvisorCommentsTable = pgTable("career_data_advisor_comments", {
+  id: text("comment_id").primaryKey(), caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  reviewItemId: text("review_item_id").notNull().references(() => careerDataAdvisorReviewItemsTable.id, { onDelete: "restrict" }),
+  parentCommentId: text("parent_comment_id"), authorUserId: integer("author_user_id").notNull().references(() => usersTable.id),
+  authorRole: text("author_role").notNull(), visibilityScope: text("visibility_scope").notNull(), content: text("content").notNull(),
+  status: text("status").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(), recordVersion: integer("record_version").notNull().default(1),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+}, (table) => [index("career_data_advisor_comments_review_idx").on(table.reviewItemId, table.visibilityScope)]);
+
+export const careerDataAdvisorOutcomesTable = pgTable("career_data_advisor_outcomes", {
+  id: text("outcome_id").primaryKey(), caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  ownerUserId: integer("owner_user_id").notNull().references(() => usersTable.id), advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id),
+  outcomeType: text("outcome_type").notNull(), outcomeDate: timestamp("outcome_date", { withTimezone: true }).notNull(),
+  verificationStatus: text("verification_status").notNull(), sourceReference: text("source_reference"), notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => usersTable.id), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  recordVersion: integer("record_version").notNull().default(1),
+}, (table) => [index("career_data_advisor_outcomes_case_idx").on(table.caseId, table.outcomeType)]);
+
+export const careerDataAdvisorPlacementsTable = pgTable("career_data_advisor_placements", {
+  id: text("placement_id").primaryKey(), caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  ownerUserId: integer("owner_user_id").notNull().references(() => usersTable.id), advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id),
+  employerName: text("employer_name").notNull(), roleTitle: text("role_title").notNull(), startDate: timestamp("start_date", { withTimezone: true }),
+  employmentType: text("employment_type"), location: text("location"), salaryAmount: bigint("salary_amount", { mode: "number" }),
+  salaryCurrency: text("salary_currency"), salaryPeriod: text("salary_period"), sourceOpportunityId: text("source_opportunity_id"),
+  offerStatus: text("offer_status").notNull(), verificationStatus: text("verification_status").notNull(),
+  createdBy: integer("created_by").notNull().references(() => usersTable.id), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(), recordVersion: integer("record_version").notNull().default(1),
+}, (table) => [index("career_data_advisor_placements_case_idx").on(table.caseId)]);
+
+export const careerDataAdvisorFollowUpsTable = pgTable("career_data_advisor_follow_ups", {
+  id: text("follow_up_id").primaryKey(), caseId: text("case_id").notNull().references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  ownerUserId: integer("owner_user_id").notNull().references(() => usersTable.id), advisorUserId: integer("advisor_user_id").notNull().references(() => usersTable.id),
+  followUpType: text("follow_up_type").notNull(), dueAt: timestamp("due_at", { withTimezone: true }).notNull(), status: text("status").notNull(),
+  relatedActionId: text("related_action_id").references(() => careerDataAdvisorActionsTable.id), relatedSessionId: text("related_session_id").references(() => careerDataAdvisorSessionsTable.id),
+  createdBy: integer("created_by").notNull().references(() => usersTable.id), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(), completedAt: timestamp("completed_at", { withTimezone: true }),
+  recordVersion: integer("record_version").notNull().default(1),
+}, (table) => [index("career_data_advisor_followups_due_idx").on(table.advisorUserId, table.dueAt)]);
+
+export const careerDataAdvisorActivityEventsTable = pgTable("career_data_advisor_activity_events", {
+  id: text("id").primaryKey(), caseId: text("case_id").references(() => careerDataAdvisorCasesTable.id, { onDelete: "restrict" }),
+  ownerUserId: integer("owner_user_id").notNull().references(() => usersTable.id), advisorUserId: integer("advisor_user_id").references(() => usersTable.id),
+  actorUserId: integer("actor_user_id").notNull().references(() => usersTable.id), eventType: text("event_type").notNull(),
+  resourceType: text("resource_type").notNull(), resourceId: text("resource_id").notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(), outcome: text("outcome").notNull(),
+  metadata: jsonb("metadata").notNull().default({}), retentionClass: text("retention_class").notNull().default("advisor_activity"),
+}, (table) => [index("career_data_advisor_activity_case_idx").on(table.caseId, table.occurredAt)]);

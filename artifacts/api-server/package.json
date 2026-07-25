@@ -16,6 +16,7 @@
     "@workspace/career-profile": "workspace:*",
     "@workspace/career-planning": "workspace:*",
     "@workspace/career-data": "workspace:*",
+    "@workspace/advisor-workspace": "workspace:*",
     "@workspace/opportunity-intelligence": "workspace:*",
     "@workspace/application-intelligence": "workspace:*",
     "@workspace/interview-intelligence": "workspace:*",

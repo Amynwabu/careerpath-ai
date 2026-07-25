@@ -24,6 +24,7 @@ import careerDataRouter from "./career-data";
 import opportunitiesRouter from "./opportunities";
 import applicationIntelligenceRouter from "./application-intelligence";
 import interviewIntelligenceRouter from "./interview-intelligence";
+import advisorWorkspaceRouter from "./advisor-workspace";
 
 const router: IRouter = Router();
 
@@ -52,5 +53,6 @@ router.use(careerDataRouter);
 router.use(opportunitiesRouter);
 router.use(applicationIntelligenceRouter);
 router.use(interviewIntelligenceRouter);
+router.use(advisorWorkspaceRouter);
 
 export default router;

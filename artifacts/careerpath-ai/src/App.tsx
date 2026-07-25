@@ -28,6 +28,8 @@ import CareerData from "@/pages/career-data";
 import Opportunities from "@/pages/opportunities";
 import CvOptimisation from "@/pages/cv-optimisation";
 import InterviewPreparation from "@/pages/interview-preparation";
+import AdvisorWorkspace from "@/pages/advisor-workspace";
+import AdvisorSupport from "@/pages/advisor-support";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +69,13 @@ function Router() {
       <Route path="/journey-builder"><ProtectedRoute component={JourneyBuilder} /></Route>
       <Route path="/milestones"><ProtectedRoute component={Milestones} /></Route>
       <Route path="/advisors"><ProtectedRoute component={Advisors} /></Route>
+      <Route path="/advisor/cases/:caseId"><ProtectedRoute component={AdvisorWorkspace} /></Route>
+      <Route path="/advisor/cases"><ProtectedRoute component={AdvisorWorkspace} /></Route>
+      <Route path="/advisor/sessions"><ProtectedRoute component={AdvisorWorkspace} /></Route>
+      <Route path="/advisor/reviews"><ProtectedRoute component={AdvisorWorkspace} /></Route>
+      <Route path="/advisor/actions"><ProtectedRoute component={AdvisorWorkspace} /></Route>
+      <Route path="/advisor"><ProtectedRoute component={AdvisorWorkspace} /></Route>
+      <Route path="/career-data/advisor-support"><ProtectedRoute component={AdvisorSupport} /></Route>
       <Route path="/history"><ProtectedRoute component={AnalysisHistory} /></Route>
 
       {/* 404 */}

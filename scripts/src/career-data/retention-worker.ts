@@ -1,6 +1,7 @@
-import { eq, isNotNull, isNull, lt, or, and } from "drizzle-orm";
+import { eq, isNotNull, isNull, lt, or, and, sql } from "drizzle-orm";
 import {
   careerDataAdvisorGrantsTable,
+  careerDataAdvisorCasesTable,
   careerDataDeletionRequestsTable,
   careerDataDocumentsTable,
   careerDataExportsTable,
@@ -116,14 +117,26 @@ export function databaseRetentionAdapter(
         return "processed";
       }
       if (item.type === "advisor_grant") {
-        const rows = await db.update(careerDataAdvisorGrantsTable).set({
-          status: "expired",
-          updatedAt: new Date(now),
-        }).where(and(
-          eq(careerDataAdvisorGrantsTable.id, item.id),
-          eq(careerDataAdvisorGrantsTable.status, "active"),
-        )).returning({ id: careerDataAdvisorGrantsTable.id });
-        return rows.length ? "processed" : "already_processed";
+        return db.transaction(async (tx) => {
+          const rows = await tx.update(careerDataAdvisorGrantsTable).set({
+            status: "expired",
+            updatedAt: new Date(now),
+          }).where(and(
+            eq(careerDataAdvisorGrantsTable.id, item.id),
+            eq(careerDataAdvisorGrantsTable.status, "active"),
+          )).returning({ id: careerDataAdvisorGrantsTable.id });
+          if (!rows.length) return "already_processed";
+          await tx.update(careerDataAdvisorCasesTable).set({
+            caseStatus: "access_revoked",
+            closedAt: new Date(now),
+            updatedAt: new Date(now),
+            recordVersion: sql`${careerDataAdvisorCasesTable.recordVersion} + 1`,
+          }).where(and(
+            eq(careerDataAdvisorCasesTable.advisorGrantId, item.id),
+            isNull(careerDataAdvisorCasesTable.deletedAt),
+          ));
+          return "processed";
+        });
       }
       if (item.type === "idempotency") {
         const rows = await db.delete(careerDataIdempotencyTable)
@@ -147,8 +160,23 @@ export function databaseRetentionAdapter(
           .where(eq(careerDataDocumentsTable.ownerUserId, request.ownerUserId));
         await tx.delete(careerDataExportsTable)
           .where(eq(careerDataExportsTable.ownerUserId, request.ownerUserId));
-        await tx.delete(careerDataAdvisorGrantsTable)
-          .where(eq(careerDataAdvisorGrantsTable.ownerUserId, request.ownerUserId));
+        await tx.update(careerDataAdvisorCasesTable).set({
+          caseStatus: "access_revoked",
+          closedAt: new Date(now),
+          updatedAt: new Date(now),
+          deletedAt: new Date(now),
+          deletedBy: request.ownerUserId,
+          deletionReason: "account_deletion_requested",
+          recordVersion: sql`${careerDataAdvisorCasesTable.recordVersion} + 1`,
+        }).where(eq(careerDataAdvisorCasesTable.ownerUserId, request.ownerUserId));
+        await tx.update(careerDataAdvisorGrantsTable).set({
+          status: "revoked",
+          revokedAt: new Date(now),
+          updatedAt: new Date(now),
+          deletedAt: new Date(now),
+          deletedBy: request.ownerUserId,
+          deletionReason: "account_deletion_requested",
+        }).where(eq(careerDataAdvisorGrantsTable.ownerUserId, request.ownerUserId));
         await tx.delete(careerDataProfilesTable)
           .where(eq(careerDataProfilesTable.ownerUserId, request.ownerUserId));
         await tx.update(careerDataDeletionRequestsTable).set({

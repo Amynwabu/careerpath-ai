@@ -167,6 +167,9 @@ importers:
 
   artifacts/api-server:
     dependencies:
+      '@workspace/advisor-workspace':
+        specifier: workspace:*
+        version: link:../../lib/advisor-workspace
       '@workspace/api-zod':
         specifier: workspace:*
         version: link:../../lib/api-zod
@@ -658,6 +661,15 @@ importers:
       zod:
         specifier: 'catalog:'
         version: 3.25.76
+
+  lib/advisor-workspace:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 25.9.1
+      vitest:
+        specifier: ^4.1.9
+        version: 4.1.9(@types/node@25.9.1)(jiti@2.7.0)(jsdom@29.1.1)(lightningcss@1.32.0)(tsx@4.22.3)(yaml@2.9.0)
 
   lib/api-client-react:
     dependencies:
