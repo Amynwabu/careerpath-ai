@@ -273,12 +273,22 @@ export class CareerIntelligenceEngine {
     const held = new Map(
       input.skills.map((skill) => [skill.skillCode, skill.level ?? 1]),
     );
-    const strengths = target.requirements.filter(
-      (item) => (held.get(item.skillCode) ?? 0) >= item.requiredLevel,
-    );
-    const missing = target.requirements.filter(
-      (item) => (held.get(item.skillCode) ?? 0) < item.requiredLevel,
-    );
+    const skillRequirement = (item: SkillRequirement) => {
+      const skill = taxonomy.skills.find(
+        (candidate) => candidate.code === item.skillCode,
+      );
+      return {
+        ...item,
+        canonicalName: skill?.name ?? item.skillCode,
+        skillCategory: skill?.category ?? "unknown",
+      };
+    };
+    const strengths = target.requirements
+      .filter((item) => (held.get(item.skillCode) ?? 0) >= item.requiredLevel)
+      .map(skillRequirement);
+    const missing = target.requirements
+      .filter((item) => (held.get(item.skillCode) ?? 0) < item.requiredLevel)
+      .map(skillRequirement);
     const transferable = strengths.filter((item) => {
       const skill = taxonomy.skills.find(
         (candidate) => candidate.code === item.skillCode,
