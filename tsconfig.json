@@ -14,6 +14,15 @@
     },
     {
       "path": "./lib/career-intelligence"
+    },
+    {
+      "path": "./lib/career-profile"
+    },
+    {
+      "path": "./lib/career-planning"
+    },
+    {
+      "path": "./lib/career-data"
     }
   ]
 }

@@ -7,6 +7,8 @@
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "dev:api": "sh ./scripts/dev-api-with-db-secret.sh",
     "dev:api:secret": "sh ./scripts/dev-api-with-db-secret.sh",
+    "db:generate": "pnpm --filter @workspace/db exec drizzle-kit generate --config ./drizzle.config.ts",
+    "db:migrate:test": "pnpm --filter @workspace/db exec drizzle-kit migrate --config ./drizzle.config.ts",
     "taxonomy": "pnpm --filter @workspace/scripts run taxonomy --",
     "taxonomy:source:prepare": "pnpm --filter @workspace/scripts run taxonomy:source:prepare --",
     "taxonomy:source:inspect": "pnpm --filter @workspace/scripts run taxonomy:source:inspect --",

@@ -28,6 +28,12 @@ app.use(
 );
 app.use(cors());
 app.use(cookieParser());
+// Base64 expands an allowed 8 MiB document by roughly one third. Keep the
+// larger body allowance scoped to the stateless document parser.
+app.use(
+  "/api/profile/documents/parse",
+  express.json({ limit: "11mb" }),
+);
 app.use(express.json({ limit: "8mb" }));
 app.use(express.urlencoded({ extended: true, limit: "8mb" }));
 

@@ -638,8 +638,558 @@ paths:
                 items:
                   $ref: "#/components/schemas/ActivityItem"
 
+  /profile/documents/parse:
+    post:
+      operationId: parseCareerDocument
+      tags: [profile]
+      summary: Safely extract text from an uploaded career document
+      description: Stateless extraction only. Content is not persisted and external links are never followed.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerDocumentParseBody"
+      responses:
+        "200":
+          description: Extracted document and non-sensitive processing metadata
+        "400":
+          description: Invalid, unsupported, corrupt, encrypted, or unsafe document
+        "413":
+          description: Document exceeds the 8 MiB limit
+
+  /profile/build:
+    post:
+      operationId: buildCareerProfile
+      tags: [profile]
+      summary: Build a versioned career profile from extracted evidence
+      description: Deterministic profile construction. A successful authenticated request commits an owner-scoped profile and returns persistenceStatus persistent.
+      responses:
+        "200":
+          description: Career profile with provenance, confidence, and unresolved evidence
+
+  /profile/validate:
+    post:
+      operationId: validateCareerProfile
+      tags: [profile]
+      summary: Validate profile structure, confidence, provenance, and date consistency
+      responses:
+        "200":
+          description: Validation errors, warnings, and human-review items
+
+  /profile/redact:
+    post:
+      operationId: redactCareerProfile
+      tags: [profile]
+      summary: Return a redacted copy of a career profile
+      responses:
+        "200":
+          description: Redacted profile; the supplied profile is not mutated or persisted
+
+  /profile/resolve:
+    post:
+      operationId: resolveCareerProfile
+      tags: [profile]
+      summary: Resolve profile evidence against the published taxonomy
+      description: Fails closed while taxonomy v2026.1 remains unpublished_candidate.
+      responses:
+        "200":
+          description: Career profile with canonical resolution
+        "503":
+          description: No published taxonomy is available
+
+  /profile/corrections:
+    post:
+      operationId: applyCareerProfileCorrection
+      tags: [profile]
+      summary: Apply an attributable correction to an allowed profile field
+      responses:
+        "200":
+          description: Corrected profile with immutable correction evidence
+
+  /profile/career-profile:
+    get:
+      operationId: getCareerProfile
+      tags: [profile]
+      summary: Career profile persistence capability
+      responses:
+        "501":
+          description: Persistence is explicitly not implemented
+
+  /career-goals:
+    post:
+      operationId: createStructuredCareerGoal
+      tags: [career-goal]
+      summary: Validate and persist a versioned career goal
+      description: Free text remains unresolved unless the published Occupation Resolver resolves it. Personal constraints shape planning and never reduce readiness scores.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Owner-scoped goal with persistenceStatus persistent
+        "400":
+          $ref: "#/components/responses/CareerPlanningError"
+
+  /career-goals/validate:
+    post:
+      operationId: validateStructuredCareerGoal
+      tags: [career-goal]
+      summary: Validate goal type, target, horizon, and constraint ranges
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Validation result
+
+  /career-goals/resolve:
+    post:
+      operationId: resolveCareerGoalTarget
+      tags: [career-goal]
+      summary: Resolve a goal through the published deterministic Occupation Resolver
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Canonical resolution or explicit target_unresolved result
+        "503":
+          $ref: "#/components/responses/TaxonomyUnavailable"
+
+  /career-assessments:
+    post:
+      operationId: createCareerReadinessAssessment
+      tags: [analysis]
+      summary: Orchestrate the existing published-taxonomy Readiness Engine
+      description: Requires a valid Career Profile, confirmed current occupation, resolved target occupation and resolved canonical skills.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Explainable versioned readiness assessment
+        "400":
+          $ref: "#/components/responses/CareerPlanningError"
+        "503":
+          $ref: "#/components/responses/TaxonomyUnavailable"
+
+  /career-plans:
+    get:
+      operationId: getCareerPlansPersistenceStatus
+      tags: [roadmap]
+      summary: Career-plan persistence capability
+      security:
+        - cookieAuth: []
+      responses:
+        "501":
+          description: Paginated owner-scoped plans with persistenceStatus persistent
+    post:
+      operationId: createCareerActionPlan
+      tags: [roadmap]
+      summary: Generate an evidence-backed plan from a completed assessment
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Versioned action plan with actions, milestones, risks and dependencies
+        "400":
+          $ref: "#/components/responses/CareerPlanningError"
+
+  /career-plans/compare:
+    post:
+      operationId: compareCareerPlanScenarios
+      tags: [roadmap]
+      summary: Compare one to three published-taxonomy targets
+      description: Salary is not used for ranking and unsupported transitions are not asserted.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Deterministic comparison
+        "503":
+          $ref: "#/components/responses/TaxonomyUnavailable"
+
+  /career-plans/reassess:
+    post:
+      operationId: reassessCareerPlan
+      tags: [roadmap]
+      summary: Create a new assessment linked to the preserved prior assessment
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: New assessment with score and gap changes
+
+  /career-plans/validate:
+    post:
+      operationId: validateCareerActionPlan
+      tags: [roadmap]
+      summary: Validate explanations, references, and dependency ordering
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Plan validation result
+
+  /career-plans/export:
+    post:
+      operationId: exportCareerActionPlan
+      tags: [roadmap]
+      summary: Export JSON, Markdown, or printable HTML
+      description: Advisor sharing is redacted by default. PDF export is not implemented.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Stateless structured export
+
+  /career-plans/actions/update:
+    post:
+      operationId: updateCareerPlanAction
+      tags: [roadmap]
+      summary: Create an attributed plan revision with an updated action status
+      description: Completion remains distinct from evidence verification.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: New immutable plan version
+
+  /career-plans/evidence:
+    post:
+      operationId: createCareerPlanEvidenceMetadata
+      tags: [roadmap]
+      summary: Persist an owner-scoped evidence metadata record
+      description: File upload and durable evidence storage are not implemented.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Evidence metadata with explicit verification state
+
+  /profiles:
+    get:
+      operationId: listPersistentCareerProfiles
+      tags: [profile]
+      summary: List the authenticated user's profiles with cursor pagination
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageLimit"
+        - $ref: "#/components/parameters/PageCursor"
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Owner-scoped profile page
+    post:
+      operationId: persistCareerProfile
+      tags: [profile]
+      summary: Persist a complete validated Career Profile transactionally
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Profile committed with persistenceStatus persistent
+        "409":
+          $ref: "#/components/responses/RecordVersionConflict"
+
+  /profiles/{profileId}:
+    parameters:
+      - in: path
+        name: profileId
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPersistentCareerProfile
+      tags: [profile]
+      summary: Get an owned profile, isolated personal data, entities and corrections
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Owned profile
+        "404":
+          description: Not found; unauthorized IDs return the same response
+    patch:
+      operationId: updatePersistentCareerProfile
+      tags: [profile]
+      summary: Update mutable profile fields using optimistic concurrency
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RecordVersion"
+      responses:
+        "200":
+          description: Updated profile and incremented record version
+        "409":
+          $ref: "#/components/responses/RecordVersionConflict"
+    delete:
+      operationId: archivePersistentCareerProfile
+      tags: [profile]
+      summary: Soft-delete and archive an owned profile
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/RecordVersion"
+      responses:
+        "200":
+          description: Profile marked for lifecycle processing
+
+  /profile-documents/upload:
+    post:
+      operationId: uploadPrivateCareerDocument
+      tags: [profile]
+      summary: Validate, scan and privately store an authenticated document
+      description: Defaults to persist_profile_only. Production requires scan_status clean. Object keys and signed URLs are never returned.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Private document metadata with persistenceStatus persistent
+        "429":
+          description: User/IP rate limit or configurable quota exceeded
+        "503":
+          description: Private storage or malware scanner unavailable
+
+  /profile-documents:
+    get:
+      operationId: listPrivateCareerDocuments
+      tags: [profile]
+      summary: List owned source-document metadata
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageLimit"
+      responses:
+        "200":
+          description: Metadata only; no storage keys
+
+  /profile-documents/{documentId}:
+    parameters:
+      - in: path
+        name: documentId
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPrivateCareerDocumentMetadata
+      tags: [profile]
+      summary: Get owned document metadata without storage credentials
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Document scan, parse and retention state
+    delete:
+      operationId: deletePrivateCareerDocument
+      tags: [profile]
+      summary: Delete the private storage object before marking metadata deleted
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Configured storage confirmed deletion
+
+  /advisor-access:
+    get:
+      operationId: listAdvisorAccessGrants
+      tags: [profile]
+      summary: List grants created by the authenticated owner
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Scoped grants
+    post:
+      operationId: grantAdvisorAccess
+      tags: [profile]
+      summary: Grant explicit, limited advisor access
+      description: Supported scopes are profile_read, redacted_profile_read, assessment_read, plan_read, plan_comment and evidence_review.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Active auditable grant
+
+  /advisor-access/{grantId}:
+    delete:
+      operationId: revokeAdvisorAccess
+      tags: [profile]
+      summary: Revoke an owned advisor grant
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: path
+          name: grantId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Revoked grant
+
+  /account/export:
+    post:
+      operationId: requestCareerDataExport
+      tags: [profile]
+      summary: Create an expiring persistent export request
+      description: Supports JSON, Markdown and ZIP metadata bundles. Private object files are excluded unless separately and securely requested.
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Export request with generated_export retention class
+
+  /account/deletion-request:
+    get:
+      operationId: getCareerDataDeletionRequest
+      tags: [profile]
+      summary: Get the authenticated user's latest deletion state
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: requested, scheduled, processing, completed, failed or cancelled
+    post:
+      operationId: requestCareerDataDeletion
+      tags: [profile]
+      summary: Idempotently request account career-data deletion
+      security:
+        - cookieAuth: []
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "200":
+          description: Persistent deletion request
+
+  /account/deletion-request/cancel:
+    post:
+      operationId: cancelCareerDataDeletion
+      tags: [profile]
+      summary: Cancel a requested or scheduled deletion
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Cancelled deletion request
+
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: careerpath_session
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema:
+        type: string
+        maxLength: 200
+    RecordVersion:
+      in: header
+      name: If-Match
+      required: true
+      description: Current integer record version
+      schema:
+        type: integer
+        minimum: 1
+    PageLimit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 25
+    PageCursor:
+      in: query
+      name: cursor
+      schema:
+        type: string
+  responses:
+    CareerPlanningError:
+      description: Invalid or incomplete deterministic planning input
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/CareerPlanningError"
+    TaxonomyUnavailable:
+      description: No published taxonomy snapshot is available
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/CareerPlanningError"
+              - type: object
+                properties:
+                  taxonomyStatus:
+                    type: string
+                    const: unpublished_candidate
+    RecordVersionConflict:
+      description: The supplied record version is stale
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: string
+                const: record_version_conflict
+            required: [error, code]
+
   schemas:
+    CareerPlanningError:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          enum:
+            - taxonomy_unavailable
+            - current_occupation_unresolved
+            - target_occupation_unresolved
+            - profile_invalid
+            - skills_unavailable
+            - transition_unavailable
+            - insufficient_evidence
+            - plan_validation_failed
+        persistenceStatus:
+          type: string
+          enum: [persistent, stateless]
+      required: [error, code, persistenceStatus]
+
+    CareerDocumentParseBody:
+      type: object
+      properties:
+        fileName:
+          type: string
+        mimeType:
+          type: string
+        contentBase64:
+          type: string
+          contentEncoding: base64
+        retentionMode:
+          type: string
+          enum: [process_only, temporary, persist_profile]
+          default: process_only
+      required: [fileName, mimeType, contentBase64]
+
     HealthStatus:
       type: object
       properties:

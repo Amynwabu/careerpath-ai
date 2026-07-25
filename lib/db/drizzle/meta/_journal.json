@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1784967663472,
+      "tag": "0000_lively_rattler",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784968184899,
+      "tag": "0001_dashing_screwball",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784968184900,
+      "tag": "0001_career_data_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784968184901,
+      "tag": "0002_career_data_rate_limit_rls",
+      "breakpoints": true
+    }
+  ]
+}

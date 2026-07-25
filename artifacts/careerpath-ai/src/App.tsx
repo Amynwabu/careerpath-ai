@@ -23,6 +23,8 @@ import Milestones from "@/pages/milestones";
 import AnalysisHistory from "@/pages/history";
 import Onboarding from "@/pages/onboarding";
 import Start from "@/pages/start";
+import CareerPlan from "@/pages/career-plan";
+import CareerData from "@/pages/career-data";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,6 +54,8 @@ function Router() {
       <Route path="/onboarding"><ProtectedRoute component={Onboarding} /></Route>
       <Route path="/profile"><ProtectedRoute component={Profile} /></Route>
       <Route path="/career-goal"><ProtectedRoute component={CareerGoal} /></Route>
+      <Route path="/career-plan"><ProtectedRoute component={CareerPlan} /></Route>
+      <Route path="/career-data"><ProtectedRoute component={CareerData} /></Route>
       <Route path="/analysis"><ProtectedRoute component={Analysis} /></Route>
       <Route path="/roadmap"><ProtectedRoute component={Roadmap} /></Route>
       <Route path="/journey-builder"><ProtectedRoute component={JourneyBuilder} /></Route>

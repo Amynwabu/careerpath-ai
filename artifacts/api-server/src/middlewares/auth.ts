@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET ?? "careerpath-secret-key-change-in-production";
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is required in production.");
+}
+const JWT_SECRET =
+  process.env.JWT_SECRET ?? "development-only-careerpath-secret";
 export const AUTH_COOKIE_NAME = "careerpath_session";
 export const ACCESS_TOKEN_TTL_MS = 15 * 60 * 1000;
 

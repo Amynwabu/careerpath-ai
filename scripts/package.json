@@ -35,10 +35,12 @@
     "taxonomy:review:pilot:status": "tsx ./src/taxonomy/cli.ts review:pilot:status",
     "taxonomy:publish": "tsx ./src/taxonomy/cli.ts publish",
     "verify:career-taxonomy": "tsx ./src/verify-career-taxonomy.ts",
+    "career-data:retention": "tsx ./src/career-data/retention-worker.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@workspace/career-data": "workspace:*",
     "@workspace/db": "workspace:*",
     "drizzle-orm": "catalog:"
   },

@@ -18,6 +18,9 @@ import onboardingRouter from "./onboarding";
 import certificatesRouter from "./certificates";
 import taxonomyRouter from "./taxonomy";
 import careerIntelligenceRouter from "./career-intelligence";
+import careerProfileRouter from "./career-profile";
+import careerPlanningRouter from "./career-planning";
+import careerDataRouter from "./career-data";
 
 const router: IRouter = Router();
 
@@ -40,5 +43,8 @@ router.use(onboardingRouter);
 router.use(certificatesRouter);
 router.use(taxonomyRouter);
 router.use(careerIntelligenceRouter);
+router.use(careerProfileRouter);
+router.use(careerPlanningRouter);
+router.use(careerDataRouter);
 
 export default router;

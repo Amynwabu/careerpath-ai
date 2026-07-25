@@ -14,3 +14,4 @@ export * from "./weekly-reminders";
 export * from "./certificates";
 export * from "./activity-log";
 export * from "./career-taxonomy";
+export * from "./career-data";
