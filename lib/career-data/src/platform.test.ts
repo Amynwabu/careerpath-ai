@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   CareerDataAuthorizer,
+  DeterministicStagingMalwareScanner,
   assertRecordVersion,
   decodeCursor,
   defaultQuotas,
@@ -14,6 +15,7 @@ import {
   SupabasePrivateDocumentStorage,
   HttpMalwareScanner,
   validateUploadPolicy,
+  validateFileSignature,
   type AdvisorGrant,
   type AuthorizationContext,
   type RetentionWorkItem,
@@ -93,6 +95,39 @@ describe("career-data platform controls", () => {
     for (const status of ["pending", "infected", "scan_failed", "unsupported"] as const)
       expect(() => requireCleanScan(status)).toThrow("not cleared");
     expect(() => requireCleanScan("unsupported", "test_allow_unsupported")).not.toThrow();
+  });
+
+  it("keeps the deterministic staging scanner fixture-only", async () => {
+    const scanner = new DeterministicStagingMalwareScanner();
+    const scan = (bytes: string) => scanner.scan({
+      bytes: new TextEncoder().encode(bytes),
+      documentId: "synthetic-document",
+      contentType: "application/pdf",
+    });
+    await expect(scan("CPX_SYNTHETIC_CLEAN_FIXTURE")).resolves.toMatchObject({
+      status: "clean", scanner: "deterministic_staging_fixture",
+    });
+    await expect(scan("EICAR-STAGING-FIXTURE")).resolves.toMatchObject({
+      status: "infected",
+    });
+    await expect(scan("ordinary bytes")).resolves.toMatchObject({
+      status: "scan_failed",
+    });
+  });
+
+  it("validates document magic bytes against the declared MIME type", () => {
+    expect(() => validateFileSignature(
+      new TextEncoder().encode("%PDF-1.7 CPX_SYNTHETIC_CLEAN_FIXTURE"),
+      "application/pdf",
+    )).not.toThrow();
+    expect(() => validateFileSignature(
+      new TextEncoder().encode("not a pdf"),
+      "application/pdf",
+    )).toThrow("signature");
+    expect(() => validateFileSignature(
+      Uint8Array.from([0x50, 0x4b, 0x03, 0x04, 0x01]),
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )).not.toThrow();
   });
 
   it("detects concurrent update conflicts", () => {

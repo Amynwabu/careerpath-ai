@@ -84,9 +84,12 @@ overrides:
   "vitest>vite": ^7.3.5
   "@vitest/mocker>vite": ^7.3.5
   "@fastify/static": ^10.1.1
+  "@babel/core": ^7.29.7
+  "@opentelemetry/core": ^2.8.0
+  body-parser: ^2.3.0
+  markdown-it: ^14.3.0
   sharp: ^0.35.0
   # replit uses linux-x64 only, we can exclude all other platforms
-  "esbuild>@esbuild/darwin-arm64": "-"
   "esbuild>@esbuild/darwin-x64": "-"
   "esbuild>@esbuild/freebsd-arm64": "-"
   "esbuild>@esbuild/freebsd-x64": "-"
@@ -160,4 +163,4 @@ overrides:
   "@expo/ngrok-bin>@expo/ngrok-bin-win32-x64": "-"
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
-  esbuild: "0.27.3"
+  esbuild: "0.28.1"

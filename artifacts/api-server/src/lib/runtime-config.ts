@@ -23,7 +23,7 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
   const required = hosted
     ? ["DATABASE_URL","JWT_SECRET","APP_ORIGIN","API_BASE_URL","APPLICATION_VERSION",
       "ALLOWED_ORIGINS","SUPABASE_URL","SUPABASE_SERVICE_ROLE_KEY","CAREER_DOCUMENT_BUCKET",
-      "RATE_LIMIT_NAMESPACE"]
+      "RATE_LIMIT_NAMESPACE","WORKER_DATABASE_URL"]
     : [];
   const missing = required.filter((name) => !clean(env[name]));
   if (missing.length) throw configError(`Missing required configuration: ${missing.join(", ")}.`);
@@ -34,10 +34,16 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
   if (hosted && allowedOrigins.includes("*")) throw configError("Wildcard CORS is forbidden in hosted environments.");
   for (const origin of allowedOrigins) validUrl(origin, "ALLOWED_ORIGINS", hosted);
   const databaseUrl = clean(env.DATABASE_URL);
-  if (databaseUrl) {
-    const parsed = validUrl(databaseUrl, "DATABASE_URL", false);
-    if (!["postgres:","postgresql:"].includes(parsed.protocol)) throw configError("DATABASE_URL must use PostgreSQL.");
-    if (hosted && parsed.searchParams.get("sslmode") === "disable") throw configError("Hosted database TLS cannot be disabled.");
+  for (const [name, value] of [
+    ["DATABASE_URL", databaseUrl],
+    ["WORKER_DATABASE_URL", clean(env.WORKER_DATABASE_URL)],
+  ] as const) {
+    if (!value) continue;
+    const parsed = validUrl(value, name, false);
+    if (!["postgres:","postgresql:"].includes(parsed.protocol))
+      throw configError(`${name} must use PostgreSQL.`);
+    if (hosted && parsed.searchParams.get("sslmode") === "disable")
+      throw configError(`Hosted ${name} TLS cannot be disabled.`);
   }
   const exportExpirySeconds = positiveInt(env.EXPORT_EXPIRY_SECONDS, 900);
   if (exportExpirySeconds > 3600) throw configError("EXPORT_EXPIRY_SECONDS must not exceed one hour.");

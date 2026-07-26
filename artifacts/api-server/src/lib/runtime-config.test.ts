@@ -9,6 +9,7 @@ describe("hosted runtime configuration", () => {
     APPLICATION_VERSION: "fixture", ALLOWED_ORIGINS: "https://staging.example.invalid",
     SUPABASE_URL: "https://storage.example.invalid", SUPABASE_SERVICE_ROLE_KEY: "fixture",
     CAREER_DOCUMENT_BUCKET: "staging-private", RATE_LIMIT_NAMESPACE: "staging",
+    WORKER_DATABASE_URL: "postgresql://worker:secret@db.invalid/app?sslmode=require",
   };
   it("fails closed for missing secrets, wildcard CORS and insecure URLs", () => {
     expect(() => loadRuntimeConfig({ APP_ENV: "staging" })).toThrow("Missing required");

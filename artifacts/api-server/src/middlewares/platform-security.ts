@@ -18,6 +18,17 @@ export function platformSecurityHeaders(_req: Request, res: Response, next: Next
 export function csrfOriginGuard(req: Request, res: Response, next: NextFunction) {
   if (!["POST","PUT","PATCH","DELETE"].includes(req.method)) return next();
   const origin = req.headers.origin;
-  if (!origin || runtimeConfig.allowedOrigins.includes(origin)) return next();
-  res.status(403).json({ code: "origin_not_allowed", error: "Request origin is not allowed." });
+  if (origin && !runtimeConfig.allowedOrigins.includes(origin)) {
+    res.status(403).json({ code: "origin_not_allowed", error: "Request origin is not allowed." });
+    return;
+  }
+  if (["/api/auth/login","/api/auth/register"].includes(req.path)) return next();
+  if (req.header("authorization")?.startsWith("Bearer ")) return next();
+  const cookieToken = req.cookies?.careerpath_csrf;
+  const headerToken = req.header("x-csrf-token");
+  if (!cookieToken || !headerToken || cookieToken !== headerToken) {
+    res.status(403).json({ code: "csrf_token_invalid", error: "CSRF token is missing or invalid." });
+    return;
+  }
+  next();
 }

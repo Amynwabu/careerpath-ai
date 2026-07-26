@@ -38,7 +38,7 @@ app.use(platformSecurityHeaders);
 app.use(cors({
   origin(origin, callback) {
     if (!origin || runtimeConfig.allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error("origin_not_allowed"));
+    callback(null, false);
   },
   credentials: true,
   methods: ["GET","HEAD","POST","PUT","PATCH","DELETE","OPTIONS"],

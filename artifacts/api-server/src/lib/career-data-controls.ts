@@ -3,6 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { careerDataRateLimitsTable, db } from "@workspace/db";
 import {
   SupabasePrivateDocumentStorage,
+  DeterministicStagingMalwareScanner,
   HttpMalwareScanner,
   UnconfiguredDocumentStorage,
   UnconfiguredMalwareScanner,
@@ -23,6 +24,10 @@ export const careerDocumentStorage: CareerDocumentStorage =
       })
     : new UnconfiguredDocumentStorage();
 
+const stagingScannerEnabled =
+  ["staging", "test"].includes(process.env.APP_ENV ?? "") &&
+  process.env.STAGING_MALWARE_ADAPTER === "true";
+
 export const malwareScanner: MalwareScanner =
   process.env.CAREER_MALWARE_SCANNER_URL &&
   process.env.CAREER_MALWARE_SCANNER_API_KEY
@@ -30,7 +35,9 @@ export const malwareScanner: MalwareScanner =
         endpoint: process.env.CAREER_MALWARE_SCANNER_URL,
         apiKey: process.env.CAREER_MALWARE_SCANNER_API_KEY,
       })
-    : new UnconfiguredMalwareScanner();
+    : stagingScannerEnabled
+      ? new DeterministicStagingMalwareScanner()
+      : new UnconfiguredMalwareScanner();
 
 export const quotaProvider: QuotaProvider = {
   async get() {

@@ -20,6 +20,7 @@ import { logger } from "../lib/logger";
 const router: IRouter = Router();
 const GOOGLE_STATE_COOKIE = "careerpath_google_oauth_state";
 const REFRESH_COOKIE_NAME = "careerpath_refresh";
+const CSRF_COOKIE_NAME = "careerpath_csrf";
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const GOOGLE_SCOPES = ["openid", "email", "profile"].join(" ");
 
@@ -71,6 +72,14 @@ function refreshCookieOptions(maxAge: number) {
   };
 }
 
+function csrfCookieOptions(maxAge: number) {
+  return {
+    ...cookieOptions(maxAge),
+    httpOnly: false,
+    path: "/",
+  };
+}
+
 function refreshTokenHash(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
@@ -98,6 +107,11 @@ async function startSession(res: Response, user: typeof usersTable.$inferSelect)
 
   setAccessCookie(res, user);
   res.cookie(
+    CSRF_COOKIE_NAME,
+    randomBytes(32).toString("base64url"),
+    csrfCookieOptions(REFRESH_TOKEN_TTL_MS),
+  );
+  res.cookie(
     REFRESH_COOKIE_NAME,
     refresh.token,
     refreshCookieOptions(REFRESH_TOKEN_TTL_MS),
@@ -107,6 +121,7 @@ async function startSession(res: Response, user: typeof usersTable.$inferSelect)
 function clearSessionCookies(res: Response) {
   res.clearCookie(AUTH_COOKIE_NAME, cookieOptions(0));
   res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieOptions(0));
+  res.clearCookie(CSRF_COOKIE_NAME, csrfCookieOptions(0));
 }
 
 async function revokeRefreshFamily(rawToken: string | undefined) {

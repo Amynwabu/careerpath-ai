@@ -3,6 +3,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import {
   requireCleanScan,
   validateUploadPolicy,
+  validateFileSignature,
   type AdvisorScope,
   type DocumentRetentionMode,
 } from "@workspace/career-data";
@@ -165,6 +166,7 @@ router.post("/profile-documents/upload", rate("document_upload", 5, 15), async (
       quotas,
       maxUploadsPerWindow: 5,
     });
+    validateFileSignature(bytes, req.body.contentType);
     const documentId = `document_${randomUUID()}`;
     const checksum = createHash("sha256").update(bytes).digest("hex");
     const scan = await malwareScanner.scan({

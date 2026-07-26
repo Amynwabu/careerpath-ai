@@ -71,6 +71,13 @@
       "when": 1785146400000,
       "tag": "0009_platform_operations",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785150000000,
+      "tag": "0010_migration_history",
+      "breakpoints": true
     }
   ]
 }

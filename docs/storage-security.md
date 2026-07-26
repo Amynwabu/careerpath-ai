@@ -1,5 +1,17 @@
 # Storage security
 
+Managed private staging storage has not yet been provisioned.
+
+The application supports private Supabase-compatible object storage, owner-derived
+keys, short-lived signed URLs, size/MIME controls, and now validates PDF, DOCX, and
+text magic bytes before scanning or persistence.
+
+When no managed scanner is configured, staging may enable
+`STAGING_MALWARE_ADAPTER=true`. The deterministic adapter only marks an explicit
+`CPX_SYNTHETIC_CLEAN_FIXTURE` payload clean, marks the synthetic EICAR fixture
+infected, and fails all other content closed. It is not a production malware
+scanner. Production scanning remains a release gate.
+
 Separate private buckets are required for documents, generated exports,
 interview/advisor exports, and temporary processing artifacts. Object keys are
 server-generated and owner-derived. Uploads are checked for extension, MIME,

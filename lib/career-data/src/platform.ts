@@ -269,6 +269,23 @@ export class UnconfiguredMalwareScanner implements MalwareScanner {
   }
 }
 
+export class DeterministicStagingMalwareScanner implements MalwareScanner {
+  async scan(input: { bytes: Uint8Array; documentId: string; contentType: string }) {
+    const text = new TextDecoder().decode(input.bytes);
+    const status: MalwareScanStatus = text.includes("EICAR-STAGING-FIXTURE")
+      ? "infected"
+      : text.includes("CPX_SYNTHETIC_CLEAN_FIXTURE")
+        ? "clean"
+        : "scan_failed";
+    return {
+      status,
+      scanner: "deterministic_staging_fixture",
+      scannedAt: new Date().toISOString(),
+      signatureVersion: "synthetic-v1",
+    };
+  }
+}
+
 export class HttpMalwareScanner implements MalwareScanner {
   constructor(private readonly config: {
     endpoint: string;
@@ -400,6 +417,20 @@ export function validateUploadPolicy(input: {
     safeFilename,
     retentionMode: input.retentionMode ?? "persist_profile_only",
   };
+}
+
+export function validateFileSignature(bytes: Uint8Array, contentType: string) {
+  const startsWith = (...signature: number[]) =>
+    signature.every((value, index) => bytes[index] === value);
+  const valid = contentType === "application/pdf"
+    ? startsWith(0x25, 0x50, 0x44, 0x46, 0x2d)
+    : contentType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ? startsWith(0x50, 0x4b, 0x03, 0x04)
+      : (contentType === "text/plain" || contentType === "text/markdown")
+        ? !bytes.slice(0, 4096).includes(0)
+        : false;
+  if (!valid)
+    throw platformError("file_signature_invalid", "Document signature does not match its declared type.");
 }
 
 export function requireCleanScan(

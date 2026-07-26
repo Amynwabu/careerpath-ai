@@ -23,15 +23,62 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run secrets:scan
       - run: pnpm run migrations:check
+      - run: pnpm audit --audit-level low
       - run: pnpm run typecheck
       - run: pnpm run test
+      - run: pnpm --filter @workspace/api-spec run codegen
+      - run: git diff --exit-code
       - run: pnpm run build
       - run: node scripts/prepare-staging-artifact.mjs
+      - name: Build final runtime container
+        run: docker build -t careerpathx-api:staging-${GITHUB_SHA} .
+      - name: Authenticate container scanning infrastructure
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_READ_TOKEN }}
+      - name: Scan final runtime container
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: local://careerpathx-api:staging-${{ github.sha }}
+          only-severities: critical,high
+          exit-code: true
       - name: Apply reviewed staging migrations
         env:
           MIGRATION_DATABASE_URL: ${{ secrets.STAGING_MIGRATION_DATABASE_URL }}
           BACKUP_REFERENCE: ${{ inputs.backup_reference }}
         run: sh scripts/apply-reviewed-migrations.sh
+      - name: Seed deterministic synthetic verification fixtures
+        env:
+          APP_ENV: staging
+          DATABASE_URL: ${{ secrets.STAGING_VERIFICATION_DATABASE_URL }}
+          STAGING_FIXTURE_CONFIRMATION: SYNTHETIC_ONLY
+          STAGING_FIXTURE_PASSWORD_HASH: ${{ secrets.STAGING_FIXTURE_PASSWORD_HASH }}
+          STAGING_DATABASE_HOST_ALLOWLIST: ${{ vars.STAGING_DATABASE_HOST }}
+          PRODUCTION_DATABASE_HOST: ${{ vars.PRODUCTION_DATABASE_HOST }}
+        run: pnpm --filter @workspace/scripts run staging:seed-verification
+      - name: Verify advisor repository against seeded staging
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_VERIFICATION_DATABASE_URL }}
+          ADVISOR_DB_INTEGRATION: "1"
+        run: pnpm --filter @workspace/api-server exec vitest run --config vitest.config.ts src/lib/advisor-workspace-repository.integration.test.ts
+      - name: Verify workflow repository against seeded staging
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_VERIFICATION_DATABASE_URL }}
+          WORKFLOW_DB_INTEGRATION: "1"
+        run: pnpm --filter @workspace/api-server exec vitest run --config vitest.config.ts src/lib/workflow-persistence-repository.integration.test.ts
+      - name: Verify pooled identity isolation
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          POOL_IDENTITY_INTEGRATION: "1"
+        run: pnpm --filter @workspace/api-server exec vitest run --config vitest.config.ts src/lib/pool-identity.integration.test.ts
+      - name: Verify durable quotas and jobs
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          WORKER_DATABASE_URL: ${{ secrets.STAGING_WORKER_DATABASE_URL }}
+          PLATFORM_DB_INTEGRATION: "1"
+        run: pnpm --filter @workspace/api-server exec vitest run --config vitest.config.ts src/lib/platform-operations.integration.test.ts
       - name: Deploy non-production staging alias
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -41,4 +88,7 @@ jobs:
         env:
           STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
           STAGING_ACCESS_TOKEN: ${{ secrets.STAGING_ACCESS_TOKEN }}
+          HEALTH_CHECK_TOKEN: ${{ secrets.STAGING_HEALTH_CHECK_TOKEN }}
+          STAGING_CLIENT_EMAIL: standard-client@staging.invalid
+          STAGING_CLIENT_PASSWORD: ${{ secrets.STAGING_FIXTURE_PASSWORD }}
         run: node scripts/staging-smoke.mjs

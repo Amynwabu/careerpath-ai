@@ -1,35 +1,35 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
 import { AuthProvider, ProtectedRoute } from "@/lib/auth";
 
-// Pages
-import Landing from "@/pages/landing";
-import Intelligence from "@/pages/intelligence";
-import Pricing from "@/pages/pricing";
-import JourneyBuilder from "@/pages/journey-builder";
-import Advisors from "@/pages/advisors";
-import VerifyCertificate from "@/pages/verify-certificate";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import Dashboard from "@/pages/dashboard";
-import Profile from "@/pages/profile";
-import CareerGoal from "@/pages/career-goal";
-import Analysis from "@/pages/analysis";
-import Roadmap from "@/pages/roadmap";
-import Milestones from "@/pages/milestones";
-import AnalysisHistory from "@/pages/history";
-import Onboarding from "@/pages/onboarding";
-import Start from "@/pages/start";
-import CareerPlan from "@/pages/career-plan";
-import CareerData from "@/pages/career-data";
-import Opportunities from "@/pages/opportunities";
-import CvOptimisation from "@/pages/cv-optimisation";
-import InterviewPreparation from "@/pages/interview-preparation";
-import AdvisorWorkspace from "@/pages/advisor-workspace";
-import AdvisorSupport from "@/pages/advisor-support";
+const Landing = lazy(() => import("@/pages/landing"));
+const Intelligence = lazy(() => import("@/pages/intelligence"));
+const Pricing = lazy(() => import("@/pages/pricing"));
+const JourneyBuilder = lazy(() => import("@/pages/journey-builder"));
+const Advisors = lazy(() => import("@/pages/advisors"));
+const VerifyCertificate = lazy(() => import("@/pages/verify-certificate"));
+const Login = lazy(() => import("@/pages/login"));
+const Register = lazy(() => import("@/pages/register"));
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Profile = lazy(() => import("@/pages/profile"));
+const CareerGoal = lazy(() => import("@/pages/career-goal"));
+const Analysis = lazy(() => import("@/pages/analysis"));
+const Roadmap = lazy(() => import("@/pages/roadmap"));
+const Milestones = lazy(() => import("@/pages/milestones"));
+const AnalysisHistory = lazy(() => import("@/pages/history"));
+const Onboarding = lazy(() => import("@/pages/onboarding"));
+const Start = lazy(() => import("@/pages/start"));
+const CareerPlan = lazy(() => import("@/pages/career-plan"));
+const CareerData = lazy(() => import("@/pages/career-data"));
+const Opportunities = lazy(() => import("@/pages/opportunities"));
+const CvOptimisation = lazy(() => import("@/pages/cv-optimisation"));
+const InterviewPreparation = lazy(() => import("@/pages/interview-preparation"));
+const AdvisorWorkspace = lazy(() => import("@/pages/advisor-workspace"));
+const AdvisorSupport = lazy(() => import("@/pages/advisor-support"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,7 +91,9 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <AuthProvider>
-            <Router />
+            <Suspense fallback={<main className="min-h-screen bg-background" aria-busy="true" />}>
+              <Router />
+            </Suspense>
           </AuthProvider>
         </WouterRouter>
         <Toaster />

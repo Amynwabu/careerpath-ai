@@ -1,11 +1,20 @@
 let refreshPromise: Promise<boolean> | null = null;
 
+function csrfToken() {
+  return document.cookie.split(";").map((item) => item.trim())
+    .find((item) => item.startsWith("careerpath_csrf="))
+    ?.slice("careerpath_csrf=".length);
+}
+
 async function refreshSession(): Promise<boolean> {
   if (refreshPromise) return refreshPromise;
   refreshPromise = fetch("/api/auth/refresh", {
     method: "POST",
     credentials: "include",
-    headers: { Accept: "application/json" },
+    headers: {
+      Accept: "application/json",
+      ...(csrfToken() ? { "X-CSRF-Token": csrfToken()! } : {}),
+    },
   })
     .then((response) => response.ok)
     .catch(() => false)
@@ -20,6 +29,10 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   headers.set("Accept", "application/json");
   if (init?.body && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
+  }
+  if (["POST","PUT","PATCH","DELETE"].includes(init?.method?.toUpperCase() ?? "GET")) {
+    const token = csrfToken();
+    if (token) headers.set("X-CSRF-Token", token);
   }
 
   const requestInit = { ...init, credentials: "include" as const, headers };

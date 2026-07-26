@@ -129,6 +129,18 @@ export declare class UnconfiguredMalwareScanner implements MalwareScanner {
         signatureVersion: null;
     }>;
 }
+export declare class DeterministicStagingMalwareScanner implements MalwareScanner {
+    scan(input: {
+        bytes: Uint8Array;
+        documentId: string;
+        contentType: string;
+    }): Promise<{
+        status: "clean" | "infected" | "scan_failed";
+        scanner: string;
+        scannedAt: string;
+        signatureVersion: string;
+    }>;
+}
 export declare class HttpMalwareScanner implements MalwareScanner {
     private readonly config;
     constructor(config: {
@@ -192,6 +204,7 @@ export declare function validateUploadPolicy(input: {
     safeFilename: string;
     retentionMode: DocumentRetentionMode;
 };
+export declare function validateFileSignature(bytes: Uint8Array, contentType: string): void;
 export declare function requireCleanScan(status: MalwareScanStatus, policy?: "production" | "test_allow_unsupported"): void;
 export interface RetentionPolicy {
     retentionClass: "temporary_upload" | "active_profile" | "archived_profile" | "source_document" | "generated_export" | "career_workflow" | "short_lived_export" | "audit_event" | "deletion_tombstone";

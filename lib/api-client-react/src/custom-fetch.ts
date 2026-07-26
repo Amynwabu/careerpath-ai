@@ -89,6 +89,13 @@ function isRefreshEligible(url: string): boolean {
   ].some((authPath) => path === authPath || path.startsWith(`${authPath}/`));
 }
 
+function browserCsrfToken() {
+  if (typeof document === "undefined") return undefined;
+  return document.cookie.split(";").map((item) => item.trim())
+    .find((item) => item.startsWith("careerpath_csrf="))
+    ?.slice("careerpath_csrf=".length);
+}
+
 async function refreshBrowserSession(): Promise<boolean> {
   if (_refreshPromise) return _refreshPromise;
 
@@ -98,7 +105,10 @@ async function refreshBrowserSession(): Promise<boolean> {
   _refreshPromise = fetch(refreshUrl, {
     method: "POST",
     credentials: "include",
-    headers: { Accept: DEFAULT_JSON_ACCEPT },
+    headers: {
+      Accept: DEFAULT_JSON_ACCEPT,
+      ...(browserCsrfToken() ? { "X-CSRF-Token": browserCsrfToken()! } : {}),
+    },
   })
     .then((response) => response.ok)
     .catch(() => false)
@@ -387,6 +397,10 @@ export async function customFetch<T = unknown>(
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
     }
+  }
+  if (["POST","PUT","PATCH","DELETE"].includes(method) && !headers.has("authorization")) {
+    const token = browserCsrfToken();
+    if (token) headers.set("x-csrf-token", token);
   }
 
   const requestInfo = { method, url: resolveUrl(input) };
