@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/api-request";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ type Opportunity = {
 export default function Opportunities() {
   const [query, setQuery] = useState("");
   const [minimumScore, setMinimumScore] = useState(0);
-  const [saved, setSaved] = useState<string[]>([]);
+  const queryClient = useQueryClient();
   const [selected, setSelected] = useState<string[]>([]);
   const [active, setActive] = useState<Opportunity | null>(null);
   const { data, isLoading, error } = useQuery<{ items: Opportunity[] }>({
@@ -42,6 +42,16 @@ export default function Opportunities() {
     queryFn: async () => {
       return apiRequest<{ items: Opportunity[] }>("/job-matches");
     },
+  });
+  const savedQuery = useQuery<{ items: string[] }>({
+    queryKey: ["/api/saved-opportunities"],
+    queryFn: () => apiRequest("/saved-opportunities"),
+  });
+  const saved = savedQuery.data?.items ?? [];
+  const saveMutation = useMutation({
+    mutationFn: ({ jobId, remove }: { jobId: string; remove: boolean }) =>
+      apiRequest(`/saved-opportunities/${jobId}`, { method: remove ? "DELETE" : "POST" }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/saved-opportunities"] }),
   });
   const items = useMemo(
     () => (data?.items ?? []).filter((item) =>
@@ -130,11 +140,9 @@ export default function Opportunities() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => setSaved((current) =>
-                        current.includes(item.vacancy.jobId)
-                          ? current.filter((id) => id !== item.vacancy.jobId)
-                          : [...current, item.vacancy.jobId],
-                      )}
+                      onClick={() => saveMutation.mutate({
+                        jobId: item.vacancy.jobId, remove: saved.includes(item.vacancy.jobId),
+                      })}
                     >
                       {saved.includes(item.vacancy.jobId) ? "Saved" : "Save job"}
                     </Button>

@@ -25,4 +25,11 @@ describe("interview preparation browser journey", () => {
     expect(source).toContain("No voice, video, emotion, accent or biometric analysis");
     expect(source).toContain("genuine persistent scoped grant");
   });
+
+  it("resumes persistent sessions and response histories", () => {
+    expect(source).toContain('"/interview-intelligence/sessions"');
+    expect(source).toContain("responses");
+    expect(source).not.toContain("localStorage");
+    expect(source).not.toContain("sessionStorage");
+  });
 });

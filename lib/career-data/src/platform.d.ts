@@ -194,7 +194,7 @@ export declare function validateUploadPolicy(input: {
 };
 export declare function requireCleanScan(status: MalwareScanStatus, policy?: "production" | "test_allow_unsupported"): void;
 export interface RetentionPolicy {
-    retentionClass: "temporary_upload" | "active_profile" | "archived_profile" | "source_document" | "generated_export" | "audit_event" | "deletion_tombstone";
+    retentionClass: "temporary_upload" | "active_profile" | "archived_profile" | "source_document" | "generated_export" | "career_workflow" | "short_lived_export" | "audit_event" | "deletion_tombstone";
     durationDays: number | null;
     expiryAction: "hard_delete" | "soft_delete" | "anonymize" | "retain";
     legalHoldAllowed: boolean;

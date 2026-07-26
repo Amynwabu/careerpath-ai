@@ -15,6 +15,7 @@ export const HealthCheckResponse = zod.object({
   "status": zod.string()
 })
 
+
 /**
  * @summary Register a new user
  */
@@ -1164,6 +1165,16 @@ export const ListJobMatchesResponse = zod.object({
 })),
   "entitlements": zod.record(zod.string(), zod.boolean()),
   "persistenceStatus": zod.enum(['process_local'])
+})
+
+
+export const SaveOpportunityParams = zod.object({
+  "jobId": zod.coerce.string()
+})
+
+
+export const RemoveSavedOpportunityParams = zod.object({
+  "jobId": zod.coerce.string()
 })
 
 

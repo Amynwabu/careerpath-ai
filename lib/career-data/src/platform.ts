@@ -418,6 +418,8 @@ export interface RetentionPolicy {
     | "archived_profile"
     | "source_document"
     | "generated_export"
+    | "career_workflow"
+    | "short_lived_export"
     | "audit_event"
     | "deletion_tombstone";
   durationDays: number | null;
@@ -432,6 +434,8 @@ export const retentionPolicies: readonly RetentionPolicy[] = [
   { retentionClass: "archived_profile", durationDays: 365, expiryAction: "soft_delete", legalHoldAllowed: true, auditRequired: true },
   { retentionClass: "source_document", durationDays: 365, expiryAction: "hard_delete", legalHoldAllowed: true, auditRequired: true },
   { retentionClass: "generated_export", durationDays: 1, expiryAction: "hard_delete", legalHoldAllowed: false, auditRequired: true },
+  { retentionClass: "career_workflow", durationDays: 365, expiryAction: "soft_delete", legalHoldAllowed: true, auditRequired: true },
+  { retentionClass: "short_lived_export", durationDays: 1, expiryAction: "hard_delete", legalHoldAllowed: false, auditRequired: true },
   { retentionClass: "audit_event", durationDays: 2555, expiryAction: "anonymize", legalHoldAllowed: true, auditRequired: false },
   { retentionClass: "deletion_tombstone", durationDays: 365, expiryAction: "anonymize", legalHoldAllowed: true, auditRequired: false },
 ];

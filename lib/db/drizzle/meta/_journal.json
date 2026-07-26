@@ -57,6 +57,13 @@
       "when": 1784981297404,
       "tag": "0007_advisor_operational_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1785060000000,
+      "tag": "0008_workflow_persistence",
+      "breakpoints": true
     }
   ]
 }

@@ -5575,6 +5575,205 @@ export function useListJobMatches<TData = Awaited<ReturnType<typeof listJobMatch
 
 
 
+export const getListSavedOpportunitiesUrl = () => {
+
+
+
+
+  return `/api/saved-opportunities`
+}
+
+export const listSavedOpportunities = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getListSavedOpportunitiesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListSavedOpportunitiesQueryKey = () => {
+    return [
+    `/api/saved-opportunities`
+    ] as const;
+    }
+
+
+export const getListSavedOpportunitiesQueryOptions = <TData = Awaited<ReturnType<typeof listSavedOpportunities>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSavedOpportunities>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListSavedOpportunitiesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listSavedOpportunities>>> = ({ signal }) => listSavedOpportunities({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listSavedOpportunities>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListSavedOpportunitiesQueryResult = NonNullable<Awaited<ReturnType<typeof listSavedOpportunities>>>
+export type ListSavedOpportunitiesQueryError = ErrorType<unknown>
+
+
+
+export function useListSavedOpportunities<TData = Awaited<ReturnType<typeof listSavedOpportunities>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listSavedOpportunities>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListSavedOpportunitiesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveOpportunityUrl = (jobId: string,) => {
+
+
+
+
+  return `/api/saved-opportunities/${jobId}`
+}
+
+export const saveOpportunity = async (jobId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getSaveOpportunityUrl(jobId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSaveOpportunityMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveOpportunity>>, TError,{jobId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveOpportunity>>, TError,{jobId: string}, TContext> => {
+
+const mutationKey = ['saveOpportunity'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveOpportunity>>, {jobId: string}> = (props) => {
+          const {jobId} = props ?? {};
+
+          return  saveOpportunity(jobId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveOpportunityMutationResult = NonNullable<Awaited<ReturnType<typeof saveOpportunity>>>
+
+    export type SaveOpportunityMutationError = ErrorType<unknown>
+
+    export const useSaveOpportunity = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveOpportunity>>, TError,{jobId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveOpportunity>>,
+        TError,
+        {jobId: string},
+        TContext
+      > => {
+      return useMutation(getSaveOpportunityMutationOptions(options));
+    }
+
+export const getRemoveSavedOpportunityUrl = (jobId: string,) => {
+
+
+
+
+  return `/api/saved-opportunities/${jobId}`
+}
+
+export const removeSavedOpportunity = async (jobId: string, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getRemoveSavedOpportunityUrl(jobId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getRemoveSavedOpportunityMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeSavedOpportunity>>, TError,{jobId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof removeSavedOpportunity>>, TError,{jobId: string}, TContext> => {
+
+const mutationKey = ['removeSavedOpportunity'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof removeSavedOpportunity>>, {jobId: string}> = (props) => {
+          const {jobId} = props ?? {};
+
+          return  removeSavedOpportunity(jobId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RemoveSavedOpportunityMutationResult = NonNullable<Awaited<ReturnType<typeof removeSavedOpportunity>>>
+
+    export type RemoveSavedOpportunityMutationError = ErrorType<unknown>
+
+    export const useRemoveSavedOpportunity = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof removeSavedOpportunity>>, TError,{jobId: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof removeSavedOpportunity>>,
+        TError,
+        {jobId: string},
+        TContext
+      > => {
+      return useMutation(getRemoveSavedOpportunityMutationOptions(options));
+    }
+
 export const getCompareJobMatchesUrl = () => {
 
 

@@ -15,29 +15,29 @@ import {
   type TailoredCvDraft,
 } from "@workspace/application-intelligence";
 import { requireAuth } from "../middlewares/auth";
+import {
+  createWorkflowExport,
+  createWorkflowSession,
+  getWorkflowExport,
+  getWorkflowSession,
+  listWorkflowSessions,
+  persistWorkflowResource,
+  rememberIdempotency,
+  replayIdempotency,
+  saveWorkflowSession,
+} from "../lib/workflow-persistence-repository";
+import { createReviewItem, listReviewItems } from "../lib/advisor-workspace-repository";
 
 const router: IRouter = Router();
 router.use(requireAuth);
-router.use(requireNonProductionWorkflow);
-
-const sessions = new Map<string, OptimisationSession>();
-const idempotency = new Map<string, string>();
-const exports = new Map<string, {
-  exportId: string;
-  ownerUserId: string;
-  draftId: string;
-  format: "plain_text" | "Markdown" | "structured_JSON";
-  content: string;
-  createdAt: string;
-}>();
 
 router.post("/cv-optimisation/sessions", async (req, res) => {
   await respondApplication(res, async () => {
     requireEntitlement(req, "canAnalyseCvAgainstJob");
     const owner = ownerId(req);
     const key = requireIdempotency(req);
-    const replay = idempotency.get(`${owner}:session:${key}`);
-    if (replay) return { session: publicSession(requireSession(replay, owner)), replayed: true };
+    const replay = await replayIdempotency({ ownerUserId: ownerNumber(req), domain: "application", operation: "session", key });
+    if (replay) return { session: publicSession(await requireSession(replay, owner)), replayed: true, persistenceStatus: "persistent" };
     const session = createOptimisationSession({
       ownerUserId: owner,
       profile: req.body?.profile,
@@ -48,25 +48,27 @@ router.post("/cv-optimisation/sessions", async (req, res) => {
       targetLocale: req.body?.targetLocale,
       selectedTemplate: req.body?.selectedTemplate,
     });
-    sessions.set(session.sessionId, session);
-    idempotency.set(`${owner}:session:${key}`, session.sessionId);
-    return { session: publicSession(session), replayed: false, persistenceStatus: "process_local" };
+    await createWorkflowSession({ domain: "application", ownerUserId: ownerNumber(req), sessionId: session.sessionId,
+      status: session.status, payload: session, taxonomyVersion: session.vacancy.taxonomyVersion });
+    await persistWorkflowResource({ resourceId: session.sessionId, ownerUserId: ownerNumber(req),
+      domain: "application", resourceType: "cv_optimisation_session", parentSessionId: session.sessionId,
+      payload: publicSession(session), recordVersion: session.recordVersion, taxonomyVersion: session.vacancy.taxonomyVersion });
+    await rememberIdempotency({ ownerUserId: ownerNumber(req), domain: "application", operation: "session", key, resourceId: session.sessionId });
+    return { session: publicSession(session), replayed: false, persistenceStatus: "persistent" };
   });
 });
 
 router.get("/cv-optimisation/sessions", async (req, res) => {
   await respondApplication(res, async () => ({
-    items: [...sessions.values()]
-      .filter((session) => session.ownerUserId === ownerId(req))
-      .map(publicSession),
-    persistenceStatus: "process_local",
+    items: (await listWorkflowSessions<OptimisationSession>("application", ownerNumber(req))).map(publicSession),
+    persistenceStatus: "persistent",
   }));
 });
 
 router.get("/cv-optimisation/sessions/:sessionId", async (req, res) => {
   await respondApplication(res, async () => ({
-    session: publicSession(requireSession(req.params.sessionId, ownerId(req))),
-    persistenceStatus: "process_local",
+    session: publicSession(await requireSession(req.params.sessionId, ownerId(req))),
+    persistenceStatus: "persistent",
   }));
 });
 
@@ -74,43 +76,54 @@ router.post("/cv-optimisation/sessions/:sessionId/analyse", async (req, res) => 
   await respondApplication(res, async () => {
     requireEntitlement(req, "canAnalyseCvAgainstJob");
     const key = requireIdempotency(req);
-    const session = requireSession(req.params.sessionId, ownerId(req));
-    const replayKey = `${ownerId(req)}:analyse:${session.sessionId}:${key}`;
-    if (idempotency.has(replayKey)) return { analysis: session.analysis, replayed: true };
+    const session = await requireSession(req.params.sessionId, ownerId(req));
+    const replay = await replayIdempotency({ ownerUserId: ownerNumber(req), domain: "application", operation: `analyse:${session.sessionId}`, key });
+    if (replay) return { analysis: session.analysis, replayed: true, persistenceStatus: "persistent" };
     const updated = analyseApplicationSession(session);
-    sessions.set(updated.sessionId, updated);
-    idempotency.set(replayKey, updated.analysis!.analysisId);
+    await saveWorkflowSession({ domain: "application", ownerUserId: ownerNumber(req), sessionId: updated.sessionId,
+      status: updated.status, expectedVersion: session.recordVersion, payload: updated });
+    await persistWorkflowResource({ resourceId: updated.analysis!.analysisId, ownerUserId: ownerNumber(req),
+      domain: "application", resourceType: "cv_ats_analysis", parentSessionId: updated.sessionId,
+      payload: updated.analysis!, recordVersion: 1, taxonomyVersion: updated.vacancy.taxonomyVersion });
+    for (const recommendation of updated.recommendations) {
+      await persistWorkflowResource({ resourceId: recommendation.recommendationId, ownerUserId: ownerNumber(req),
+        domain: "application", resourceType: "cv_recommendation", parentSessionId: updated.sessionId,
+        sourceRecordId: updated.analysis!.analysisId, payload: recommendation });
+    }
+    await rememberIdempotency({ ownerUserId: ownerNumber(req), domain: "application",
+      operation: `analyse:${session.sessionId}`, key, resourceId: updated.analysis!.analysisId });
     return {
       analysis: visibleAnalysis(updated, entitlements(req)),
       session: publicSession(updated),
       replayed: false,
-      persistenceStatus: "process_local",
+      persistenceStatus: "persistent",
     };
   });
 });
 
 router.get("/cv-optimisation/sessions/:sessionId/analysis", async (req, res) => {
   await respondApplication(res, async () => {
-    const session = requireSession(req.params.sessionId, ownerId(req));
+    const session = await requireSession(req.params.sessionId, ownerId(req));
     if (!session.analysis) throw coded("analysis_failed");
     return {
       analysis: visibleAnalysis(session, entitlements(req)),
-      persistenceStatus: "process_local",
+      persistenceStatus: "persistent",
     };
   });
 });
 
 router.get("/cv-optimisation/sessions/:sessionId/recommendations", async (req, res) => {
   await respondApplication(res, async () => ({
-    items: requireSession(req.params.sessionId, ownerId(req)).recommendations,
-    persistenceStatus: "process_local",
+    items: (await requireSession(req.params.sessionId, ownerId(req))).recommendations,
+    persistenceStatus: "persistent",
   }));
 });
 
 for (const action of ["accept", "reject"] as const) {
   router.post(`/cv-optimisation/sessions/:sessionId/recommendations/:recommendationId/${action}`, async (req, res) => {
     await respondApplication(res, async () => {
-      const session = requireSession(req.params.sessionId, ownerId(req));
+      const session = await requireSession(req.params.sessionId, ownerId(req));
+      const previousVersion = session.recordVersion;
       checkVersion(session.recordVersion, req);
       const recommendation = session.recommendations.find((item) =>
         item.recommendationId === req.params.recommendationId,
@@ -119,7 +132,9 @@ for (const action of ["accept", "reject"] as const) {
       recommendation.status = action === "accept" ? "accepted" : "rejected";
       session.recordVersion += 1;
       session.updatedAt = new Date().toISOString();
-      return { recommendation, recordVersion: session.recordVersion, persistenceStatus: "process_local" };
+      await saveWorkflowSession({ domain: "application", ownerUserId: ownerNumber(req), sessionId: session.sessionId,
+        status: session.status, expectedVersion: previousVersion, payload: session });
+      return { recommendation, recordVersion: session.recordVersion, persistenceStatus: "persistent" };
     });
   });
 }
@@ -127,43 +142,48 @@ for (const action of ["accept", "reject"] as const) {
 router.post("/cv-optimisation/sessions/:sessionId/drafts", async (req, res) => {
   await respondApplication(res, async () => {
     requireEntitlement(req, "canGenerateTailoredCv");
-    const session = requireSession(req.params.sessionId, ownerId(req));
+    const session = await requireSession(req.params.sessionId, ownerId(req));
     if (session.drafts.length && !entitlements(req).canGenerateMultipleDrafts) {
       throw coded("entitlement_required");
     }
     const key = requireIdempotency(req);
-    const replayKey = `${ownerId(req)}:draft:${session.sessionId}:${key}`;
-    const replay = idempotency.get(replayKey);
-    if (replay) return { draft: requireDraft(replay, ownerId(req)), replayed: true };
+    const replay = await replayIdempotency({ ownerUserId: ownerNumber(req), domain: "application", operation: `draft:${session.sessionId}`, key });
+    if (replay) return { draft: await requireDraft(replay, ownerId(req)), replayed: true, persistenceStatus: "persistent" };
+    const previousVersion = session.recordVersion;
     const draft = buildTailoredDraft(session);
     session.drafts.push(draft);
     session.status = "generated";
     session.recordVersion += 1;
     session.updatedAt = new Date().toISOString();
-    idempotency.set(replayKey, draft.draftId);
-    return { draft, replayed: false, persistenceStatus: "process_local" };
+    await saveWorkflowSession({ domain: "application", ownerUserId: ownerNumber(req), sessionId: session.sessionId,
+      status: session.status, expectedVersion: previousVersion, payload: session });
+    await persistWorkflowResource({ resourceId: draft.draftId, ownerUserId: ownerNumber(req), domain: "application",
+      resourceType: "cv_draft", parentSessionId: session.sessionId, sourceRecordId: session.analysis?.analysisId,
+      payload: draft, recordVersion: draft.recordVersion, taxonomyVersion: session.vacancy.taxonomyVersion });
+    await rememberIdempotency({ ownerUserId: ownerNumber(req), domain: "application", operation: `draft:${session.sessionId}`, key, resourceId: draft.draftId });
+    return { draft, replayed: false, persistenceStatus: "persistent" };
   });
 });
 
 router.get("/cv-optimisation/sessions/:sessionId/drafts", async (req, res) => {
   await respondApplication(res, async () => {
-    const session = requireSession(req.params.sessionId, ownerId(req));
+    const session = await requireSession(req.params.sessionId, ownerId(req));
     const items = entitlements(req).canViewVersionHistory ? session.drafts : session.drafts.slice(-1);
-    return { items, persistenceStatus: "process_local" };
+    return { items, persistenceStatus: "persistent" };
   });
 });
 
 router.get("/cv-optimisation/drafts/:draftId", async (req, res) => {
   await respondApplication(res, async () => ({
-    draft: requireDraft(req.params.draftId, ownerId(req)),
-    persistenceStatus: "process_local",
+    draft: await requireDraft(req.params.draftId, ownerId(req)),
+    persistenceStatus: "persistent",
   }));
 });
 
 router.patch("/cv-optimisation/drafts/:draftId", async (req, res) => {
   await respondApplication(res, async () => {
-    const session = sessionForDraft(req.params.draftId, ownerId(req));
-    const current = requireDraft(req.params.draftId, ownerId(req));
+    const session = await sessionForDraft(req.params.draftId, ownerId(req));
+    const current = await requireDraft(req.params.draftId, ownerId(req));
     checkVersion(current.recordVersion, req);
     const editedText = String(req.body?.text ?? "").trim();
     const evidenceIds = Array.isArray(req.body?.sourceEvidenceIds) ? req.body.sourceEvidenceIds : [];
@@ -195,13 +215,27 @@ router.patch("/cv-optimisation/drafts/:draftId", async (req, res) => {
       next.sections.summary.generatedBy = "user";
     }
     session.drafts.push(next);
-    return { draft: next, previousDraftId: current.draftId, persistenceStatus: "process_local" };
+    const expectedVersion = session.recordVersion;
+    session.recordVersion += 1;
+    session.updatedAt = new Date().toISOString();
+    await saveWorkflowSession({ domain: "application", ownerUserId: ownerNumber(req), sessionId: session.sessionId,
+      status: session.status, expectedVersion, payload: session });
+    await persistWorkflowResource({ resourceId: next.draftId, ownerUserId: ownerNumber(req), domain: "application",
+      resourceType: "cv_draft", parentSessionId: session.sessionId, sourceRecordId: current.draftId,
+      payload: next, recordVersion: next.recordVersion, supersedesResourceId: current.draftId,
+      taxonomyVersion: session.vacancy.taxonomyVersion });
+    for (const validation of next.claimValidation) {
+      await persistWorkflowResource({ resourceId: `cvclaim_${crypto.randomUUID()}`, ownerUserId: ownerNumber(req),
+        domain: "application", resourceType: "cv_claim_validation", parentSessionId: session.sessionId,
+        sourceRecordId: next.draftId, payload: validation });
+    }
+    return { draft: next, previousDraftId: current.draftId, persistenceStatus: "persistent" };
   });
 });
 
 router.post("/cv-optimisation/drafts/:draftId/validate", async (req, res) => {
   await respondApplication(res, async () => {
-    const draft = requireDraft(req.params.draftId, ownerId(req));
+    const draft = await requireDraft(req.params.draftId, ownerId(req));
     const blocked = draft.claimValidation.filter((item) => !item.automaticallyIncludable);
     return { valid: blocked.length === 0, blockedClaims: blocked, recordVersion: draft.recordVersion };
   });
@@ -209,9 +243,9 @@ router.post("/cv-optimisation/drafts/:draftId/validate", async (req, res) => {
 
 router.post("/cv-optimisation/drafts/:draftId/compare", async (req, res) => {
   await respondApplication(res, async () => {
-    const current = requireDraft(req.params.draftId, ownerId(req));
+    const current = await requireDraft(req.params.draftId, ownerId(req));
     const previous = req.body?.previousDraftId
-      ? requireDraft(String(req.body.previousDraftId), ownerId(req))
+      ? await requireDraft(String(req.body.previousDraftId), ownerId(req))
       : null;
     return { changes: compareDrafts(previous, current), persistenceStatus: "stateless" };
   });
@@ -219,21 +253,26 @@ router.post("/cv-optimisation/drafts/:draftId/compare", async (req, res) => {
 
 router.post("/cv-optimisation/drafts/:draftId/approve", async (req, res) => {
   await respondApplication(res, async () => {
-    const draft = requireDraft(req.params.draftId, ownerId(req));
+    const session = await sessionForDraft(req.params.draftId, ownerId(req));
+    const draft = await requireDraft(req.params.draftId, ownerId(req));
     checkVersion(draft.recordVersion, req);
     if (draft.claimValidation.some((item) => !item.automaticallyIncludable)) {
       throw coded("unsupported_claim_detected");
     }
     draft.reviewStatus = "approved";
     draft.recordVersion += 1;
-    return { draft, persistenceStatus: "process_local" };
+    const expectedVersion = session.recordVersion;
+    session.recordVersion += 1;
+    await saveWorkflowSession({ domain: "application", ownerUserId: ownerNumber(req), sessionId: session.sessionId,
+      status: session.status, expectedVersion, payload: session });
+    return { draft, persistenceStatus: "persistent" };
   });
 });
 
 router.post("/application-support/cover-letter/context", async (req, res) => {
   await respondApplication(res, async () => {
     requireEntitlement(req, "canGenerateCoverLetter");
-    const session = requireSession(String(req.body?.sessionId ?? ""), ownerId(req));
+    const session = await requireSession(String(req.body?.sessionId ?? ""), ownerId(req));
     return { context: buildCoverLetterContext({
       session,
       motivation: req.body?.motivation,
@@ -246,7 +285,7 @@ router.post("/application-support/cover-letter/context", async (req, res) => {
 router.post("/application-support/questions/context", async (req, res) => {
   await respondApplication(res, async () => {
     requireEntitlement(req, "canGenerateApplicationAnswers");
-    const session = requireSession(String(req.body?.sessionId ?? ""), ownerId(req));
+    const session = await requireSession(String(req.body?.sessionId ?? ""), ownerId(req));
     return { context: buildApplicationQuestionContext({
       session,
       question: String(req.body?.question ?? ""),
@@ -257,10 +296,10 @@ router.post("/application-support/questions/context", async (req, res) => {
 
 router.post("/application-support/readiness", async (req, res) => {
   await respondApplication(res, async () => {
-    const session = requireSession(String(req.body?.sessionId ?? ""), ownerId(req));
+    const session = await requireSession(String(req.body?.sessionId ?? ""), ownerId(req));
     if (!session.analysis) throw coded("analysis_failed");
-    const draft = req.body?.draftId ? requireDraft(String(req.body.draftId), ownerId(req)) : null;
-    return { readiness: calculateApplicationReadiness({
+    const draft = req.body?.draftId ? await requireDraft(String(req.body.draftId), ownerId(req)) : null;
+    const readiness = calculateApplicationReadiness({
       analysis: session.analysis,
       draft,
       contactConfirmed: req.body?.contactConfirmed === true,
@@ -268,55 +307,74 @@ router.post("/application-support/readiness", async (req, res) => {
       coverLetterRequired: req.body?.coverLetterRequired,
       coverLetterReady: req.body?.coverLetterReady,
       questionsComplete: req.body?.questionsComplete,
-    }) };
+    });
+    await persistWorkflowResource({ resourceId: `appreadiness_${crypto.randomUUID()}`,
+      ownerUserId: ownerNumber(req), domain: "application", resourceType: "application_readiness",
+      parentSessionId: session.sessionId, sourceRecordId: session.analysis.analysisId, payload: readiness });
+    return { readiness, persistenceStatus: "persistent" };
   });
 });
 
 router.post("/cv-optimisation/drafts/:draftId/export", async (req, res) => {
   await respondApplication(res, async () => {
-    const draft = requireDraft(req.params.draftId, ownerId(req));
+    const session = await sessionForDraft(req.params.draftId, ownerId(req));
+    const draft = await requireDraft(req.params.draftId, ownerId(req));
     const format = req.body?.format as "plain_text" | "Markdown" | "structured_JSON";
     if (!["plain_text", "Markdown", "structured_JSON"].includes(format)) {
       throw coded("export_failed");
     }
     const key = requireIdempotency(req);
-    const replayKey = `${ownerId(req)}:export:${draft.draftId}:${key}`;
-    const replay = idempotency.get(replayKey);
-    if (replay) return { export: exports.get(replay), replayed: true };
-    const exportId = `cvexport_${crypto.randomUUID()}`;
+    const replay = await replayIdempotency({ ownerUserId: ownerNumber(req), domain: "application", operation: `export:${draft.draftId}`, key });
+    if (replay) return { export: await getWorkflowExport(ownerNumber(req), "application", replay), replayed: true, persistenceStatus: "persistent" };
     const record = {
-      exportId,
+      exportId: "",
       ownerUserId: ownerId(req),
       draftId: draft.draftId,
       format,
       content: serializeDraft(draft, format),
       createdAt: new Date().toISOString(),
     };
-    exports.set(exportId, record);
-    idempotency.set(replayKey, exportId);
-    return { export: record, replayed: false, persistenceStatus: "process_local" };
+    record.exportId = await createWorkflowExport({ ownerUserId: ownerNumber(req), domain: "application",
+      parentSessionId: session.sessionId, sourceResourceId: draft.draftId, format, payload: record });
+    await rememberIdempotency({ ownerUserId: ownerNumber(req), domain: "application",
+      operation: `export:${draft.draftId}`, key, resourceId: record.exportId });
+    return { export: record, replayed: false, persistenceStatus: "persistent" };
   });
 });
 
 router.get("/cv-optimisation/exports/:exportId", async (req, res) => {
   await respondApplication(res, async () => {
-    const record = exports.get(req.params.exportId);
-    if (!record || record.ownerUserId !== ownerId(req)) throw coded("resource_not_found");
-    return { export: record, persistenceStatus: "process_local" };
+    const record = await getWorkflowExport(ownerNumber(req), "application", req.params.exportId);
+    if (!record) throw coded("resource_not_found");
+    return { export: record, persistenceStatus: "persistent" };
   });
 });
 
 router.post("/cv-optimisation/drafts/:draftId/reviews", async (req, res) => {
   await respondApplication(res, async () => {
-    requireDraft(req.params.draftId, ownerId(req));
-    throw coded("advisor_scope_required");
+    await requireDraft(req.params.draftId, ownerId(req));
+    requireEntitlement(req, "canRequestAdvisorReview");
+    const caseId = String(req.body?.caseId ?? "");
+    if (!caseId) throw coded("advisor_scope_required");
+    const review = await createReviewItem({
+      actor: { userId: ownerNumber(req), role: "client" }, caseId,
+      resourceType: "cv_draft", resourceId: req.params.draftId,
+      reviewType: String(req.body?.reviewType ?? "draft_review"),
+      priority: String(req.body?.priority ?? "standard"),
+      idempotencyKey: requireIdempotency(req),
+    });
+    return { review, persistenceStatus: "persistent" };
   });
 });
 
 router.get("/cv-optimisation/drafts/:draftId/reviews", async (req, res) => {
   await respondApplication(res, async () => {
-    requireDraft(req.params.draftId, ownerId(req));
-    return { items: [], advisorWorkflowStatus: "requires_persistent_scoped_grant" };
+    await requireDraft(req.params.draftId, ownerId(req));
+    const caseId = String(req.query.caseId ?? "");
+    if (!caseId) return { items: [], advisorWorkflowStatus: "case_link_required" };
+    const items = (await listReviewItems({ userId: ownerNumber(req), role: "client" }, caseId))
+      .filter((item) => item.resourceType === "cv_draft" && item.resourceId === req.params.draftId);
+    return { items, advisorWorkflowStatus: "persistent_source_ready", persistenceStatus: "persistent" };
   });
 });
 
@@ -339,21 +397,6 @@ export async function respondApplication(
   }
 }
 
-function requireNonProductionWorkflow(
-  _req: Request,
-  res: Response,
-  next: () => void,
-) {
-  if (process.env.NODE_ENV === "production") {
-    res.status(503).json({
-      code: "persistent_store_unavailable",
-      error: "CV optimisation requires the persistent production store.",
-    });
-    return;
-  }
-  next();
-}
-
 function publicSession(session: OptimisationSession) {
   const { profile: _profile, sourceCv: _sourceCv, ...safe } = session;
   return safe;
@@ -366,23 +409,22 @@ function visibleAnalysis(session: OptimisationSession, access: ApplicationEntitl
     : { ...session.analysis, atsFindings: session.analysis.atsFindings.slice(0, 3) };
 }
 
-function requireSession(sessionId: string, ownerUserId: string) {
-  const session = sessions.get(sessionId);
+async function requireSession(sessionId: string, ownerUserId: string) {
+  const session = await getWorkflowSession<OptimisationSession>("application", Number(ownerUserId), sessionId);
   if (!session || session.ownerUserId !== ownerUserId) throw coded("resource_not_found");
   return session;
 }
 
-function requireDraft(draftId: string, ownerUserId: string) {
-  const draft = [...sessions.values()]
-    .filter((session) => session.ownerUserId === ownerUserId)
+async function requireDraft(draftId: string, ownerUserId: string) {
+  const draft = (await listWorkflowSessions<OptimisationSession>("application", Number(ownerUserId)))
     .flatMap((session) => session.drafts)
     .find((item) => item.draftId === draftId);
   if (!draft) throw coded("resource_not_found");
   return draft;
 }
 
-function sessionForDraft(draftId: string, ownerUserId: string) {
-  const session = [...sessions.values()].find((item) =>
+async function sessionForDraft(draftId: string, ownerUserId: string) {
+  const session = (await listWorkflowSessions<OptimisationSession>("application", Number(ownerUserId))).find((item) =>
     item.ownerUserId === ownerUserId && item.drafts.some((draft) => draft.draftId === draftId),
   );
   if (!session) throw coded("resource_not_found");
@@ -391,6 +433,9 @@ function sessionForDraft(draftId: string, ownerUserId: string) {
 
 function ownerId(req: Request) {
   return String(req.user!.userId);
+}
+function ownerNumber(req: Request) {
+  return req.user!.userId;
 }
 
 function entitlements(req: Request) {
@@ -471,16 +516,17 @@ function safeMessage(code: string) {
 }
 
 export const applicationIntelligenceTestStore = {
+  records: new Map<string, OptimisationSession>(),
   seed(session: OptimisationSession) {
-    sessions.set(session.sessionId, session);
+    this.records.set(session.sessionId, session);
   },
   getSession(sessionId: string, ownerUserId: string) {
-    return requireSession(sessionId, ownerUserId);
+    const session = this.records.get(sessionId);
+    if (!session || session.ownerUserId !== ownerUserId) throw coded("resource_not_found");
+    return session;
   },
   reset() {
-    sessions.clear();
-    idempotency.clear();
-    exports.clear();
+    this.records.clear();
   },
 };
 

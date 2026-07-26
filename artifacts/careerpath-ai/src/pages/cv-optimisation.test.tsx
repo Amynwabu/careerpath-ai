@@ -27,4 +27,11 @@ describe("CV optimisation browser journey", () => {
     expect(source).toContain("labelled in text, not only by colour");
     expect(source).toContain('aria-label="Version comparison"');
   });
+
+  it("resumes versioned sessions from the persistent API", () => {
+    expect(source).toContain('"/cv-optimisation/sessions"');
+    expect(source).toContain("recordVersion");
+    expect(source).not.toContain("localStorage");
+    expect(source).not.toContain("sessionStorage");
+  });
 });

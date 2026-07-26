@@ -1214,6 +1214,29 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/MatchListResponse" }
 
+  /saved-opportunities:
+    get:
+      operationId: listSavedOpportunities
+      tags: [opportunities]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200": { description: Owner-scoped persistent saved opportunity identifiers }
+
+  /saved-opportunities/{jobId}:
+    parameters: [{ name: jobId, in: path, required: true, schema: { type: string } }]
+    post:
+      operationId: saveOpportunity
+      tags: [opportunities]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200": { description: Persisted saved opportunity }
+    delete:
+      operationId: removeSavedOpportunity
+      tags: [opportunities]
+      security: [{ cookieAuth: [] }, { bearerAuth: [] }]
+      responses:
+        "200": { description: Soft-deleted saved opportunity }
+
   /job-matches/compare:
     post:
       operationId: compareJobMatches

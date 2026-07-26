@@ -22,7 +22,7 @@ VALUES
 INSERT INTO career_data_advisor_grants
   (id, owner_user_id, created_by, updated_by, retention_class, advisor_user_id, scopes, status, granted_at, expires_at, revoked_at)
 VALUES
-  ('grant_active', 91001, 91001, 91001, 'fixture', 91003, '["case_manage","evidence_review","profile_read","outcome_record","session_summary_read","plan_action_review"]', 'active', now(), now() + interval '1 day', null),
+  ('grant_active', 91001, 91001, 91001, 'fixture', 91003, '["case_manage","evidence_review","profile_read","outcome_record","session_summary_read","plan_action_review","opportunity_read","cv_review","interview_review"]', 'active', now(), now() + interval '1 day', null),
   ('grant_other_owner', 91002, 91002, 91002, 'fixture', 91003, '["case_manage"]', 'active', now(), now() + interval '1 day', null),
   ('grant_expired', 91001, 91001, 91001, 'fixture', 91003, '["case_manage"]', 'active', now() - interval '2 days', now() - interval '1 day', null),
   ('grant_revoked', 91001, 91001, 91001, 'fixture', 91003, '["case_manage"]', 'active', now() - interval '1 day', now() + interval '1 day', now()),

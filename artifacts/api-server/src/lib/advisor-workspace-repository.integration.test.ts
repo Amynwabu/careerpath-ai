@@ -181,12 +181,32 @@ run("persistent advisor workspace repository", () => {
     })).rejects.toMatchObject({ code: "advisor_scope_insufficient" });
   });
 
-  it("persists durable reviews and fails closed for process-local sources", async () => {
+  it("persists durable reviews and rejects missing cross-domain sources", async () => {
     await expect(createReviewItem({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       resourceType: "cv_draft", resourceId: "process_local_cv",
       reviewType: "approval", priority: "high", idempotencyKey: "cv-review-denied",
-    })).rejects.toMatchObject({ code: "durable_source_required" });
+    })).rejects.toMatchObject({ code: "shared_resource_required" });
+    await pool.query(
+      `INSERT INTO career_data_workflow_resources
+       (workflow_resource_id,owner_user_id,domain,resource_type,parent_session_id,
+        source_version,engine_version,taxonomy_version,content_hash,payload,created_by)
+       VALUES ('reviewable_cv_draft',91001,'application','cv_draft','fixture_session',
+               '1','fixture','2026.1','fixture_review_hash','{"claimStatus":"supported"}',91001)
+       ON CONFLICT DO NOTHING`,
+    );
+    await pool.query(
+      `INSERT INTO career_data_advisor_case_resources
+       (case_resource_id,case_id,owner_user_id,resource_type,resource_id,required_scope,created_by)
+       VALUES ('reviewable_cv_link','case_active',91001,'cv_draft','reviewable_cv_draft','cv_review',91001)
+       ON CONFLICT DO NOTHING`,
+    );
+    const crossDomainReview = await createReviewItem({
+      actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
+      resourceType: "cv_draft", resourceId: "reviewable_cv_draft",
+      reviewType: "draft_review", priority: "standard", idempotencyKey: "persistent-cv-review",
+    });
+    expect(crossDomainReview.status).toBe("awaiting_advisor");
     const review = await createReviewItem({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       resourceType: "career_profile", resourceId: "career_profile_fixture",

@@ -18,15 +18,20 @@ import {
   careerIntelligenceEngine,
   publishedTaxonomyProvider,
 } from "../lib/career-intelligence-provider";
+import {
+  createOpportunitySnapshot,
+  createWorkflowSession,
+  getOpportunitySnapshot,
+  listOpportunitySnapshots,
+  listSavedOpportunities,
+  listWorkflowSessions,
+  persistWorkflowResource,
+  saveOpportunity,
+  unsaveOpportunity,
+} from "../lib/workflow-persistence-repository";
 
 const router: IRouter = Router();
 router.use(requireAuth);
-router.use(requireNonProductionWorkflow);
-
-// Deliberately process-local until the governed vacancy store is provisioned.
-// All records remain owner-scoped and are never treated as taxonomy source data.
-const vacancies = new Map<string, CanonicalVacancy>();
-const matchesByOwner = new Map<string, RankedOpportunity[]>();
 
 router.post("/jobs/import", async (req, res) => {
   await respondOpportunity(res, async () => {
@@ -39,9 +44,8 @@ router.post("/jobs/import", async (req, res) => {
     if (!items.length || items.some((item) => !item)) {
       throw coded("vacancy_invalid", "At least one vacancy is required.");
     }
-    const existing = new Set(
-      [...vacancies.values()].map((item) => `${item.source}:${item.sourceReference}`),
-    );
+    const existingVacancies = await listOpportunitySnapshots<CanonicalVacancy>(req.user!.userId);
+    const existing = new Set(existingVacancies.map((item) => `${item.source}:${item.sourceReference}`));
     const imported: CanonicalVacancy[] = [];
     for (const item of items) {
       if (existing.has(`${item.source}:${item.sourceReference}`)) {
@@ -51,47 +55,68 @@ router.post("/jobs/import", async (req, res) => {
         taxonomy,
         resolver: careerIntelligenceEngine,
       });
-      vacancies.set(normalized.jobId, normalized);
+      await createOpportunitySnapshot(req.user!.userId, normalized);
+      await persistWorkflowResource({ resourceId: normalized.jobId, ownerUserId: req.user!.userId,
+        domain: "opportunity", resourceType: "opportunity", parentSessionId: "vacancy_snapshot",
+        payload: normalized, taxonomyVersion: normalized.taxonomyVersion });
       existing.add(`${normalized.source}:${normalized.sourceReference}`);
       imported.push(normalized);
     }
-    return { items: imported, count: imported.length, persistenceStatus: "process_local" };
+    return { items: imported, count: imported.length, persistenceStatus: "persistent" };
   });
 });
 
 router.get("/jobs", async (req, res) => {
   await respondOpportunity(res, async () => ({
-    items: filterVacancies([...vacancies.values()], queryFilters(req)),
-    persistenceStatus: "process_local",
+    items: filterVacancies(await listOpportunitySnapshots<CanonicalVacancy>(req.user!.userId), queryFilters(req)),
+    persistenceStatus: "persistent",
   }));
 });
 
 router.get("/jobs/search", async (req, res) => {
   await respondOpportunity(res, async () => {
     const query = String(req.query.q ?? "").trim().toLowerCase();
-    const filtered = filterVacancies([...vacancies.values()], queryFilters(req));
+    const filtered = filterVacancies(await listOpportunitySnapshots<CanonicalVacancy>(req.user!.userId), queryFilters(req));
     return {
       items: query
         ? filtered.filter((item) =>
             `${item.title} ${item.description} ${item.occupationTitle}`.toLowerCase().includes(query),
           )
         : filtered,
-      persistenceStatus: "process_local",
+      persistenceStatus: "persistent",
     };
   });
 });
 
 router.get("/jobs/:id", async (req, res) => {
   await respondOpportunity(res, async () => {
-    const vacancy = vacancies.get(req.params.id);
+    const vacancy = await getOpportunitySnapshot<CanonicalVacancy>(req.user!.userId, req.params.id);
     if (!vacancy) throw coded("job_not_found", "Job not found.");
-    return { vacancy, persistenceStatus: "process_local" };
+    return { vacancy, persistenceStatus: "persistent" };
+  });
+});
+
+router.get("/saved-opportunities", async (req, res) => {
+  await respondOpportunity(res, async () => ({
+    items: await listSavedOpportunities(req.user!.userId), persistenceStatus: "persistent",
+  }));
+});
+router.post("/saved-opportunities/:jobId", async (req, res) => {
+  await respondOpportunity(res, async () => {
+    if (!await getOpportunitySnapshot(req.user!.userId, req.params.jobId)) throw coded("job_not_found", "Job not found.");
+    return { savedOpportunityId: await saveOpportunity(req.user!.userId, req.params.jobId), persistenceStatus: "persistent" };
+  });
+});
+router.delete("/saved-opportunities/:jobId", async (req, res) => {
+  await respondOpportunity(res, async () => {
+    await unsaveOpportunity(req.user!.userId, req.params.jobId);
+    return { removed: true, persistenceStatus: "persistent" };
   });
 });
 
 router.post("/job-matches", async (req, res) => {
   await respondOpportunity(res, async () => {
-    const selected = selectVacancies(req.body?.jobIds);
+    const selected = await selectVacancies(req.user!.userId, req.body?.jobIds);
     const entitlements = resolveEntitlements(req);
     if (!entitlements.canViewMatches) throw coded("entitlement_required", "Job matching is not available.");
     const ranked = rankOpportunities(selected.map((vacancy) => ({
@@ -107,34 +132,44 @@ router.post("/job-matches", async (req, res) => {
       }),
     })));
     const visible = entitlements.canViewUnlimitedJobs ? ranked : ranked.slice(0, 10);
-    matchesByOwner.set(String(req.user!.userId), visible);
-    return { items: visible, entitlements, persistenceStatus: "process_local" };
+    const sessionId = `oppsession_${crypto.randomUUID()}`;
+    const payload = { sessionId, ownerUserId: String(req.user!.userId), status: "analysed",
+      matches: visible, recordVersion: 1, createdAt: new Date().toISOString() };
+    await createWorkflowSession({ domain: "opportunity", ownerUserId: req.user!.userId,
+      sessionId, status: "analysed", payload, taxonomyVersion: visible[0]?.vacancy.taxonomyVersion ?? "published" });
+    for (const item of visible) {
+      await persistWorkflowResource({ resourceId: `jobmatch_${sessionId}_${item.vacancy.jobId}`,
+        ownerUserId: req.user!.userId, domain: "opportunity", resourceType: "job_match_analysis",
+        parentSessionId: sessionId, sourceRecordId: item.vacancy.jobId, payload: item.match,
+        taxonomyVersion: item.vacancy.taxonomyVersion });
+    }
+    return { items: visible, entitlements, persistenceStatus: "persistent" };
   });
 });
 
 router.get("/job-matches", async (req, res) => {
   await respondOpportunity(res, async () => ({
-    items: matchesByOwner.get(String(req.user!.userId)) ?? [],
+    items: await latestMatches(req.user!.userId),
     entitlements: resolveEntitlements(req),
-    persistenceStatus: "process_local",
+    persistenceStatus: "persistent",
   }));
 });
 
 router.post("/job-matches/compare", async (req, res) => {
   await respondOpportunity(res, async () => {
     const requested = new Set<string>(req.body?.jobIds ?? []);
-    const matches = (matchesByOwner.get(String(req.user!.userId)) ?? [])
+    const matches = (await latestMatches(req.user!.userId))
       .filter((item) => !requested.size || requested.has(item.vacancy.jobId));
     return {
       items: compareOpportunities(matches, resolveEntitlements(req)),
-      persistenceStatus: "process_local",
+      persistenceStatus: "persistent",
     };
   });
 });
 
 router.post("/employability-score", async (req, res) => {
   await respondOpportunity(res, async () => {
-    const vacancy = vacancies.get(String(req.body?.jobId ?? ""));
+    const vacancy = await getOpportunitySnapshot<CanonicalVacancy>(req.user!.userId, String(req.body?.jobId ?? ""));
     if (!vacancy) throw coded("job_not_found", "Job not found.");
     return {
       result: calculateEmployability({
@@ -146,14 +181,14 @@ router.post("/employability-score", async (req, res) => {
         qualifications: req.body?.qualifications,
         certifications: req.body?.certifications,
       }),
-      persistenceStatus: "stateless",
+      persistenceStatus: "persistent_source",
     };
   });
 });
 
 router.post("/jobs/explain", async (req, res) => {
   await respondOpportunity(res, async () => {
-    const match = findMatch(String(req.user!.userId), String(req.body?.jobId ?? ""));
+    const match = await findMatch(req.user!.userId, String(req.body?.jobId ?? ""));
     return {
       explanation: {
         jobId: match.jobId,
@@ -173,7 +208,7 @@ router.post("/jobs/explain", async (req, res) => {
         reasons: match.explanations,
         disclaimer: match.disclaimer,
       },
-      persistenceStatus: "process_local",
+      persistenceStatus: "persistent",
     };
   });
 });
@@ -205,21 +240,6 @@ export async function respondOpportunity(
   }
 }
 
-function requireNonProductionWorkflow(
-  _req: Request,
-  res: Response,
-  next: () => void,
-) {
-  if (process.env.NODE_ENV === "production") {
-    res.status(503).json({
-      code: "persistent_store_unavailable",
-      error: "Opportunity workflows require the persistent production store.",
-    });
-    return;
-  }
-  next();
-}
-
 function safeMessage(code: string) {
   const messages: Record<string, string> = {
     taxonomy_unavailable: "Opportunity intelligence is unavailable until a taxonomy is published.",
@@ -236,17 +256,23 @@ function safeMessage(code: string) {
   return messages[code] ?? "Opportunity request failed.";
 }
 
-function selectVacancies(jobIds: unknown) {
-  if (!Array.isArray(jobIds) || !jobIds.length) return [...vacancies.values()];
+async function selectVacancies(ownerUserId: number, jobIds: unknown) {
+  const vacancies = await listOpportunitySnapshots<CanonicalVacancy>(ownerUserId);
+  if (!Array.isArray(jobIds) || !jobIds.length) return vacancies;
   return jobIds.map((id) => {
-    const vacancy = vacancies.get(String(id));
+    const vacancy = vacancies.find((item) => item.jobId === String(id));
     if (!vacancy) throw coded("job_not_found", `Job ${String(id)} was not found.`);
     return vacancy;
   });
 }
 
-function findMatch(ownerUserId: string, jobId: string): EmployabilityResult {
-  const match = (matchesByOwner.get(ownerUserId) ?? [])
+async function latestMatches(ownerUserId: number): Promise<RankedOpportunity[]> {
+  const sessions = await listWorkflowSessions<{ matches: RankedOpportunity[] }>("opportunity", ownerUserId);
+  return sessions[0]?.matches ?? [];
+}
+
+async function findMatch(ownerUserId: number, jobId: string): Promise<EmployabilityResult> {
+  const match = (await latestMatches(ownerUserId))
     .find((item) => item.vacancy.jobId === jobId)?.match;
   if (!match) throw coded("match_not_found", "Run job matching before requesting an explanation.");
   return match;
@@ -296,10 +322,7 @@ function coded(code: string, message: string) {
 }
 
 export const opportunityTestStore = {
-  reset() {
-    vacancies.clear();
-    matchesByOwner.clear();
-  },
+  reset() {},
 };
 
 export default router;

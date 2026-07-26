@@ -27,9 +27,10 @@ describe("advisor workspace policy",()=>{
   expect(calculateFollowUpStatus({dueAt:"2026-07-24T12:00:00Z",now})).toBe("overdue");
   expect(calculateFollowUpStatus({dueAt:"2026-07-24T12:00:00Z",completedAt:now,now})).toBe("completed");
  });
- it("fails closed for process-local review sources",()=>{
+ it("allows registered durable cross-domain sources and rejects unknown types",()=>{
   expect(requireDurableReviewResource("career_plan")).toBe("career_plan");
-  expect(()=>requireDurableReviewResource("cv_draft")).toThrow("durable_source_required");
-  expect(()=>requireDurableReviewResource("interview_response")).toThrow("durable_source_required");
+  expect(requireDurableReviewResource("cv_draft")).toBe("cv_draft");
+  expect(requireDurableReviewResource("interview_response")).toBe("interview_response");
+  expect(()=>requireDurableReviewResource("unregistered" as never)).toThrow("unsupported_resource_type");
  });
 });

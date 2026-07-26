@@ -21,4 +21,11 @@ describe("opportunity browser experience", () => {
     expect(source).not.toContain("rawCv");
     expect(source).not.toContain("advisorNotes.map");
   });
+
+  it("loads matches and saved opportunities from persistent APIs", () => {
+    expect(source).toContain('apiRequest<{ items: Opportunity[] }>("/job-matches")');
+    expect(source).toContain('apiRequest("/saved-opportunities")');
+    expect(source).toContain("DELETE");
+    expect(source).not.toContain("const [saved, setSaved]");
+  });
 });

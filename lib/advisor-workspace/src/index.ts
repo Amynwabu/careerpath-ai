@@ -17,14 +17,21 @@ export type SessionStatus = "scheduled"|"confirmed"|"in_progress"|"completed"|"c
 export type FollowUpStatus = "scheduled"|"due"|"overdue"|"completed"|"cancelled";
 export type ReviewResourceType =
   | "career_profile"|"career_goal"|"career_plan"|"career_action"|"opportunity"|"evidence_record"
-  | "cv_optimisation_session"|"cv_draft"|"interview_session"|"interview_response";
+  | "job_match_analysis"|"employability_analysis"
+  | "cv_optimisation_session"|"cv_ats_analysis"|"cv_recommendation"|"cv_draft"
+  | "cv_claim_validation"|"application_readiness"
+  | "interview_session"|"interview_competency"|"interview_question"
+  | "interview_evidence"|"interview_response"|"interview_claim_validation"|"interview_readiness";
 
 export const durableReviewResources = [
   "career_profile","career_goal","career_plan","career_action","evidence_record",
+  "opportunity","job_match_analysis","employability_analysis",
+  "cv_optimisation_session","cv_ats_analysis","cv_recommendation","cv_draft",
+  "cv_claim_validation","application_readiness",
+  "interview_session","interview_competency","interview_question","interview_evidence",
+  "interview_response","interview_claim_validation","interview_readiness",
 ] as const satisfies readonly ReviewResourceType[];
-export const processLocalReviewResources = [
-  "opportunity","cv_optimisation_session","cv_draft","interview_session","interview_response",
-] as const satisfies readonly ReviewResourceType[];
+export const processLocalReviewResources = [] as const satisfies readonly ReviewResourceType[];
 
 export interface GrantContext {
   grantId: string; ownerUserId: number; advisorUserId: number; scopes: AdvisorScope[];

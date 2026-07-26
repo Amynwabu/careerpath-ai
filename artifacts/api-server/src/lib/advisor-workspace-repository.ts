@@ -1736,8 +1736,14 @@ function scopeForReview(resourceType: ReviewResourceType): AdvisorScope {
     career_profile: "profile_read", career_goal: "plan_read",
     career_plan: "plan_comment", career_action: "plan_action_review",
     opportunity: "opportunity_read", evidence_record: "evidence_review",
+    job_match_analysis: "opportunity_read", employability_analysis: "opportunity_read",
     cv_optimisation_session: "cv_review", cv_draft: "cv_review",
+    cv_ats_analysis: "cv_review", cv_recommendation: "cv_review",
+    cv_claim_validation: "cv_review", application_readiness: "cv_review",
     interview_session: "interview_review", interview_response: "interview_review",
+    interview_competency: "interview_review", interview_question: "interview_review",
+    interview_evidence: "interview_review", interview_claim_validation: "interview_review",
+    interview_readiness: "interview_review",
   };
   return scopes[resourceType];
 }
@@ -1845,7 +1851,16 @@ async function requireOwnedResource(tx: Transaction, ownerUserId: number, resour
     career_action: "career_data_plan_items", evidence_record: "career_data_evidence",
   };
   const table = resourceMap[resourceType];
-  if (!table) throw repositoryError("unsupported_resource_type");
+  if (!table) {
+    const result = await tx.execute(sql.raw(
+      `select 1 from career_data_workflow_resources
+       where workflow_resource_id = '${escapeLiteral(resourceId)}'
+         and resource_type = '${escapeLiteral(resourceType)}'
+         and owner_user_id = ${ownerUserId} and deleted_at is null limit 1`,
+    ));
+    if (result.rowCount !== 1) throw repositoryError("resource_not_found");
+    return;
+  }
   const result = await tx.execute(sql.raw(
     `select 1 from ${table} where id = '${escapeLiteral(resourceId)}' and owner_user_id = ${ownerUserId} and deleted_at is null limit 1`,
   ));
