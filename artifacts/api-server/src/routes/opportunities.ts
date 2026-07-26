@@ -29,6 +29,7 @@ import {
   saveOpportunity,
   unsaveOpportunity,
 } from "../lib/workflow-persistence-repository";
+import { consumeQuota, currentQuotaPeriod } from "../lib/platform-operations";
 
 const router: IRouter = Router();
 router.use(requireAuth);
@@ -132,6 +133,12 @@ router.post("/job-matches", async (req, res) => {
       }),
     })));
     const visible = entitlements.canViewUnlimitedJobs ? ranked : ranked.slice(0, 10);
+    const period = currentQuotaPeriod();
+    const plan = req.headers["x-cpx-membership"] === "premium" ? "premium" : "standard";
+    await consumeQuota({ ownerUserId: req.user!.userId, dimension: "opportunity_analyses",
+      limit: plan === "premium" ? 100 : 10, ...period,
+      idempotencyKey: `opportunity:${String(req.headers["idempotency-key"] ?? req.id)}`,
+      entitlementSnapshot: { plan } });
     const sessionId = `oppsession_${crypto.randomUUID()}`;
     const payload = { sessionId, ownerUserId: String(req.user!.userId), status: "analysed",
       matches: visible, recordVersion: 1, createdAt: new Date().toISOString() };

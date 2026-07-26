@@ -22,6 +22,41 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm run secrets:scan
+      - run: pnpm run migrations:check
       - run: pnpm run test
       - run: pnpm run typecheck
+      - run: pnpm --filter @workspace/api-spec run codegen
+      - run: git diff --exit-code
       - run: pnpm run build
+      - run: pnpm audit --audit-level high
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cpx_test
+          POSTGRES_PASSWORD: cpx_test_only
+          POSTGRES_DB: cpx_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cpx_test -d cpx_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply reviewed migrations
+        env:
+          PGPASSWORD: cpx_test_only
+        run: |
+          for file in lib/db/drizzle/*.sql; do
+            psql -v ON_ERROR_STOP=1 -h 127.0.0.1 -U cpx_test -d cpx_test -f "$file" >/dev/null
+          done
+      - name: Verify RLS enabled on career-data tables
+        env:
+          PGPASSWORD: cpx_test_only
+        run: |
+          missing="$(psql -At -h 127.0.0.1 -U cpx_test -d cpx_test -c "select count(*) from pg_class where relkind='r' and relname like 'career_data_%' and not relrowsecurity")"
+          test "$missing" = "0"

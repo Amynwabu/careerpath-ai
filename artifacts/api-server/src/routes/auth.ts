@@ -56,10 +56,11 @@ function googleOAuthConfig() {
 function cookieOptions(maxAge: number) {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.APP_ENV === "staging" || process.env.APP_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
     maxAge,
+    ...(process.env.COOKIE_DOMAIN ? { domain: process.env.COOKIE_DOMAIN } : {}),
   };
 }
 

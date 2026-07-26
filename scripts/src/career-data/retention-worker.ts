@@ -8,6 +8,7 @@ import {
   careerDataIdempotencyTable,
   careerDataProfilesTable,
   db,
+  pool,
 } from "@workspace/db";
 import {
   SupabasePrivateDocumentStorage,
@@ -18,10 +19,21 @@ import {
   type RetentionWorkItem,
 } from "@workspace/career-data";
 
-export async function runCareerDataRetention(now = new Date().toISOString()) {
-  return runRetentionCleanup(databaseRetentionAdapter(storage()), {
+export async function runCareerDataRetention(
+  now = new Date().toISOString(),
+  options: { dryRun?: boolean; limit?: number } = {},
+) {
+  const adapter = databaseRetentionAdapter(storage());
+  const limit = Math.min(Math.max(options.limit ?? 500,1),1000);
+  if (options.dryRun) {
+    const items = await adapter.listExpired(now,limit);
+    const counts = Object.fromEntries([...new Set(items.map((item) => item.type))]
+      .map((type) => [type,items.filter((item) => item.type===type).length]));
+    return { dryRun: true, examined: items.length, counts, failures: [] as string[] };
+  }
+  return runRetentionCleanup(adapter, {
     now,
-    limit: 500,
+    limit,
   });
 }
 
@@ -222,7 +234,10 @@ function storage(): CareerDocumentStorage {
 }
 
 if (process.argv[1]?.endsWith("retention-worker.ts")) {
-  runCareerDataRetention()
+  runCareerDataRetention(undefined, {
+    dryRun: process.env.RETENTION_DRY_RUN !== "false",
+    limit: Number(process.env.RETENTION_BATCH_LIMIT ?? 500),
+  })
     .then((result) => {
       process.stdout.write(`${JSON.stringify(result)}\n`);
       process.exitCode = result.failures.length ? 1 : 0;
@@ -232,5 +247,6 @@ if (process.argv[1]?.endsWith("retention-worker.ts")) {
         error: (error as { code?: string }).code ?? "retention_worker_failed",
       })}\n`);
       process.exitCode = 1;
-    });
+    })
+    .finally(() => pool.end());
 }

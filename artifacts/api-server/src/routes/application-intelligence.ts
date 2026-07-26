@@ -27,6 +27,7 @@ import {
   saveWorkflowSession,
 } from "../lib/workflow-persistence-repository";
 import { createReviewItem, listReviewItems } from "../lib/advisor-workspace-repository";
+import { consumeQuota, currentQuotaPeriod } from "../lib/platform-operations";
 
 const router: IRouter = Router();
 router.use(requireAuth);
@@ -48,6 +49,7 @@ router.post("/cv-optimisation/sessions", async (req, res) => {
       targetLocale: req.body?.targetLocale,
       selectedTemplate: req.body?.selectedTemplate,
     });
+    await consumeApplicationQuota(req, "cv_sessions", key, 3, 25);
     await createWorkflowSession({ domain: "application", ownerUserId: ownerNumber(req), sessionId: session.sessionId,
       status: session.status, payload: session, taxonomyVersion: session.vacancy.taxonomyVersion });
     await persistWorkflowResource({ resourceId: session.sessionId, ownerUserId: ownerNumber(req),
@@ -151,6 +153,7 @@ router.post("/cv-optimisation/sessions/:sessionId/drafts", async (req, res) => {
     if (replay) return { draft: await requireDraft(replay, ownerId(req)), replayed: true, persistenceStatus: "persistent" };
     const previousVersion = session.recordVersion;
     const draft = buildTailoredDraft(session);
+    await consumeApplicationQuota(req, "cv_drafts", key, 3, 50);
     session.drafts.push(draft);
     session.status = "generated";
     session.recordVersion += 1;
@@ -334,6 +337,7 @@ router.post("/cv-optimisation/drafts/:draftId/export", async (req, res) => {
       content: serializeDraft(draft, format),
       createdAt: new Date().toISOString(),
     };
+    await consumeApplicationQuota(req, "cv_exports", key, 2, 50);
     record.exportId = await createWorkflowExport({ ownerUserId: ownerNumber(req), domain: "application",
       parentSessionId: session.sessionId, sourceResourceId: draft.draftId, format, payload: record });
     await rememberIdempotency({ ownerUserId: ownerNumber(req), domain: "application",
@@ -363,6 +367,7 @@ router.post("/cv-optimisation/drafts/:draftId/reviews", async (req, res) => {
       priority: String(req.body?.priority ?? "standard"),
       idempotencyKey: requireIdempotency(req),
     });
+    await consumeApplicationQuota(req, "advisor_requests", String(req.headers["idempotency-key"]), 1, 10);
     return { review, persistenceStatus: "persistent" };
   });
 });
@@ -436,6 +441,16 @@ function ownerId(req: Request) {
 }
 function ownerNumber(req: Request) {
   return req.user!.userId;
+}
+async function consumeApplicationQuota(
+  req: Request, dimension: string, key: string, standard: number, premium: number,
+) {
+  const period = currentQuotaPeriod();
+  const plan = req.headers["x-cpx-membership"] === "premium" ? "premium" : "standard";
+  return consumeQuota({
+    ownerUserId: ownerNumber(req), dimension, limit: plan === "premium" ? premium : standard,
+    ...period, idempotencyKey: `${dimension}:${key}`, entitlementSnapshot: { plan },
+  });
 }
 
 function entitlements(req: Request) {

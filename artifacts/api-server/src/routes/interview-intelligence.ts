@@ -24,6 +24,7 @@ import {
   saveWorkflowSession,
 } from "../lib/workflow-persistence-repository";
 import { createReviewItem, listReviewItems } from "../lib/advisor-workspace-repository";
+import { consumeQuota, currentQuotaPeriod } from "../lib/platform-operations";
 
 const router: IRouter = Router();
 router.use(requireAuth);
@@ -46,6 +47,7 @@ router.post("/interview-intelligence/sessions", async (req, res) => {
       interviewDate: req.body?.interviewDate,
       formatConfirmed: req.body?.formatConfirmed,
     });
+    await consumeInterviewQuota(req, "interview_sessions", key, 3, 25);
     await createWorkflowSession({ domain: "interview", ownerUserId: ownerNumber(req), sessionId: session.sessionId,
       status: session.status, payload: session, taxonomyVersion: session.vacancy.taxonomyVersion });
     await persistWorkflowResource({ resourceId: session.sessionId, ownerUserId: ownerNumber(req),
@@ -258,6 +260,8 @@ router.post("/interview-intelligence/sessions/:sessionId/practice", async (req, 
       questions: session.questionPlan,
       mode: req.body?.mode ?? "guided",
     });
+    await consumeInterviewQuota(req, "practice_sessions",
+      String(req.headers["idempotency-key"] ?? `${session.sessionId}:${session.practiceSessions.length}`), 5, 100);
     session.practiceSessions.push(practice);
     session.recordVersion += 1;
     await saveInterview(req, session, previousVersion);
@@ -346,6 +350,7 @@ router.post("/interview-intelligence/responses/:responseId/reviews", async (req,
       priority: String(req.body?.priority ?? "standard"),
       idempotencyKey: requireIdempotency(req),
     });
+    await consumeInterviewQuota(req, "advisor_requests", String(req.headers["idempotency-key"]), 1, 10);
     return { review, persistenceStatus: "persistent" };
   });
 });
@@ -432,6 +437,15 @@ async function requirePractice(id: string, owner: string) {
 }
 function ownerId(req: Request) { return String(req.user!.userId); }
 function ownerNumber(req: Request) { return req.user!.userId; }
+async function consumeInterviewQuota(
+  req: Request, dimension: string, key: string, standard: number, premium: number,
+) {
+  const period = currentQuotaPeriod();
+  const plan = req.headers["x-cpx-membership"] === "premium" ? "premium" : "standard";
+  return consumeQuota({ ownerUserId: ownerNumber(req), dimension,
+    limit: plan === "premium" ? premium : standard, ...period,
+    idempotencyKey: `${dimension}:${key}`, entitlementSnapshot: { plan } });
+}
 async function saveInterview(req: Request, session: InterviewSession, expectedVersion: number) {
   return saveWorkflowSession({ domain: "interview", ownerUserId: ownerNumber(req),
     sessionId: session.sessionId, status: session.status, expectedVersion, payload: session });

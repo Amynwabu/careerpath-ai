@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET is required in production.");
+if (["staging","production"].includes(process.env.APP_ENV ?? "") && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is required in hosted environments.");
 }
 const JWT_SECRET =
   process.env.JWT_SECRET ?? "development-only-careerpath-secret";

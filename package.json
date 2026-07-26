@@ -9,6 +9,8 @@
     "dev:api:secret": "sh ./scripts/dev-api-with-db-secret.sh",
     "db:generate": "pnpm --filter @workspace/db exec drizzle-kit generate --config ./drizzle.config.ts",
     "db:migrate:test": "pnpm --filter @workspace/db exec drizzle-kit migrate --config ./drizzle.config.ts",
+    "migrations:check": "node scripts/check-migrations.mjs",
+    "secrets:scan": "node scripts/secret-scan.mjs",
     "taxonomy": "pnpm --filter @workspace/scripts run taxonomy --",
     "taxonomy:source:prepare": "pnpm --filter @workspace/scripts run taxonomy:source:prepare --",
     "taxonomy:source:inspect": "pnpm --filter @workspace/scripts run taxonomy:source:inspect --",
@@ -44,6 +46,7 @@
   },
   "private": true,
   "devDependencies": {
+    "netlify-cli": "26.1.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2"
   },

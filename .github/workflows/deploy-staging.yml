@@ -1,0 +1,44 @@
+name: Deploy private staging
+on:
+  workflow_dispatch:
+    inputs:
+      backup_reference:
+        description: Managed staging backup or snapshot reference
+        required: true
+jobs:
+  deploy:
+    environment: staging
+    runs-on: ubuntu-latest
+    concurrency: careerpathx-staging
+    env:
+      APP_ENV: staging
+      STAGING_ACCESS_CONTROL_CONFIRMED: ${{ vars.STAGING_ACCESS_CONTROL_CONFIRMED }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10.27.0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: test "$STAGING_ACCESS_CONTROL_CONFIRMED" = "true"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run secrets:scan
+      - run: pnpm run migrations:check
+      - run: pnpm run typecheck
+      - run: pnpm run test
+      - run: pnpm run build
+      - run: node scripts/prepare-staging-artifact.mjs
+      - name: Apply reviewed staging migrations
+        env:
+          MIGRATION_DATABASE_URL: ${{ secrets.STAGING_MIGRATION_DATABASE_URL }}
+          BACKUP_REFERENCE: ${{ inputs.backup_reference }}
+        run: sh scripts/apply-reviewed-migrations.sh
+      - name: Deploy non-production staging alias
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_STAGING_SITE_ID }}
+        run: pnpm exec netlify deploy --dir artifacts/careerpath-ai/dist/public --functions netlify/functions --alias staging --message "staging $GITHUB_SHA"
+      - name: Smoke private staging
+        env:
+          STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
+          STAGING_ACCESS_TOKEN: ${{ secrets.STAGING_ACCESS_TOKEN }}
+        run: node scripts/staging-smoke.mjs
