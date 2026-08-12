@@ -42,8 +42,8 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
     const parsed = validUrl(value, name, false);
     if (!["postgres:","postgresql:"].includes(parsed.protocol))
       throw configError(`${name} must use PostgreSQL.`);
-    if (hosted && parsed.searchParams.get("sslmode") === "disable")
-      throw configError(`Hosted ${name} TLS cannot be disabled.`);
+    if (hosted && !["require", "verify-full"].includes(parsed.searchParams.get("sslmode") ?? ""))
+      throw configError(`Hosted ${name} must explicitly require TLS.`);
   }
   const exportExpirySeconds = positiveInt(env.EXPORT_EXPIRY_SECONDS, 900);
   if (exportExpirySeconds > 3600) throw configError("EXPORT_EXPIRY_SECONDS must not exceed one hour.");

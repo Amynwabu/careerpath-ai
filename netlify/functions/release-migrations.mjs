@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import pg from "pg";
+import { createPostgresPoolConfig } from "../../lib/db/src/connection.ts";
 
 const migrationFiles = [
   "supabase/migrations/20260618090000_journeys_advisors_reminders_certificates.sql",
@@ -27,7 +28,7 @@ async function applyReleaseMigrations() {
   }
 
   const client = new pg.Client({
-    connectionString,
+    ...createPostgresPoolConfig(connectionString),
     connectionTimeoutMillis: 15_000,
     statement_timeout: 30_000,
   });

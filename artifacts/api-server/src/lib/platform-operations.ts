@@ -1,9 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { pool } from "@workspace/db";
+import { createPostgresPoolConfig, pool } from "@workspace/db";
 
 const workerPool = process.env.WORKER_DATABASE_URL
-  ? new Pool({ connectionString: process.env.WORKER_DATABASE_URL })
+  ? new Pool(createPostgresPoolConfig(process.env.WORKER_DATABASE_URL))
   : pool;
 
 export async function consumeQuota(input: {

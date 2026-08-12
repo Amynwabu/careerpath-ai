@@ -13,7 +13,13 @@ build/
 .env
 .env.*
 !.env.example
+.env
+.env.local
+.env.staging
+.env.production
 
+!.env.example
+!.env.staging.example
 # Local Netlify folder
 .netlify/
 

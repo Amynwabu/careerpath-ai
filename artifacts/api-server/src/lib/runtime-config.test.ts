@@ -15,6 +15,10 @@ describe("hosted runtime configuration", () => {
     expect(() => loadRuntimeConfig({ APP_ENV: "staging" })).toThrow("Missing required");
     expect(() => loadRuntimeConfig({ ...valid, ALLOWED_ORIGINS: "*" })).toThrow("Wildcard");
     expect(() => loadRuntimeConfig({ ...valid, APP_ORIGIN: "http://staging.example.invalid" })).toThrow("HTTPS");
+    expect(() => loadRuntimeConfig({
+      ...valid,
+      DATABASE_URL: "postgresql://app:secret@db.invalid/app",
+    })).toThrow("explicitly require TLS");
   });
   it("returns separated hosted settings", () => {
     expect(loadRuntimeConfig(valid)).toMatchObject({
