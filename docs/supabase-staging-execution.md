@@ -74,6 +74,28 @@ before it is supplied through the ignored staging environment file.
 
 ## Managed execution
 
+### Restricted-role continuation (2026-08-12)
+
+The managed provider accepts custom `LOGIN` roles with `NOSUPERUSER`,
+`NOCREATEDB`, `NOCREATEROLE`, `NOREPLICATION`, and `NOBYPASSRLS`. This was
+verified with a transactionally rolled-back capability probe; no probe role was
+retained.
+
+Provisioning was not attempted because the staging schema is not ready for a
+runtime identity. Read-only inspection found 18 legacy public tables, zero
+RLS-enabled tables, and none of the governed `career_data_*` tables required by
+the runtime, worker, RLS, and pool-isolation suites. Creating a login and broad
+grants against that schema would be unsafe.
+
+Hosted readiness now fails closed unless both the effective runtime and worker
+database identities are login-capable, have no administrative or RLS-bypass
+attributes, inherit no privileged role, and own no schema or table objects.
+
+Netlify account inspection found the existing `careerpathx.ai` production site
+but no positively identified, isolated CareerPathX staging site. Deployment is
+therefore blocked independently of the database-schema and isolation blockers.
+No Netlify environment values or deployments were changed.
+
 No managed migration, fixture seed, role change, bucket creation, retention
 operation, restore operation, application deployment, or hosted verification
 has been performed under this milestone.

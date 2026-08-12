@@ -2,6 +2,8 @@ import { Router, type IRouter } from "express";
 import { HealthCheckResponse } from "@workspace/api-zod";
 import { pool } from "@workspace/db";
 import { runtimeConfig } from "../lib/runtime-config";
+import { inspectDatabaseRoleSecurity } from "../lib/database-role-security";
+import { workerDatabaseRoleIsRestricted } from "../lib/platform-operations";
 
 const router: IRouter = Router();
 
@@ -66,7 +68,17 @@ router.get("/health/dependencies", async (_req, res) => {
 });
 
 async function databaseStatus(): Promise<"healthy"|"unavailable"> {
-  try { await pool.query("select 1"); return "healthy"; } catch { return "unavailable"; }
+  try {
+    await pool.query("select 1");
+    if (["staging", "production"].includes(runtimeConfig.environment)) {
+      const [runtimeRole, workerRole] = await Promise.all([
+        inspectDatabaseRoleSecurity(pool),
+        workerDatabaseRoleIsRestricted(),
+      ]);
+      if (!runtimeRole.secure || !workerRole) return "unavailable";
+    }
+    return "healthy";
+  } catch { return "unavailable"; }
 }
 function detailedHealth(req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) {
   if (!["staging","production"].includes(runtimeConfig.environment)) return next();

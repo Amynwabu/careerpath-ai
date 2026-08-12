@@ -1,10 +1,15 @@
 import { createHash, randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { createPostgresPoolConfig, pool } from "@workspace/db";
+import { inspectDatabaseRoleSecurity } from "./database-role-security";
 
 const workerPool = process.env.WORKER_DATABASE_URL
   ? new Pool(createPostgresPoolConfig(process.env.WORKER_DATABASE_URL))
   : pool;
+
+export async function workerDatabaseRoleIsRestricted(): Promise<boolean> {
+  return (await inspectDatabaseRoleSecurity(workerPool)).secure;
+}
 
 export async function consumeQuota(input: {
   ownerUserId: number; dimension: string; limit: number; units?: number;
