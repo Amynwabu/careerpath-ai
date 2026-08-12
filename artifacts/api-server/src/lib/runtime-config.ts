@@ -45,6 +45,10 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
     if (hosted && !["require", "verify-full"].includes(parsed.searchParams.get("sslmode") ?? ""))
       throw configError(`Hosted ${name} must explicitly require TLS.`);
   }
+  const migrationUrl = clean(env.MIGRATION_DATABASE_URL);
+  if (hosted && migrationUrl && migrationUrl === databaseUrl) {
+    throw configError("MIGRATION_DATABASE_URL must be distinct from DATABASE_URL.");
+  }
   const exportExpirySeconds = positiveInt(env.EXPORT_EXPIRY_SECONDS, 900);
   if (exportExpirySeconds > 3600) throw configError("EXPORT_EXPIRY_SECONDS must not exceed one hour.");
   if (hosted && clean(env.JWT_SECRET)!.length < 32) throw configError("JWT_SECRET must contain at least 32 characters.");

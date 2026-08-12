@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import type { PoolConfig } from "pg";
+import { SUPABASE_ROOT_2021_CA } from "./supabase-ca";
 
 const TLS_MODES = new Set(["require", "verify-full"]);
 
@@ -23,11 +24,20 @@ export function createPostgresPoolConfig(
   // Connection-string SSL parameters can replace an explicit node-postgres
   // `ssl` object. Remove sslmode after validating it so the pinned CA and
   // certificate verification cannot be silently overridden.
-  url.searchParams.delete("sslmode");
-  const caPath = env.DATABASE_CA_CERT_PATH
-    ? resolve(env.DATABASE_CA_CERT_PATH)
-    : resolve(process.cwd(), "prod-ca-2021.crt");
-  const ca = readFileSync(caPath, "utf8");
+  for (const parameter of [
+    "sslmode",
+    "ssl",
+    "sslcert",
+    "sslkey",
+    "sslrootcert",
+    "sslpassword",
+    "uselibpqcompat",
+  ]) {
+    url.searchParams.delete(parameter);
+  }
+  const ca = env.DATABASE_CA_CERT_PATH
+    ? readFileSync(resolve(env.DATABASE_CA_CERT_PATH), "utf8")
+    : SUPABASE_ROOT_2021_CA;
 
   return {
     connectionString: url.toString(),

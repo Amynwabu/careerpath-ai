@@ -37,16 +37,26 @@ The ignored `.env.staging` file provides project-aligned Supabase URL,
 project-reference, publishable-key, and server-key variables. Its filesystem
 permissions were tightened to owner-only access before loading.
 
-The migration connection is now distinct, project-aligned, configured through
-the Supabase session pooler, and its hostname resolves. The runtime connection
-uses a distinct username and hostname but remains a direct connection rather
-than a transaction-pooler connection, and its hostname does not resolve.
-Neither URL explicitly requires TLS.
+The migration connection is distinct, project-aligned, and configured through
+the Supabase session pooler. DNS, TCP, CA-backed TLS, PostgreSQL authentication,
+and read-only transaction execution were verified against PostgreSQL 17.6.
 
-No SQL authentication or read-only database inventory was attempted after this
-validation because the TLS, runtime mode, runtime DNS, and credential-rotation
-gates remain unresolved. No managed write may occur until all read-only checks
-pass.
+The runtime connection is configured through the Supabase transaction pooler
+and is distinct from the migration connection. DNS, TCP, CA-backed TLS,
+PostgreSQL authentication, and read-only transaction execution also passed.
+However, the authenticated runtime role can bypass RLS, create roles, and create
+databases. It is therefore not the governed restricted application identity and
+must not be deployed for normal application traffic.
+
+The Netlify function path previously ran release migrations on every API
+request using `DATABASE_URL`. Repository code now removes migrations from
+request handling and requires `MIGRATION_DATABASE_URL` in the explicit release
+migration command. Hosted application and worker connections now accept only
+approved explicit TLS modes and pin the Supabase CA with certificate validation
+enabled.
+
+No managed write may occur until the remaining isolation and restricted-role
+checks pass.
 
 During environment validation, a live-looking Supabase server key was found in
 the uncommitted working copy of `.env.staging.example`. It was removed and

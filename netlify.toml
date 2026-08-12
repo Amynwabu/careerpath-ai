@@ -8,7 +8,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["artifacts/api-server/dist/**", "supabase/migrations/*.sql", "prod-ca-2021.crt"]
+  included_files = ["artifacts/api-server/dist/**", "supabase/migrations/*.sql"]
 
 [[redirects]]
   from = "/api/*"

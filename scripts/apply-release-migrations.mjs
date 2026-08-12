@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import pg from "pg";
+import { createPostgresPoolConfig } from "../lib/db/src/connection.ts";
 
 const migrationFiles = [
   "supabase/migrations/20260618090000_journeys_advisors_reminders_certificates.sql",
@@ -18,19 +19,12 @@ function cleanEnv(value) {
 }
 
 const migrationDatabaseUrl = cleanEnv(process.env.MIGRATION_DATABASE_URL);
-const databaseUrl = cleanEnv(process.env.DATABASE_URL);
-const connectionString = migrationDatabaseUrl?.startsWith("postgres")
-  ? migrationDatabaseUrl
-  : databaseUrl;
-
-if (!connectionString || !connectionString.startsWith("postgres")) {
-  throw new Error(
-    "A valid MIGRATION_DATABASE_URL or DATABASE_URL is required.",
-  );
+if (!migrationDatabaseUrl?.startsWith("postgres")) {
+  throw new Error("A valid MIGRATION_DATABASE_URL is required.");
 }
 
 const client = new pg.Client({
-  connectionString,
+  ...createPostgresPoolConfig(migrationDatabaseUrl),
   connectionTimeoutMillis: 15_000,
   statement_timeout: 30_000,
 });

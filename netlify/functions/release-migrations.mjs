@@ -22,9 +22,9 @@ function cleanEnv(value) {
 }
 
 async function applyReleaseMigrations() {
-  const connectionString = cleanEnv(process.env.DATABASE_URL);
+  const connectionString = cleanEnv(process.env.MIGRATION_DATABASE_URL);
   if (!connectionString?.startsWith("postgres")) {
-    throw new Error("A valid DATABASE_URL is required by the API function.");
+    throw new Error("A valid MIGRATION_DATABASE_URL is required for release migrations.");
   }
 
   const client = new pg.Client({

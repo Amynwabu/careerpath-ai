@@ -20,6 +20,34 @@ describe("hosted runtime configuration", () => {
       DATABASE_URL: "postgresql://app:secret@db.invalid/app",
     })).toThrow("explicitly require TLS");
   });
+  it.each(["disable", "allow", "prefer"])("rejects DATABASE_URL sslmode=%s", (sslMode) => {
+    expect(() => loadRuntimeConfig({
+      ...valid,
+      DATABASE_URL: `postgresql://app:secret@db.invalid/app?sslmode=${sslMode}`,
+    })).toThrow("explicitly require TLS");
+  });
+  it.each(["disable", "allow", "prefer"])("rejects WORKER_DATABASE_URL sslmode=%s", (sslMode) => {
+    expect(() => loadRuntimeConfig({
+      ...valid,
+      WORKER_DATABASE_URL: `postgresql://worker:secret@db.invalid/app?sslmode=${sslMode}`,
+    })).toThrow("explicitly require TLS");
+  });
+  it("rejects a shared migration and runtime connection", () => {
+    expect(() => loadRuntimeConfig({
+      ...valid,
+      MIGRATION_DATABASE_URL: valid.DATABASE_URL,
+    })).toThrow("must be distinct");
+  });
+  it("does not include database credentials in validation errors", () => {
+    const credential = "runtime-password-fixture";
+    const url = new URL("postgresql://db.invalid/app?sslmode=prefer");
+    url.username = "app";
+    url.password = credential;
+    expect(() => loadRuntimeConfig({
+      ...valid,
+      DATABASE_URL: url.toString(),
+    })).toThrowError(expect.not.stringContaining(credential));
+  });
   it("returns separated hosted settings", () => {
     expect(loadRuntimeConfig(valid)).toMatchObject({
       environment: "staging", cookieSecure: true, databaseTlsRequired: true,

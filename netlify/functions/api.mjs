@@ -2,7 +2,6 @@ import { Buffer } from "node:buffer";
 import { ServerResponse } from "node:http";
 import { Readable, Writable } from "node:stream";
 import app from "../../artifacts/api-server/src/app";
-import { ensureReleaseMigrations } from "./release-migrations.mjs";
 
 function eventBody(event) {
   if (!event.body) return null;
@@ -133,8 +132,6 @@ function createResponse(req, resolve, reject) {
 }
 
 export async function handler(event) {
-  await ensureReleaseMigrations();
-
   return new Promise((resolve, reject) => {
     const req = createRequest(event);
     const res = createResponse(req, resolve, reject);
