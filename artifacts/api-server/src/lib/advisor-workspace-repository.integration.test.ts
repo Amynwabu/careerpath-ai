@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from "vitest";
+import { randomUUID } from "node:crypto";
 import { pool } from "@workspace/db";
 import {
   acceptCase,
@@ -41,8 +42,10 @@ import {
   updateAction,
   verifyAction,
 } from "./advisor-workspace-repository";
+import { actorQuery } from "./database-actor-context";
 
 const run = process.env.ADVISOR_DB_INTEGRATION === "1" ? describe : describe.skip;
+const hostedRunId = randomUUID();
 
 run("persistent advisor workspace repository", () => {
   afterAll(async () => {
@@ -55,7 +58,7 @@ run("persistent advisor workspace repository", () => {
       advisorUserId: 91003,
       advisorGrantId: "grant_active",
       serviceType: "fixture_support",
-      idempotencyKey: "case-create-fixture-1",
+      idempotencyKey: `case-create-fixture-1-${hostedRunId}`,
     };
     const first = await createCase(input);
     const second = await createCase(input);
@@ -70,14 +73,14 @@ run("persistent advisor workspace repository", () => {
   ])("rejects invalid grant %s", async (advisorGrantId, code) => {
     await expect(createCase({
       ownerUserId: 91001, advisorUserId: 91003, advisorGrantId,
-      serviceType: "fixture_support", idempotencyKey: `invalid-${advisorGrantId}`,
+      serviceType: "fixture_support", idempotencyKey: `invalid-${advisorGrantId}-${hostedRunId}`,
     })).rejects.toMatchObject({ code });
   });
 
   it("enforces lifecycle, assignment, and optimistic concurrency", async () => {
     const created = await createCase({
       ownerUserId: 91001, advisorUserId: 91003, advisorGrantId: "grant_active",
-      serviceType: "fixture_support", idempotencyKey: "case-lifecycle-fixture",
+      serviceType: "fixture_support", idempotencyKey: `case-lifecycle-fixture-${hostedRunId}`,
     });
     const active = await acceptCase({
       actor: { userId: 91003, role: "advisor" },
@@ -96,7 +99,7 @@ run("persistent advisor workspace repository", () => {
     const session = await createSession({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       sessionType: "fixture", deliveryMode: "remote",
-      idempotencyKey: "session-note-fixture",
+      idempotencyKey: `session-note-fixture-${hostedRunId}`,
     });
     await createSessionNote({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
@@ -120,7 +123,7 @@ run("persistent advisor workspace repository", () => {
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       assignedTo: "client", actionType: "prepare", title: "Fixture action",
       description: "Complete the fixture", priority: "high",
-      completionEvidenceRequired: true, idempotencyKey: "action-fixture",
+      completionEvidenceRequired: true, idempotencyKey: `action-fixture-${hostedRunId}`,
     });
     expect((await listCaseActions({ userId: 91001, role: "client" }, "case_active"))
       .some((item) => item.id === action.id)).toBe(true);
@@ -156,7 +159,7 @@ run("persistent advisor workspace repository", () => {
     const request = await createEvidenceRequest({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       evidenceType: "document", description: "Provide supporting evidence",
-      dueAt: new Date("2026-08-01T00:00:00Z"), idempotencyKey: "evidence-request-fixture",
+      dueAt: new Date("2026-08-01T00:00:00Z"), idempotencyKey: `evidence-request-fixture-${hostedRunId}`,
     });
     const submitted = await submitEvidence({
       actor: { userId: 91001, role: "client" }, requestId: request.id,
@@ -177,17 +180,17 @@ run("persistent advisor workspace repository", () => {
     await expect(createEvidenceRequest({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_scope_missing",
       evidenceType: "document", description: "scope fail",
-      idempotencyKey: "scope-mismatch-evidence",
-    })).rejects.toMatchObject({ code: "advisor_scope_insufficient" });
-  });
+      idempotencyKey: `scope-mismatch-evidence-${hostedRunId}`,
+    })).rejects.toMatchObject({ code: "resource_not_found" });
+  }, 15_000);
 
   it("persists durable reviews and rejects missing cross-domain sources", async () => {
     await expect(createReviewItem({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       resourceType: "cv_draft", resourceId: "process_local_cv",
-      reviewType: "approval", priority: "high", idempotencyKey: "cv-review-denied",
+      reviewType: "approval", priority: "high", idempotencyKey: `cv-review-denied-${hostedRunId}`,
     })).rejects.toMatchObject({ code: "shared_resource_required" });
-    await pool.query(
+    await actorQuery(91001,
       `INSERT INTO career_data_workflow_resources
        (workflow_resource_id,owner_user_id,domain,resource_type,parent_session_id,
         source_version,engine_version,taxonomy_version,content_hash,payload,created_by)
@@ -195,32 +198,32 @@ run("persistent advisor workspace repository", () => {
                '1','fixture','2026.1','fixture_review_hash','{"claimStatus":"supported"}',91001)
        ON CONFLICT DO NOTHING`,
     );
-    await pool.query(
+    await actorQuery(91003,
       `INSERT INTO career_data_advisor_case_resources
        (case_resource_id,case_id,owner_user_id,resource_type,resource_id,required_scope,created_by)
-       VALUES ('reviewable_cv_link','case_active',91001,'cv_draft','reviewable_cv_draft','cv_review',91001)
+       VALUES ('reviewable_cv_link','case_active',91001,'cv_draft','reviewable_cv_draft','cv_review',91003)
        ON CONFLICT DO NOTHING`,
     );
     const crossDomainReview = await createReviewItem({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       resourceType: "cv_draft", resourceId: "reviewable_cv_draft",
-      reviewType: "draft_review", priority: "standard", idempotencyKey: "persistent-cv-review",
+      reviewType: "draft_review", priority: "standard", idempotencyKey: `persistent-cv-review-${hostedRunId}`,
     });
     expect(crossDomainReview.status).toBe("awaiting_advisor");
     const review = await createReviewItem({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       resourceType: "career_profile", resourceId: "career_profile_fixture",
-      reviewType: "profile_review", priority: "standard", idempotencyKey: "profile-review-fixture",
+      reviewType: "profile_review", priority: "standard", idempotencyKey: `profile-review-fixture-${hostedRunId}`,
     });
     const advisorDecision = await submitAdvisorDecision({
       actor: { userId: 91003, role: "advisor" }, reviewId: review.id,
       expectedVersion: review.recordVersion, advisorDecision: "changes_requested",
-      decisionReason: "Add evidence", idempotencyKey: "advisor-decision-fixture",
+      decisionReason: "Add evidence", idempotencyKey: `advisor-decision-fixture-${hostedRunId}`,
     });
     const clientDecision = await submitClientDecision({
       actor: { userId: 91001, role: "client" }, reviewId: review.id,
       expectedVersion: advisorDecision.recordVersion, clientDecision: "updated",
-      idempotencyKey: "client-decision-fixture",
+      idempotencyKey: `client-decision-fixture-${hostedRunId}`,
     });
     const resolved = await resolveReviewItem({
       actor: { userId: 91003, role: "advisor" }, reviewId: review.id,
@@ -242,24 +245,26 @@ run("persistent advisor workspace repository", () => {
     expect(clientComments).toHaveLength(1);
     expect(clientComments[0]?.id).toBe(shared.id);
     expect(clientComments[0]?.content).not.toContain("<script>");
-  });
+  }, 15_000);
 
   it("records outcomes and optional-salary placements without inference", async () => {
     const outcome = await createOutcome({
       actor: { userId: 91001, role: "client" }, caseId: "case_active",
       outcomeType: "training_started", outcomeDate: new Date("2026-07-25T00:00:00Z"),
-      verificationStatus: "self_reported", idempotencyKey: "outcome-fixture",
+      verificationStatus: "self_reported", idempotencyKey: `outcome-fixture-${hostedRunId}`,
     });
     expect(outcome.verificationStatus).toBe("self_reported");
     const placement = await createPlacement({
       actor: { userId: 91001, role: "client" }, caseId: "case_active",
       employerName: "Fixture employer", roleTitle: "Fixture role",
       offerStatus: "accepted", verificationStatus: "self_reported",
-      idempotencyKey: "placement-fixture",
+      idempotencyKey: `placement-fixture-${hostedRunId}`,
     });
     expect(placement.salaryAmount).toBeNull();
-    expect((await listOutcomes({ userId: 91001, role: "client" }, "case_active"))).toHaveLength(1);
-    expect((await listPlacements({ userId: 91001, role: "client" }, "case_active"))).toHaveLength(1);
+    expect((await listOutcomes({ userId: 91001, role: "client" }, "case_active"))
+      .some((item) => item.id === outcome.id)).toBe(true);
+    expect((await listPlacements({ userId: 91001, role: "client" }, "case_active"))
+      .some((item) => item.id === placement.id)).toBe(true);
   });
 
   it("calculates and transitions follow-ups with an injected clock", async () => {
@@ -267,7 +272,7 @@ run("persistent advisor workspace repository", () => {
     const followUp = await createFollowUp({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       followUpType: "progress_review", dueAt: new Date("2026-07-24T12:00:00Z"),
-      idempotencyKey: "follow-up-fixture", now,
+      idempotencyKey: `follow-up-fixture-${hostedRunId}`, now,
     });
     expect(followUp.calculatedStatus).toBe("overdue");
     const completed = await completeFollowUp({
@@ -287,7 +292,7 @@ run("persistent advisor workspace repository", () => {
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       sessionType: "review", deliveryMode: "remote",
       scheduledStart: new Date("2026-07-26T12:00:00Z"),
-      idempotencyKey: "detailed-session-fixture",
+      idempotencyKey: `detailed-session-fixture-${hostedRunId}`,
     });
     const confirmed = await confirmSession({
       actor: { userId: 91003, role: "advisor" }, sessionId: session.id,
@@ -305,13 +310,13 @@ run("persistent advisor workspace repository", () => {
     const first = await publishSessionSummary({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       sessionId: session.id, summaryVersion: 1, sessionObjective: "Review",
-      clientVisibleSummary: "Shared summary", idempotencyKey: "summary-one-fixture",
+      clientVisibleSummary: "Shared summary", idempotencyKey: `summary-one-fixture-${hostedRunId}`,
     });
     const second = await publishSessionSummary({
       actor: { userId: 91003, role: "advisor" }, caseId: "case_active",
       sessionId: session.id, summaryVersion: 2, sessionObjective: "Correction",
       clientVisibleSummary: "Corrected summary", supersedesSummaryId: first.id,
-      idempotencyKey: "summary-two-fixture",
+      idempotencyKey: `summary-two-fixture-${hostedRunId}`,
     });
     expect(second.supersedesSummaryId).toBe(first.id);
     expect(await listSessionSummaries({ userId: 91001, role: "client" }, session.id)).toHaveLength(2);

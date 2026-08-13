@@ -43,8 +43,9 @@ import {
   type SessionStatus,
 } from "@workspace/advisor-workspace";
 import { metricForActivity, recordAdvisorMetric } from "./advisor-observability";
+import { withActorTransaction, type ActorTransaction } from "./database-actor-context";
 
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type Transaction = ActorTransaction;
 type ActorRole = "client" | "advisor";
 export type AdvisorWorkspaceActor = { userId: number; role: ActorRole };
 type Actor = AdvisorWorkspaceActor;
@@ -55,8 +56,7 @@ export async function createAdvisorProfile(input: {
   professionalTitle?: string | null;
   idempotencyKey: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.advisorUserId);
+  return withActorTransaction(input.advisorUserId, async (tx) => {
     const operation = "advisor_profile_create";
     const replayedResourceId = await replay(tx, input.advisorUserId, operation, input.idempotencyKey, {
       displayName: input.displayName,
@@ -87,12 +87,14 @@ export async function createAdvisorProfile(input: {
 }
 
 export async function getAdvisorProfile(advisorUserId: number) {
-  const [row] = await db.select().from(careerDataAdvisorProfilesTable).where(and(
-    eq(careerDataAdvisorProfilesTable.advisorUserId, advisorUserId),
-    isNull(careerDataAdvisorProfilesTable.deletedAt),
-  ));
-  if (!row) throw repositoryError("resource_not_found");
-  return row;
+  return withActorTransaction(advisorUserId, async (tx) => {
+    const [row] = await tx.select().from(careerDataAdvisorProfilesTable).where(and(
+      eq(careerDataAdvisorProfilesTable.advisorUserId, advisorUserId),
+      isNull(careerDataAdvisorProfilesTable.deletedAt),
+    ));
+    if (!row) throw repositoryError("resource_not_found");
+    return row;
+  });
 }
 
 export async function updateAdvisorProfile(input: {
@@ -101,7 +103,8 @@ export async function updateAdvisorProfile(input: {
   displayName?: string;
   professionalTitle?: string | null;
 }) {
-  const [row] = await db.update(careerDataAdvisorProfilesTable).set({
+  return withActorTransaction(input.advisorUserId, async (tx) => {
+  const [row] = await tx.update(careerDataAdvisorProfilesTable).set({
     ...(input.displayName === undefined ? {} : { displayName: input.displayName.trim() }),
     ...(input.professionalTitle === undefined ? {} : { professionalTitle: input.professionalTitle?.trim() || null }),
     updatedAt: new Date(),
@@ -111,8 +114,9 @@ export async function updateAdvisorProfile(input: {
     eq(careerDataAdvisorProfilesTable.recordVersion, input.expectedVersion),
     isNull(careerDataAdvisorProfilesTable.deletedAt),
   )).returning();
-  if (!row) await profileConflict(input.advisorUserId, input.expectedVersion);
+  if (!row) await profileConflict(tx, input.advisorUserId, input.expectedVersion);
   return row!;
+  });
 }
 
 export async function setAdvisorCapacity(input: {
@@ -123,8 +127,7 @@ export async function setAdvisorCapacity(input: {
   serviceCategories?: string[];
   expectedVersion?: number;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.advisorUserId);
+  return withActorTransaction(input.advisorUserId, async (tx) => {
     const profile = await requireAdvisorProfile(tx, input.advisorUserId, false);
     const [existing] = await tx.select().from(careerDataAdvisorCapacityTable)
       .where(eq(careerDataAdvisorCapacityTable.advisorProfileId, profile.id));
@@ -157,10 +160,12 @@ export async function setAdvisorCapacity(input: {
 }
 
 export async function getAdvisorCapacity(advisorUserId: number) {
-  const profile = await getAdvisorProfile(advisorUserId);
-  const [row] = await db.select().from(careerDataAdvisorCapacityTable)
-    .where(eq(careerDataAdvisorCapacityTable.advisorProfileId, profile.id));
-  return row ?? null;
+  return withActorTransaction(advisorUserId, async (tx) => {
+    const profile = await requireAdvisorProfile(tx, advisorUserId, false);
+    const [row] = await tx.select().from(careerDataAdvisorCapacityTable)
+      .where(eq(careerDataAdvisorCapacityTable.advisorProfileId, profile.id));
+    return row ?? null;
+  });
 }
 
 export async function createCase(input: {
@@ -171,8 +176,7 @@ export async function createCase(input: {
   priority?: string;
   idempotencyKey: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.ownerUserId);
+  return withActorTransaction(input.ownerUserId, async (tx) => {
     const operation = "advisor_case_create";
     const fields = {
       advisorUserId: input.advisorUserId, advisorGrantId: input.advisorGrantId,
@@ -180,7 +184,7 @@ export async function createCase(input: {
     };
     const prior = await replay(tx, input.ownerUserId, operation, input.idempotencyKey, fields);
     if (prior) return requireCase(tx, { userId: input.ownerUserId, role: "client" }, prior, "case_manage", true);
-    const profile = await requireAdvisorProfile(tx, input.advisorUserId, true);
+    const advisorProfileId = await requireOperationalAdvisorProfile(tx, input.advisorUserId);
     await requireGrant(tx, {
       grantId: input.advisorGrantId, ownerUserId: input.ownerUserId,
       advisorUserId: input.advisorUserId, scope: "case_manage",
@@ -188,7 +192,7 @@ export async function createCase(input: {
     const id = `case_${randomUUID()}`;
     const [row] = await tx.insert(careerDataAdvisorCasesTable).values({
       id, ownerUserId: input.ownerUserId, advisorUserId: input.advisorUserId,
-      advisorProfileId: profile.id, advisorGrantId: input.advisorGrantId,
+      advisorProfileId, advisorGrantId: input.advisorGrantId,
       serviceType: input.serviceType, caseStatus: "pending_acceptance", caseStage: "intake",
       priority: input.priority ?? "standard", createdBy: input.ownerUserId,
       updatedBy: input.ownerUserId, retentionClass: "advisor_case",
@@ -204,15 +208,14 @@ export async function createCase(input: {
 }
 
 export async function listClientCases(ownerUserId: number) {
-  return db.select().from(careerDataAdvisorCasesTable).where(and(
+  return withActorTransaction(ownerUserId, (tx) => tx.select().from(careerDataAdvisorCasesTable).where(and(
     eq(careerDataAdvisorCasesTable.ownerUserId, ownerUserId),
     isNull(careerDataAdvisorCasesTable.deletedAt),
-  )).orderBy(desc(careerDataAdvisorCasesTable.updatedAt));
+  )).orderBy(desc(careerDataAdvisorCasesTable.updatedAt)));
 }
 
 export async function listAdvisorCases(advisorUserId: number) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, advisorUserId);
+  return withActorTransaction(advisorUserId, async (tx) => {
     await requireAdvisorProfile(tx, advisorUserId, true);
     return tx.select().from(careerDataAdvisorCasesTable).where(and(
       eq(careerDataAdvisorCasesTable.advisorUserId, advisorUserId),
@@ -222,8 +225,7 @@ export async function listAdvisorCases(advisorUserId: number) {
 }
 
 export async function getCase(actor: Actor, caseId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     return requireCase(tx, actor, caseId, "case_manage", true);
   });
 }
@@ -234,8 +236,7 @@ export async function transitionAdvisorCase(input: {
   expectedVersion: number;
   nextStatus: CaseStatus;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireCase(tx, input.actor, input.caseId, "case_manage", false);
     if (input.actor.role === "client" && !["cancelled", "access_revoked"].includes(input.nextStatus))
       throw repositoryError("case_access_denied");
@@ -281,8 +282,7 @@ export async function linkCaseResource(input: {
   requiredScope: AdvisorScope;
 }) {
   if (!advisorScopes.includes(input.requiredScope)) throw repositoryError("advisor_scope_insufficient");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireCase(tx, input.actor, input.caseId, input.requiredScope, false);
     if (input.actor.role !== "client") throw repositoryError("case_access_denied");
     await requireOwnedResource(tx, caseRow.ownerUserId, input.resourceType, input.resourceId);
@@ -297,8 +297,7 @@ export async function linkCaseResource(input: {
 }
 
 export async function listCaseResources(actor: Actor, caseId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "case_manage", true);
     return tx.select().from(careerDataAdvisorCaseResourcesTable).where(and(
       eq(careerDataAdvisorCaseResourcesTable.caseId, caseId),
@@ -312,8 +311,7 @@ export async function createSession(input: {
   scheduledStart?: Date | null; scheduledEnd?: Date | null; idempotencyKey: string;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, "case_manage");
     const operation = "advisor_session_create";
     const fields = { caseId: input.caseId, sessionType: input.sessionType, scheduledStart: input.scheduledStart?.toISOString() ?? null };
@@ -348,8 +346,7 @@ export async function createSessionNote(input: {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
   if (input.noteType === "advisor_private" && input.visibilityScope !== "advisor_private")
     throw repositoryError("invalid_note_visibility");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, "case_manage");
     await requireSession(tx, input.sessionId, input.caseId);
     const [row] = await tx.insert(careerDataAdvisorSessionNotesTable).values({
@@ -364,8 +361,7 @@ export async function createSessionNote(input: {
 }
 
 export async function listVisibleSessionNotes(actor: Actor, caseId: string, sessionId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "case_manage", true);
     await requireSession(tx, sessionId, caseId);
     const conditions = [
@@ -385,8 +381,7 @@ export async function publishSessionSummary(input: {
   idempotencyKey: string;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, "case_manage");
     const session = await requireSessionRecord(tx, input.sessionId);
     if (session.caseId !== input.caseId) throw repositoryError("resource_not_found");
@@ -427,8 +422,7 @@ export async function publishSessionSummary(input: {
 }
 
 export async function resolveCaseActor(userId: number, caseId: string): Promise<Actor> {
-  return db.transaction(async (tx) => {
-    await setActor(tx, userId);
+  return withActorTransaction(userId, async (tx) => {
     const [row] = await tx.select({
       ownerUserId: careerDataAdvisorCasesTable.ownerUserId,
       advisorUserId: careerDataAdvisorCasesTable.advisorUserId,
@@ -448,8 +442,7 @@ export async function resolveOperationalActor(
   kind: "action"|"evidence_request"|"review"|"comment"|"outcome"|"placement"|"follow_up"|"session"|"session_note"|"summary",
   resourceId: string,
 ): Promise<Actor> {
-  return db.transaction(async (tx) => {
-    await setActor(tx, userId);
+  return withActorTransaction(userId, async (tx) => {
     let caseId: string|undefined;
     if (kind === "action") {
       [caseId] = (await tx.select({ caseId: careerDataAdvisorActionsTable.caseId }).from(careerDataAdvisorActionsTable)
@@ -504,8 +497,7 @@ export async function createAction(input: {
   completionEvidenceRequired?: boolean; idempotencyKey: string;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, "case_manage");
     if (input.sourceSessionId) await requireSession(tx, input.sourceSessionId, input.caseId);
     const fields = {
@@ -539,8 +531,7 @@ export async function createAction(input: {
 }
 
 export async function listCaseActions(actor: Actor, caseId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "case_manage", true);
     return tx.select().from(careerDataAdvisorActionsTable)
       .where(eq(careerDataAdvisorActionsTable.caseId, caseId))
@@ -549,8 +540,7 @@ export async function listCaseActions(actor: Actor, caseId: string) {
 }
 
 export async function getAction(actor: Actor, actionId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     return requireAction(tx, actor, actionId, true);
   });
 }
@@ -559,8 +549,7 @@ export async function updateAction(input: {
   actor: Actor; actionId: string; expectedVersion: number;
   title?: string; description?: string; priority?: string; dueAt?: Date|null;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireAction(tx, input.actor, input.actionId, false);
     if (input.actor.role === "client" && current.assignedTo !== "client")
       throw repositoryError("case_access_denied");
@@ -584,8 +573,7 @@ export async function transitionActionRecord(input: {
   actor: Actor; actionId: string; expectedVersion: number; nextStatus: ActionStatus;
   completionInformation?: string|null; reason?: string|null;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireAction(tx, input.actor, input.actionId, false);
     const caseRow = await requireOperationalCase(tx, input.actor, current.caseId, "case_manage");
     if (input.actor.role === "client") {
@@ -643,8 +631,7 @@ export async function createEvidenceRequest(input: {
   relatedResourceId?: string|null; dueAt?: Date|null; idempotencyKey: string;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, "evidence_review");
     if (input.relatedResourceType && input.relatedResourceId)
       await requireLinkedCaseResource(tx, caseRow, input.relatedResourceType, input.relatedResourceId);
@@ -678,8 +665,7 @@ export async function createEvidenceRequest(input: {
 }
 
 export async function listEvidenceRequests(actor: Actor, caseId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "evidence_review", true);
     return tx.select().from(careerDataAdvisorEvidenceRequestsTable)
       .where(eq(careerDataAdvisorEvidenceRequestsTable.caseId, caseId))
@@ -688,8 +674,7 @@ export async function listEvidenceRequests(actor: Actor, caseId: string) {
 }
 
 export async function getEvidenceRequest(actor: Actor, requestId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     return requireEvidenceRequest(tx, actor, requestId, true);
   });
 }
@@ -698,8 +683,7 @@ export async function transitionEvidenceRequestRecord(input: {
   actor: Actor; requestId: string; expectedVersion: number; nextStatus: EvidenceRequestStatus;
   submittedEvidenceId?: string|null; reviewDecision?: EvidenceReviewDecision|null; reviewNotes?: string|null;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireEvidenceRequest(tx, input.actor, input.requestId, false);
     const caseRow = await requireOperationalCase(tx, input.actor, current.caseId, "evidence_review");
     if (input.actor.role === "client") {
@@ -777,8 +761,7 @@ export async function createReviewItem(input: {
   reviewType: string; priority: string; idempotencyKey: string;
 }) {
   requireDurableReviewResource(input.resourceType);
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const scope = scopeForReview(input.resourceType);
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, scope);
     await requireLinkedCaseResource(tx, caseRow, input.resourceType, input.resourceId);
@@ -805,8 +788,7 @@ export async function createReviewItem(input: {
 }
 
 export async function listReviewItems(actor: Actor, caseId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "case_manage", true);
     return tx.select().from(careerDataAdvisorReviewItemsTable)
       .where(eq(careerDataAdvisorReviewItemsTable.caseId, caseId))
@@ -815,8 +797,7 @@ export async function listReviewItems(actor: Actor, caseId: string) {
 }
 
 export async function getReviewItem(actor: Actor, reviewId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     return requireReviewItem(tx, actor, reviewId, true);
   });
 }
@@ -826,8 +807,7 @@ export async function transitionReviewItem(input: {
   advisorDecision?: string|null; clientDecision?: string|null; decisionReason?: string|null;
   idempotencyKey?: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireReviewItem(tx, input.actor, input.reviewId, false);
     const scope = scopeForReview(current.resourceType as ReviewResourceType);
     const caseRow = await requireOperationalCase(tx, input.actor, current.caseId, scope);
@@ -889,8 +869,7 @@ export async function createComment(input: {
   visibilityScope: "client_and_advisor"|"advisor_private"|"admin_only";
   content: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const review = await requireReviewItem(tx, input.actor, input.reviewId, false);
     const caseRow = await requireOperationalCase(tx, input.actor, review.caseId, scopeForReview(review.resourceType as ReviewResourceType));
     if (input.actor.role === "client" && input.visibilityScope !== "client_and_advisor")
@@ -923,8 +902,7 @@ export async function createComment(input: {
 }
 
 export async function listComments(actor: Actor, reviewId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     const review = await requireReviewItem(tx, actor, reviewId, true);
     const conditions = [
       eq(careerDataAdvisorCommentsTable.reviewItemId, reviewId),
@@ -940,8 +918,7 @@ export async function listComments(actor: Actor, reviewId: string) {
 export async function updateComment(input: {
   actor: Actor; commentId: string; expectedVersion: number; content: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireComment(tx, input.actor, input.commentId);
     if (current.authorUserId !== input.actor.userId) throw repositoryError("resource_not_found");
     if (current.status !== "open") throw repositoryError("comment_closed");
@@ -960,8 +937,7 @@ export async function updateComment(input: {
 export async function resolveComment(input: {
   actor: Actor; commentId: string; expectedVersion: number;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireComment(tx, input.actor, input.commentId);
     if (input.actor.role !== "advisor" && current.authorUserId !== input.actor.userId)
       throw repositoryError("resource_not_found");
@@ -980,8 +956,7 @@ export async function resolveComment(input: {
 export async function deleteComment(input: {
   actor: Actor; commentId: string; expectedVersion: number;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireComment(tx, input.actor, input.commentId);
     if (current.authorUserId !== input.actor.userId) throw repositoryError("resource_not_found");
     const [row] = await tx.update(careerDataAdvisorCommentsTable).set({
@@ -1012,8 +987,7 @@ export async function createOutcome(input: {
   notes?: string|null; supersedesOutcomeId?: string|null; idempotencyKey: string;
 }) {
   if (!supportedOutcomeTypes.includes(input.outcomeType)) throw repositoryError("invalid_outcome_type");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, "outcome_record");
     if (input.actor.role === "client" && !["self_reported","unconfirmed"].includes(input.verificationStatus))
       throw repositoryError("verification_status_forbidden");
@@ -1046,8 +1020,7 @@ export async function createOutcome(input: {
 }
 
 export async function listOutcomes(actor: Actor, caseId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "outcome_record", true);
     return tx.select().from(careerDataAdvisorOutcomesTable)
       .where(eq(careerDataAdvisorOutcomesTable.caseId, caseId))
@@ -1056,8 +1029,7 @@ export async function listOutcomes(actor: Actor, caseId: string) {
 }
 
 export async function getOutcome(actor: Actor, outcomeId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     return requireOutcome(tx, actor, outcomeId);
   });
 }
@@ -1066,8 +1038,7 @@ export async function updateOutcome(input: {
   actor: Actor; outcomeId: string; expectedVersion: number;
   outcomeDate?: Date; verificationStatus?: string; sourceReference?: string|null; notes?: string|null;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireOutcome(tx, input.actor, input.outcomeId);
     await requireOperationalCase(tx, input.actor, current.caseId, "outcome_record");
     if (input.actor.role === "client" && current.createdBy !== input.actor.userId)
@@ -1101,8 +1072,7 @@ export async function createPlacement(input: {
   sourceOpportunityId?: string|null; offerStatus: string; verificationStatus: string;
   supersedesPlacementId?: string|null; idempotencyKey: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, "outcome_record");
     if (input.actor.role === "client" && !["self_reported","unconfirmed"].includes(input.verificationStatus))
       throw repositoryError("verification_status_forbidden");
@@ -1138,8 +1108,7 @@ export async function createPlacement(input: {
 }
 
 export async function listPlacements(actor: Actor, caseId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "outcome_record", true);
     return tx.select().from(careerDataAdvisorPlacementsTable)
       .where(eq(careerDataAdvisorPlacementsTable.caseId, caseId))
@@ -1148,8 +1117,7 @@ export async function listPlacements(actor: Actor, caseId: string) {
 }
 
 export async function getPlacement(actor: Actor, placementId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     return requirePlacement(tx, actor, placementId);
   });
 }
@@ -1161,8 +1129,7 @@ export async function updatePlacement(input: {
   salaryCurrency?: string|null; salaryPeriod?: string|null; offerStatus?: string;
   verificationStatus?: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requirePlacement(tx, input.actor, input.placementId);
     await requireOperationalCase(tx, input.actor, current.caseId, "outcome_record");
     if (input.actor.role === "client" && current.createdBy !== input.actor.userId)
@@ -1201,8 +1168,7 @@ export async function createFollowUp(input: {
   relatedActionId?: string|null; relatedSessionId?: string|null; idempotencyKey: string; now?: Date;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireOperationalCase(tx, input.actor, input.caseId, "case_manage");
     if (input.relatedActionId) {
       const action = await requireAction(tx, input.actor, input.relatedActionId, true);
@@ -1231,8 +1197,7 @@ export async function createFollowUp(input: {
 }
 
 export async function listFollowUps(actor: Actor, caseId: string, now?: Date) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "case_manage", true);
     const rows = await tx.select().from(careerDataAdvisorFollowUpsTable)
       .where(eq(careerDataAdvisorFollowUpsTable.caseId, caseId))
@@ -1242,8 +1207,7 @@ export async function listFollowUps(actor: Actor, caseId: string, now?: Date) {
 }
 
 export async function getFollowUp(actor: Actor, followUpId: string, now?: Date) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     return requireFollowUp(tx, actor, followUpId, true, now);
   });
 }
@@ -1252,8 +1216,7 @@ export async function updateFollowUp(input: {
   actor: Actor; followUpId: string; expectedVersion: number;
   followUpType?: string; dueAt?: Date; now?: Date;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireFollowUp(tx, input.actor, input.followUpId, false, input.now);
     await requireOperationalCase(tx, input.actor, current.caseId, "case_manage");
     if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
@@ -1277,8 +1240,7 @@ export async function updateFollowUp(input: {
 export async function transitionFollowUp(input: {
   actor: Actor; followUpId: string; expectedVersion: number; nextStatus: "completed"|"cancelled"; now?: Date;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireFollowUp(tx, input.actor, input.followUpId, false, input.now);
     const caseRow = await requireOperationalCase(tx, input.actor, current.caseId, "case_manage");
     if (["completed","cancelled"].includes(current.status)) throw repositoryError("invalid_follow_up_transition");
@@ -1307,8 +1269,7 @@ export const cancelFollowUp = (input: Omit<Parameters<typeof transitionFollowUp>
   transitionFollowUp({ ...input, nextStatus: "cancelled" });
 
 export async function listSessions(actor: Actor, caseId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     await requireCase(tx, actor, caseId, "case_manage", true);
     return tx.select().from(careerDataAdvisorSessionsTable)
       .where(eq(careerDataAdvisorSessionsTable.caseId, caseId))
@@ -1317,8 +1278,7 @@ export async function listSessions(actor: Actor, caseId: string) {
 }
 
 export async function getSession(actor: Actor, sessionId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     const row = await requireSessionRecord(tx, sessionId);
     await requireCase(tx, actor, row.caseId, "case_manage", true);
     return row;
@@ -1331,8 +1291,7 @@ export async function updateSession(input: {
   deliveryMode?: string; locationOrProviderReference?: string|null;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireSessionRecord(tx, input.sessionId);
     await requireOperationalCase(tx, input.actor, current.caseId, "case_manage");
     if (["completed","cancelled","rescheduled"].includes(current.sessionStatus))
@@ -1362,8 +1321,7 @@ export async function transitionSessionRecord(input: {
   reason?: string|null; actualAt?: Date;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireSessionRecord(tx, input.sessionId);
     const caseRow = await requireOperationalCase(tx, input.actor, current.caseId, "case_manage");
     transitionSession(current.sessionStatus as SessionStatus, input.nextStatus);
@@ -1403,8 +1361,7 @@ export async function rescheduleSession(input: {
   scheduledStart: Date; scheduledEnd?: Date|null; reason: string; idempotencyKey: string;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireSessionRecord(tx, input.sessionId);
     const caseRow = await requireOperationalCase(tx, input.actor, current.caseId, "case_manage");
     transitionSession(current.sessionStatus as SessionStatus, "rescheduled");
@@ -1451,8 +1408,7 @@ export async function updateSessionNote(input: {
   actor: Actor; noteId: string; expectedVersion: number; content: string;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireSessionNote(tx, input.actor, input.noteId);
     await requireOperationalCase(tx, input.actor, current.caseId, "case_manage");
     const [row] = await tx.update(careerDataAdvisorSessionNotesTable).set({
@@ -1473,8 +1429,7 @@ export async function deleteSessionNote(input: {
   actor: Actor; noteId: string; expectedVersion: number;
 }) {
   if (input.actor.role !== "advisor") throw repositoryError("case_access_denied");
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const current = await requireSessionNote(tx, input.actor, input.noteId);
     await requireOperationalCase(tx, input.actor, current.caseId, "case_manage");
     const [row] = await tx.update(careerDataAdvisorSessionNotesTable).set({
@@ -1492,8 +1447,7 @@ export async function deleteSessionNote(input: {
 }
 
 export async function listSessionSummaries(actor: Actor, sessionId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     const session = await requireSessionRecord(tx, sessionId);
     await requireCase(tx, actor, session.caseId, "session_summary_read", true);
     return tx.select().from(careerDataAdvisorSessionSummariesTable)
@@ -1503,8 +1457,7 @@ export async function listSessionSummaries(actor: Actor, sessionId: string) {
 }
 
 export async function getSessionSummary(actor: Actor, summaryId: string) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, actor.userId);
+  return withActorTransaction(actor.userId, async (tx) => {
     const [row] = await tx.select().from(careerDataAdvisorSessionSummariesTable)
       .where(eq(careerDataAdvisorSessionSummariesTable.id, summaryId));
     if (!row) throw repositoryError("resource_not_found");
@@ -1518,8 +1471,7 @@ export function supersedeSessionSummary(input: Parameters<typeof publishSessionS
 }
 
 export async function getAdvisorOperationalQueues(advisorUserId: number, now = new Date()) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, advisorUserId);
+  return withActorTransaction(advisorUserId, async (tx) => {
     await requireAdvisorProfile(tx, advisorUserId, true);
     const accessibleCases = await tx.select({ id: careerDataAdvisorCasesTable.id })
       .from(careerDataAdvisorCasesTable).where(and(
@@ -1564,8 +1516,7 @@ export async function buildAdvisorCaseExport(input: {
   actor: Actor; caseId: string;
   format: "client_session_summary"|"agreed_action_plan"|"case_progress_summary"|"case_closure_summary"|"advisor_review_summary";
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.actor.userId);
+  return withActorTransaction(input.actor.userId, async (tx) => {
     const caseRow = await requireCase(tx, input.actor, input.caseId, "case_manage", true);
     const summaries = await tx.select({
         summaryVersion: careerDataAdvisorSessionSummariesTable.summaryVersion,
@@ -1827,6 +1778,14 @@ async function requireAdvisorProfile(tx: Transaction, advisorUserId: number, req
   return profile;
 }
 
+async function requireOperationalAdvisorProfile(tx: Transaction, advisorUserId: number) {
+  const result = await tx.execute(sql<{ advisor_profile_id: string | null }>
+    `select career_data_operational_advisor_profile(${advisorUserId}) as advisor_profile_id`);
+  const advisorProfileId = result.rows[0]?.advisor_profile_id as string | undefined;
+  if (!advisorProfileId) throw repositoryError("advisor_not_verified");
+  return advisorProfileId;
+}
+
 async function requireGrant(tx: Transaction, input: {
   grantId: string; ownerUserId: number; advisorUserId: number; scope: AdvisorScope;
 }) {
@@ -1876,14 +1835,10 @@ async function requireSession(tx: Transaction, sessionId: string, caseId: string
   if (!row) throw repositoryError("resource_not_found");
 }
 
-async function setActor(tx: Transaction, userId: number) {
-  await tx.execute(sql`select set_config('app.user_id', ${String(userId)}, true)`);
-}
-
 async function replay(tx: Transaction, ownerUserId: number, operation: string, key: string, fields: unknown) {
   const value = fingerprint(ownerUserId, operation, key, fields);
   const [row] = await tx.select().from(careerDataIdempotencyTable).where(and(
-    eq(careerDataIdempotencyTable.ownerUserId, ownerUserId),
+    eq(careerDataIdempotencyTable.ownerUserId, sql`career_data_actor_user_id()`),
     eq(careerDataIdempotencyTable.operation, operation),
     eq(careerDataIdempotencyTable.idempotencyKeyHash, value.idempotencyKeyHash),
     gt(careerDataIdempotencyTable.expiresAt, new Date()),
@@ -1898,7 +1853,7 @@ async function remember(
   fields: unknown, resourceType: string, resourceId: string,
 ) {
   await tx.insert(careerDataIdempotencyTable).values({
-    id: `idempotency_${randomUUID()}`, ownerUserId, operation,
+    id: `idempotency_${randomUUID()}`, ownerUserId: sql`career_data_actor_user_id()`, operation,
     ...fingerprint(ownerUserId, operation, key, fields),
     resourceType, resourceId, expiresAt: new Date(Date.now() + 86_400_000),
   });
@@ -1932,8 +1887,8 @@ async function activity(tx: Transaction, input: {
   if (metric) recordAdvisorMetric(metric);
 }
 
-async function profileConflict(advisorUserId: number, expectedVersion: number): Promise<never> {
-  const [row] = await db.select({ recordVersion: careerDataAdvisorProfilesTable.recordVersion })
+async function profileConflict(tx: Transaction, advisorUserId: number, expectedVersion: number): Promise<never> {
+  const [row] = await tx.select({ recordVersion: careerDataAdvisorProfilesTable.recordVersion })
     .from(careerDataAdvisorProfilesTable)
     .where(eq(careerDataAdvisorProfilesTable.advisorUserId, advisorUserId));
   if (!row) throw repositoryError("resource_not_found");

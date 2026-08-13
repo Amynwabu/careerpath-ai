@@ -11,6 +11,7 @@ END $$;
 GRANT USAGE ON SCHEMA public TO careerpath_app,careerpath_readonly,careerpath_retention_worker,careerpath_reporting;
 GRANT SELECT,INSERT,UPDATE,DELETE ON ALL TABLES IN SCHEMA public TO careerpath_app;
 GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA public TO careerpath_app;
+GRANT EXECUTE ON FUNCTION career_data_operational_advisor_profile(integer) TO careerpath_app;
 GRANT SELECT ON career_data_reporting_job_health TO careerpath_reporting;
 GRANT SELECT,UPDATE,DELETE ON career_data_jobs,career_data_job_checkpoints TO careerpath_retention_worker;
 DROP POLICY IF EXISTS jobs_worker_operations ON career_data_jobs;

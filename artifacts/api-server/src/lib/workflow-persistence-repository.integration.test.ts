@@ -1,4 +1,5 @@
 import { afterAll, describe, expect, it } from "vitest";
+import { randomUUID } from "node:crypto";
 import { pool } from "@workspace/db";
 import {
   createOpportunitySnapshot, createWorkflowExport, createWorkflowSession,
@@ -6,6 +7,7 @@ import {
   listOpportunitySnapshots, listWorkflowSessions, persistWorkflowResource,
   rememberIdempotency, replayIdempotency, saveOpportunity, saveWorkflowSession,
 } from "./workflow-persistence-repository";
+import { actorQuery } from "./database-actor-context";
 
 const run = process.env.WORKFLOW_DB_INTEGRATION === "1" ? describe : describe.skip;
 type Fixture = { sessionId: string; ownerUserId: string; status: string; recordVersion: number };
@@ -22,14 +24,14 @@ run("durable cross-domain workflow repository", () => {
     expect(await getOpportunitySnapshot(91001, vacancy.jobId)).toMatchObject(vacancy);
     expect(await getOpportunitySnapshot(91002, vacancy.jobId)).toBeUndefined();
     expect(await listOpportunitySnapshots(91001)).toHaveLength(1);
-    await expect(pool.query(
+    await expect(actorQuery(91001,
       "update career_data_opportunity_snapshots set payload='{}' where opportunity_snapshot_id=$1",
       [vacancy.jobId],
     )).rejects.toThrow("immutable_workflow_record");
   });
 
   it("persists sessions across independent reads and rejects stale updates", async () => {
-    const payload: Fixture = { sessionId: "workflow_cv_fixture", ownerUserId: "91001", status: "created", recordVersion: 1 };
+    const payload: Fixture = { sessionId: `workflow_cv_fixture_${randomUUID()}`, ownerUserId: "91001", status: "created", recordVersion: 1 };
     await createWorkflowSession({ domain: "application", ownerUserId: 91001,
       sessionId: payload.sessionId, status: payload.status, payload });
     expect(await getWorkflowSession("application", 91001, payload.sessionId)).toEqual(payload);
@@ -48,7 +50,7 @@ run("durable cross-domain workflow repository", () => {
       operation: "session", key: "sensitive-fixture-key", resourceId: "workflow_interview_fixture" });
     expect(await replayIdempotency({ ownerUserId: 91001, domain: "interview",
       operation: "session", key: "sensitive-fixture-key" })).toBe("workflow_interview_fixture");
-    const raw = await pool.query<{ key_hash: string }>(
+    const raw = await actorQuery<{ key_hash: string }>(91001,
       "select key_hash from career_data_workflow_idempotency where resource_id=$1",
       ["workflow_interview_fixture"],
     );
@@ -59,7 +61,7 @@ run("durable cross-domain workflow repository", () => {
     await persistWorkflowResource({ resourceId: "workflow_blocked_claim", ownerUserId: 91001,
       domain: "application", resourceType: "cv_claim_validation", parentSessionId: "workflow_cv_fixture",
       payload: { claimStatus: "blocked", automaticallyIncludable: false } });
-    await expect(pool.query(
+    await expect(actorQuery(91001,
       "update career_data_workflow_resources set approval_state='approved' where workflow_resource_id=$1",
       ["workflow_blocked_claim"],
     )).rejects.toThrow("immutable_workflow_record");

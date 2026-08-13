@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
-import { pool } from "@workspace/db";
 import { recordWorkflowMetric } from "./workflow-observability";
+import { actorQuery } from "./database-actor-context";
 
 export type WorkflowDomain = "opportunity" | "application" | "interview";
 type SessionTable =
@@ -21,7 +21,7 @@ export function contentHash(value: unknown) {
 export async function replayIdempotency(input: {
   ownerUserId: number; domain: WorkflowDomain; operation: string; key: string;
 }) {
-  const result = await pool.query<{ resource_id: string }>(
+  const result = await actorQuery<{ resource_id: string }>(input.ownerUserId,
     `SELECT resource_id FROM career_data_workflow_idempotency
      WHERE owner_user_id=$1 AND domain=$2 AND operation=$3 AND key_hash=$4 AND expires_at>now()`,
     [input.ownerUserId, input.domain, input.operation, contentHash(input.key)],
@@ -32,7 +32,7 @@ export async function replayIdempotency(input: {
 export async function rememberIdempotency(input: {
   ownerUserId: number; domain: WorkflowDomain; operation: string; key: string; resourceId: string;
 }) {
-  await pool.query(
+  await actorQuery(input.ownerUserId,
     `INSERT INTO career_data_workflow_idempotency
       (owner_user_id,domain,operation,key_hash,resource_id,expires_at)
      VALUES ($1,$2,$3,$4,$5,now()+interval '24 hours')
@@ -46,7 +46,7 @@ export async function createWorkflowSession<T extends { recordVersion: number }>
   engineVersion?: string; taxonomyVersion?: string; sourceVersion?: string;
 }) {
   const target = sessionTables[input.domain];
-  await pool.query(
+  await actorQuery(input.ownerUserId,
     `INSERT INTO ${target.table}
       (${target.id},owner_user_id,session_status,payload,source_version,engine_version,taxonomy_version,record_version,created_by,updated_by)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$2,$2)`,
@@ -63,7 +63,7 @@ export async function getWorkflowSession<T>(
   domain: WorkflowDomain, ownerUserId: number, sessionId: string,
 ): Promise<T | undefined> {
   const target = sessionTables[domain];
-  const result = await pool.query<{ payload: T }>(
+  const result = await actorQuery<{ payload: T }>(ownerUserId,
     `SELECT payload FROM ${target.table}
      WHERE ${target.id}=$1 AND owner_user_id=$2 AND deleted_at IS NULL`,
     [sessionId, ownerUserId],
@@ -73,7 +73,7 @@ export async function getWorkflowSession<T>(
 
 export async function listWorkflowSessions<T>(domain: WorkflowDomain, ownerUserId: number): Promise<T[]> {
   const target = sessionTables[domain];
-  const result = await pool.query<{ payload: T }>(
+  const result = await actorQuery<{ payload: T }>(ownerUserId,
     `SELECT payload FROM ${target.table}
      WHERE owner_user_id=$1 AND deleted_at IS NULL ORDER BY updated_at DESC`,
     [ownerUserId],
@@ -86,7 +86,7 @@ export async function saveWorkflowSession<T extends { recordVersion: number }>(i
   expectedVersion: number; payload: T;
 }) {
   const target = sessionTables[input.domain];
-  const result = await pool.query(
+  const result = await actorQuery(input.ownerUserId,
     `UPDATE ${target.table}
      SET payload=$1,session_status=$2,record_version=$3,updated_by=$4,updated_at=now()
      WHERE ${target.id}=$5 AND owner_user_id=$4 AND record_version=$6 AND deleted_at IS NULL`,
@@ -105,7 +105,7 @@ export async function persistWorkflowResource(input: {
   parentSessionId: string; payload: unknown; sourceRecordId?: string; recordVersion?: number;
   engineVersion?: string; taxonomyVersion?: string; supersedesResourceId?: string;
 }) {
-  await pool.query(
+  await actorQuery(input.ownerUserId,
     `INSERT INTO career_data_workflow_resources
       (workflow_resource_id,owner_user_id,domain,resource_type,parent_session_id,
        source_record_id,source_version,engine_version,taxonomy_version,record_version,
@@ -137,7 +137,7 @@ export async function createWorkflowExport(input: {
   const payload = input.payload && typeof input.payload === "object" && !Array.isArray(input.payload)
     ? { ...(input.payload as Record<string, unknown>), exportId }
     : input.payload;
-  await pool.query(
+  await actorQuery(input.ownerUserId,
     `INSERT INTO career_data_workflow_exports
       (workflow_export_id,owner_user_id,domain,parent_session_id,source_resource_id,
        export_format,payload,content_hash,expires_at,created_by)
@@ -151,7 +151,7 @@ export async function createWorkflowExport(input: {
 export async function getWorkflowExport<T>(
   ownerUserId: number, domain: WorkflowDomain, exportId: string,
 ) {
-  const result = await pool.query<{ payload: T }>(
+  const result = await actorQuery<{ payload: T }>(ownerUserId,
     `SELECT payload FROM career_data_workflow_exports
      WHERE workflow_export_id=$1 AND owner_user_id=$2 AND domain=$3
        AND deleted_at IS NULL AND expires_at>now()`,
@@ -163,7 +163,7 @@ export async function getWorkflowExport<T>(
 export async function createOpportunitySnapshot<T extends {
   jobId: string; source: string; sourceReference: string; taxonomyVersion: string;
 }>(ownerUserId: number, payload: T) {
-  await pool.query(
+  await actorQuery(ownerUserId,
     `INSERT INTO career_data_opportunity_snapshots
       (opportunity_snapshot_id,owner_user_id,provider,provider_reference,content_hash,
        normalization_version,payload,created_by)
@@ -176,7 +176,7 @@ export async function createOpportunitySnapshot<T extends {
 }
 
 export async function listOpportunitySnapshots<T>(ownerUserId: number): Promise<T[]> {
-  const result = await pool.query<{ payload: T }>(
+  const result = await actorQuery<{ payload: T }>(ownerUserId,
     `SELECT payload FROM career_data_opportunity_snapshots
      WHERE owner_user_id=$1 AND deleted_at IS NULL ORDER BY created_at DESC`,
     [ownerUserId],
@@ -185,7 +185,7 @@ export async function listOpportunitySnapshots<T>(ownerUserId: number): Promise<
 }
 
 export async function getOpportunitySnapshot<T>(ownerUserId: number, snapshotId: string) {
-  const result = await pool.query<{ payload: T }>(
+  const result = await actorQuery<{ payload: T }>(ownerUserId,
     `SELECT payload FROM career_data_opportunity_snapshots
      WHERE opportunity_snapshot_id=$1 AND owner_user_id=$2 AND deleted_at IS NULL`,
     [snapshotId, ownerUserId],
@@ -195,7 +195,7 @@ export async function getOpportunitySnapshot<T>(ownerUserId: number, snapshotId:
 
 export async function saveOpportunity(ownerUserId: number, snapshotId: string) {
   const id = `saved_${contentHash(`${ownerUserId}:${snapshotId}`).slice(0, 24)}`;
-  await pool.query(
+  await actorQuery(ownerUserId,
     `INSERT INTO career_data_saved_opportunities
       (saved_opportunity_id,owner_user_id,opportunity_snapshot_id,created_by,updated_by)
      VALUES ($1,$2,$3,$2,$2)
@@ -208,7 +208,7 @@ export async function saveOpportunity(ownerUserId: number, snapshotId: string) {
 }
 
 export async function listSavedOpportunities(ownerUserId: number) {
-  const result = await pool.query<{ opportunity_snapshot_id: string }>(
+  const result = await actorQuery<{ opportunity_snapshot_id: string }>(ownerUserId,
     `SELECT opportunity_snapshot_id FROM career_data_saved_opportunities
      WHERE owner_user_id=$1 AND status='saved' AND deleted_at IS NULL ORDER BY updated_at DESC`,
     [ownerUserId],
@@ -220,7 +220,7 @@ export async function unsaveOpportunity(ownerUserId: number, snapshotId: string,
   const values: unknown[] = [ownerUserId, snapshotId];
   const versionClause = expectedVersion === undefined ? "" : " AND record_version=$3";
   if (expectedVersion !== undefined) values.push(expectedVersion);
-  const result = await pool.query(
+  const result = await actorQuery(ownerUserId,
     `UPDATE career_data_saved_opportunities
      SET status='removed',deleted_at=now(),record_version=record_version+1,updated_by=$1,updated_at=now()
      WHERE owner_user_id=$1 AND opportunity_snapshot_id=$2 AND deleted_at IS NULL${versionClause}`,

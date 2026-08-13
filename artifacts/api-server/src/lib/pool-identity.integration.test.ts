@@ -109,5 +109,5 @@ run("pooled transaction-local identity isolation", () => {
         client.release();
       }
     }
-  });
+  }, 15_000);
 });

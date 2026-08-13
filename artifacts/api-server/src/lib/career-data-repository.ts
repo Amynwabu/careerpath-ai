@@ -35,6 +35,7 @@ import {
   safeAuditEvent,
   type AdvisorScope,
 } from "@workspace/career-data";
+import { withActorTransaction, type ActorTransaction } from "./database-actor-context";
 
 const engineVersion = "career-intelligence-1.0";
 
@@ -44,8 +45,7 @@ export async function createProfileRecord(input: {
   idempotencyKey: string;
   requestId: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.ownerUserId);
+  return withActorTransaction(input.ownerUserId, async (tx) => {
     const replay = await idempotentReplay(tx, {
       ownerUserId: input.ownerUserId,
       operation: "create_profile",
@@ -126,7 +126,8 @@ export async function createProfileRecord(input: {
 }
 
 export async function getDocumentUsage(ownerUserId: number) {
-  const rows = await db.select({
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const rows = await tx.select({
     count: sql<number>`count(*)::int`,
     bytes: sql<number>`coalesce(sum(${careerDataDocumentsTable.fileSizeBytes}), 0)::bigint`,
   }).from(careerDataDocumentsTable).where(and(
@@ -137,6 +138,7 @@ export async function getDocumentUsage(ownerUserId: number) {
     storedDocuments: rows[0]?.count ?? 0,
     storageBytes: Number(rows[0]?.bytes ?? 0),
   };
+  });
 }
 
 export async function createDocumentRecord(input: {
@@ -156,7 +158,8 @@ export async function createDocumentRecord(input: {
     expiresAt: Date | null;
   };
 }) {
-  const [row] = await db.insert(careerDataDocumentsTable).values({
+  return withActorTransaction(input.ownerUserId, async (tx) => {
+  const [row] = await tx.insert(careerDataDocumentsTable).values({
     id: input.document.id,
     ownerUserId: input.ownerUserId,
     createdBy: input.ownerUserId,
@@ -191,10 +194,11 @@ export async function createDocumentRecord(input: {
     recordVersion: careerDataDocumentsTable.recordVersion,
   });
   return row!;
+  });
 }
 
 export async function listDocumentRecords(ownerUserId: number, limitValue?: unknown) {
-  return db.select({
+  return withActorTransaction(ownerUserId, (tx) => tx.select({
     id: careerDataDocumentsTable.id,
     originalFilename: careerDataDocumentsTable.originalFilename,
     safeFilename: careerDataDocumentsTable.safeFilename,
@@ -211,17 +215,19 @@ export async function listDocumentRecords(ownerUserId: number, limitValue?: unkn
     eq(careerDataDocumentsTable.ownerUserId, ownerUserId),
     isNull(careerDataDocumentsTable.deletedAt),
   )).orderBy(desc(careerDataDocumentsTable.uploadedAt))
-    .limit(normalizePageLimit(limitValue, 50));
+    .limit(normalizePageLimit(limitValue, 50)));
 }
 
 export async function getDocumentStorageRecord(ownerUserId: number, documentId: string) {
-  const [row] = await db.select().from(careerDataDocumentsTable).where(and(
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const [row] = await tx.select().from(careerDataDocumentsTable).where(and(
     eq(careerDataDocumentsTable.id, documentId),
     eq(careerDataDocumentsTable.ownerUserId, ownerUserId),
     isNull(careerDataDocumentsTable.deletedAt),
   ));
   if (!row) throw repositoryError("resource_not_found");
   return row;
+  });
 }
 
 export async function markDocumentDeleted(input: {
@@ -229,7 +235,8 @@ export async function markDocumentDeleted(input: {
   documentId: string;
   reason: string;
 }) {
-  const [row] = await db.update(careerDataDocumentsTable).set({
+  return withActorTransaction(input.ownerUserId, async (tx) => {
+  const [row] = await tx.update(careerDataDocumentsTable).set({
     deletedAt: new Date(),
     deletedBy: input.ownerUserId,
     deletionReason: input.reason,
@@ -244,6 +251,7 @@ export async function markDocumentDeleted(input: {
   )).returning({ id: careerDataDocumentsTable.id });
   if (!row) throw repositoryError("resource_not_found");
   return row;
+  });
 }
 
 export async function listProfiles(input: {
@@ -269,7 +277,8 @@ export async function listProfiles(input: {
       ),
     )!);
   }
-  const rows = await db.select({
+  return withActorTransaction(input.ownerUserId, async (tx) => {
+  const rows = await tx.select({
     id: careerDataProfilesTable.id,
     profileVersion: careerDataProfilesTable.profileVersion,
     status: careerDataProfilesTable.status,
@@ -291,33 +300,36 @@ export async function listProfiles(input: {
       ? encodeCursor({ createdAt: last.createdAt.toISOString(), id: last.id })
       : null,
   };
+  });
 }
 
 export async function getProfileRecord(ownerUserId: number, profileId: string) {
-  const [profile] = await db.select().from(careerDataProfilesTable).where(and(
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const [profile] = await tx.select().from(careerDataProfilesTable).where(and(
     eq(careerDataProfilesTable.id, profileId),
     eq(careerDataProfilesTable.ownerUserId, ownerUserId),
     isNull(careerDataProfilesTable.deletedAt),
   ));
   if (!profile) throw repositoryError("resource_not_found");
   const [personalData, entities, corrections] = await Promise.all([
-    db.select().from(careerDataPersonalDataTable).where(and(
+    tx.select().from(careerDataPersonalDataTable).where(and(
       eq(careerDataPersonalDataTable.profileId, profileId),
       eq(careerDataPersonalDataTable.ownerUserId, ownerUserId),
       isNull(careerDataPersonalDataTable.deletedAt),
     )),
-    db.select().from(careerDataProfileEntitiesTable).where(and(
+    tx.select().from(careerDataProfileEntitiesTable).where(and(
       eq(careerDataProfileEntitiesTable.profileId, profileId),
       eq(careerDataProfileEntitiesTable.ownerUserId, ownerUserId),
       isNull(careerDataProfileEntitiesTable.deletedAt),
     )).orderBy(asc(careerDataProfileEntitiesTable.ordinal)),
-    db.select().from(careerDataCorrectionsTable).where(and(
+    tx.select().from(careerDataCorrectionsTable).where(and(
       eq(careerDataCorrectionsTable.profileId, profileId),
       eq(careerDataCorrectionsTable.ownerUserId, ownerUserId),
       isNull(careerDataCorrectionsTable.deletedAt),
     )),
   ]);
   return { profile, personalData: personalData[0] ?? null, entities, corrections };
+  });
 }
 
 export async function updateProfileRecord(input: {
@@ -328,7 +340,8 @@ export async function updateProfileRecord(input: {
   summary?: string;
   requestId: string;
 }) {
-  const rows = await db.update(careerDataProfilesTable).set({
+  return withActorTransaction(input.ownerUserId, async (tx) => {
+  const rows = await tx.update(careerDataProfilesTable).set({
     ...(input.status ? { status: input.status } : {}),
     ...(typeof input.summary === "string" ? { summary: input.summary } : {}),
     updatedBy: input.ownerUserId,
@@ -340,8 +353,9 @@ export async function updateProfileRecord(input: {
     eq(careerDataProfilesTable.recordVersion, input.expectedVersion),
     isNull(careerDataProfilesTable.deletedAt),
   )).returning();
-  if (!rows.length) await distinguishConflict(input.ownerUserId, input.profileId, input.expectedVersion);
+  if (!rows.length) await distinguishConflict(tx, input.ownerUserId, input.profileId, input.expectedVersion);
   return rows[0]!;
+  });
 }
 
 export async function archiveProfileRecord(input: {
@@ -350,8 +364,9 @@ export async function archiveProfileRecord(input: {
   expectedVersion: number;
   reason: string;
 }) {
+  return withActorTransaction(input.ownerUserId, async (tx) => {
   const now = new Date();
-  const rows = await db.update(careerDataProfilesTable).set({
+  const rows = await tx.update(careerDataProfilesTable).set({
     status: "archived",
     active: false,
     deletedAt: now,
@@ -367,8 +382,9 @@ export async function archiveProfileRecord(input: {
     eq(careerDataProfilesTable.recordVersion, input.expectedVersion),
     isNull(careerDataProfilesTable.deletedAt),
   )).returning({ id: careerDataProfilesTable.id });
-  if (!rows.length) await distinguishConflict(input.ownerUserId, input.profileId, input.expectedVersion);
+  if (!rows.length) await distinguishConflict(tx, input.ownerUserId, input.profileId, input.expectedVersion);
   return rows[0]!;
+  });
 }
 
 export async function createGoalRecord(input: {
@@ -376,8 +392,7 @@ export async function createGoalRecord(input: {
   goal: CareerGoal;
   idempotencyKey: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.ownerUserId);
+  return withActorTransaction(input.ownerUserId, async (tx) => {
     const replay = await idempotentReplay(tx, {
       ownerUserId: input.ownerUserId,
       operation: "create_goal",
@@ -421,21 +436,23 @@ export async function createGoalRecord(input: {
 }
 
 export async function listGoalRecords(ownerUserId: number, limitValue?: unknown) {
-  return db.select().from(careerDataGoalsTable).where(and(
+  return withActorTransaction(ownerUserId, (tx) => tx.select().from(careerDataGoalsTable).where(and(
     eq(careerDataGoalsTable.ownerUserId, ownerUserId),
     isNull(careerDataGoalsTable.deletedAt),
   )).orderBy(desc(careerDataGoalsTable.createdAt))
-    .limit(normalizePageLimit(limitValue, 50));
+    .limit(normalizePageLimit(limitValue, 50)));
 }
 
 export async function getGoalRecord(ownerUserId: number, goalId: string) {
-  const [row] = await db.select().from(careerDataGoalsTable).where(and(
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const [row] = await tx.select().from(careerDataGoalsTable).where(and(
     eq(careerDataGoalsTable.id, goalId),
     eq(careerDataGoalsTable.ownerUserId, ownerUserId),
     isNull(careerDataGoalsTable.deletedAt),
   ));
   if (!row) throw repositoryError("resource_not_found");
   return row;
+  });
 }
 
 export async function createAssessmentRecord(input: {
@@ -443,8 +460,7 @@ export async function createAssessmentRecord(input: {
   assessment: ReadinessAssessment;
   idempotencyKey: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.ownerUserId);
+  return withActorTransaction(input.ownerUserId, async (tx) => {
     const replay = await idempotentReplay(tx, {
       ownerUserId: input.ownerUserId,
       operation: "create_assessment",
@@ -510,8 +526,7 @@ export async function createPlanRecord(input: {
   plan: CareerActionPlan;
   idempotencyKey: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.ownerUserId);
+  return withActorTransaction(input.ownerUserId, async (tx) => {
     const replay = await idempotentReplay(tx, {
       ownerUserId: input.ownerUserId,
       operation: "create_plan",
@@ -588,56 +603,60 @@ export async function createPlanRecord(input: {
 }
 
 export async function listAssessmentRecords(ownerUserId: number, limitValue?: unknown) {
-  return db.select().from(careerDataAssessmentsTable).where(and(
+  return withActorTransaction(ownerUserId, (tx) => tx.select().from(careerDataAssessmentsTable).where(and(
     eq(careerDataAssessmentsTable.ownerUserId, ownerUserId),
     isNull(careerDataAssessmentsTable.deletedAt),
   )).orderBy(desc(careerDataAssessmentsTable.createdAt))
-    .limit(normalizePageLimit(limitValue, 50));
+    .limit(normalizePageLimit(limitValue, 50)));
 }
 
 export async function getAssessmentRecord(ownerUserId: number, assessmentId: string) {
-  const [assessment] = await db.select().from(careerDataAssessmentsTable).where(and(
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const [assessment] = await tx.select().from(careerDataAssessmentsTable).where(and(
     eq(careerDataAssessmentsTable.id, assessmentId),
     eq(careerDataAssessmentsTable.ownerUserId, ownerUserId),
     isNull(careerDataAssessmentsTable.deletedAt),
   ));
   if (!assessment) throw repositoryError("resource_not_found");
-  const items = await db.select().from(careerDataAssessmentItemsTable).where(and(
+  const items = await tx.select().from(careerDataAssessmentItemsTable).where(and(
     eq(careerDataAssessmentItemsTable.assessmentId, assessmentId),
     eq(careerDataAssessmentItemsTable.ownerUserId, ownerUserId),
     isNull(careerDataAssessmentItemsTable.deletedAt),
   ));
   return { assessment, items };
+  });
 }
 
 export async function listPlanRecords(ownerUserId: number, limitValue?: unknown) {
   const limit = normalizePageLimit(limitValue, 50);
-  return db.select().from(careerDataPlansTable).where(and(
+  return withActorTransaction(ownerUserId, (tx) => tx.select().from(careerDataPlansTable).where(and(
     eq(careerDataPlansTable.ownerUserId, ownerUserId),
     isNull(careerDataPlansTable.deletedAt),
-  )).orderBy(desc(careerDataPlansTable.createdAt)).limit(limit);
+  )).orderBy(desc(careerDataPlansTable.createdAt)).limit(limit));
 }
 
 export async function getPlanRecord(ownerUserId: number, planId: string) {
-  const [plan] = await db.select().from(careerDataPlansTable).where(and(
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const [plan] = await tx.select().from(careerDataPlansTable).where(and(
     eq(careerDataPlansTable.id, planId),
     eq(careerDataPlansTable.ownerUserId, ownerUserId),
     isNull(careerDataPlansTable.deletedAt),
   ));
   if (!plan) throw repositoryError("resource_not_found");
   const [items, dependencies] = await Promise.all([
-    db.select().from(careerDataPlanItemsTable).where(and(
+    tx.select().from(careerDataPlanItemsTable).where(and(
       eq(careerDataPlanItemsTable.planId, planId),
       eq(careerDataPlanItemsTable.ownerUserId, ownerUserId),
       isNull(careerDataPlanItemsTable.deletedAt),
     )).orderBy(asc(careerDataPlanItemsTable.ordinal)),
-    db.select().from(careerDataPlanDependenciesTable).where(and(
+    tx.select().from(careerDataPlanDependenciesTable).where(and(
       eq(careerDataPlanDependenciesTable.planId, planId),
       eq(careerDataPlanDependenciesTable.ownerUserId, ownerUserId),
       isNull(careerDataPlanDependenciesTable.deletedAt),
     )),
   ]);
   return { plan, items, dependencies };
+  });
 }
 
 export async function updateActionRecord(input: {
@@ -648,7 +667,8 @@ export async function updateActionRecord(input: {
   status: string;
   verificationStatus: string;
 }) {
-  const rows = await db.update(careerDataPlanItemsTable).set({
+  return withActorTransaction(input.ownerUserId, async (tx) => {
+  const rows = await tx.update(careerDataPlanItemsTable).set({
     status: input.status,
     verificationStatus: input.verificationStatus,
     updatedBy: input.ownerUserId,
@@ -664,6 +684,7 @@ export async function updateActionRecord(input: {
   )).returning();
   if (!rows.length) throw repositoryError("record_version_conflict");
   return rows[0]!;
+  });
 }
 
 export async function createEvidenceRecord(input: {
@@ -672,8 +693,9 @@ export async function createEvidenceRecord(input: {
   planId?: string;
   evidence: EvidenceRecord;
 }) {
-  await getProfileRecord(input.ownerUserId, input.profileId);
-  const [row] = await db.insert(careerDataEvidenceTable).values({
+  return withActorTransaction(input.ownerUserId, async (tx) => {
+  await requireOwnedProfile(tx, input.ownerUserId, input.profileId);
+  const [row] = await tx.insert(careerDataEvidenceTable).values({
     id: input.evidence.evidenceId,
     ownerUserId: input.ownerUserId,
     createdBy: input.ownerUserId,
@@ -689,6 +711,7 @@ export async function createEvidenceRecord(input: {
     linkedSkillCodes: input.evidence.linkedSkillCodes,
   }).returning();
   return row!;
+  });
 }
 
 export async function grantAdvisorAccess(input: {
@@ -706,8 +729,9 @@ export async function grantAdvisorAccess(input: {
   ]);
   if (!input.scopes.length || input.scopes.some((scope) => !allowed.has(scope)))
     throw repositoryError("forbidden");
+  return withActorTransaction(input.ownerUserId, async (tx) => {
   const id = `grant_${randomUUID()}`;
-  const [row] = await db.insert(careerDataAdvisorGrantsTable).values({
+  const [row] = await tx.insert(careerDataAdvisorGrantsTable).values({
     id,
     ownerUserId: input.ownerUserId,
     advisorUserId: input.advisorUserId,
@@ -720,10 +744,12 @@ export async function grantAdvisorAccess(input: {
     retentionClass: "active_profile",
   }).returning();
   return row!;
+  });
 }
 
 export async function revokeAdvisorAccess(ownerUserId: number, grantId: string) {
-  const [row] = await db.update(careerDataAdvisorGrantsTable).set({
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const [row] = await tx.update(careerDataAdvisorGrantsTable).set({
     status: "revoked",
     revokedAt: new Date(),
     updatedAt: new Date(),
@@ -736,10 +762,11 @@ export async function revokeAdvisorAccess(ownerUserId: number, grantId: string) 
   )).returning();
   if (!row) throw repositoryError("resource_not_found");
   return row;
+  });
 }
 
 export async function listAdvisorAccess(ownerUserId: number) {
-  return db.select({
+  return withActorTransaction(ownerUserId, (tx) => tx.select({
     id: careerDataAdvisorGrantsTable.id,
     advisorUserId: careerDataAdvisorGrantsTable.advisorUserId,
     scopes: careerDataAdvisorGrantsTable.scopes,
@@ -751,15 +778,14 @@ export async function listAdvisorAccess(ownerUserId: number) {
   }).from(careerDataAdvisorGrantsTable).where(and(
     eq(careerDataAdvisorGrantsTable.ownerUserId, ownerUserId),
     isNull(careerDataAdvisorGrantsTable.deletedAt),
-  )).orderBy(desc(careerDataAdvisorGrantsTable.grantedAt));
+  )).orderBy(desc(careerDataAdvisorGrantsTable.grantedAt)));
 }
 
 export async function requestAccountDeletion(input: {
   ownerUserId: number;
   idempotencyKey: string;
 }) {
-  return db.transaction(async (tx) => {
-    await setActor(tx, input.ownerUserId);
+  return withActorTransaction(input.ownerUserId, async (tx) => {
     const replay = await idempotentReplay(tx, {
       ownerUserId: input.ownerUserId,
       operation: "request_deletion",
@@ -790,14 +816,17 @@ export async function requestAccountDeletion(input: {
 }
 
 export async function getAccountDeletionRequest(ownerUserId: number) {
-  const [row] = await db.select().from(careerDataDeletionRequestsTable).where(
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const [row] = await tx.select().from(careerDataDeletionRequestsTable).where(
     eq(careerDataDeletionRequestsTable.ownerUserId, ownerUserId),
   ).orderBy(desc(careerDataDeletionRequestsTable.requestedAt)).limit(1);
   return row ?? null;
+  });
 }
 
 export async function cancelAccountDeletion(ownerUserId: number) {
-  const [row] = await db.update(careerDataDeletionRequestsTable).set({
+  return withActorTransaction(ownerUserId, async (tx) => {
+  const [row] = await tx.update(careerDataDeletionRequestsTable).set({
     state: "cancelled",
     updatedAt: new Date(),
     updatedBy: ownerUserId,
@@ -811,6 +840,7 @@ export async function cancelAccountDeletion(ownerUserId: number) {
   )).returning();
   if (!row) throw repositoryError("resource_not_found");
   return row;
+  });
 }
 
 export async function createExportRequest(input: {
@@ -818,8 +848,9 @@ export async function createExportRequest(input: {
   format: "json" | "markdown" | "zip";
   idempotencyKey: string;
 }) {
+  return withActorTransaction(input.ownerUserId, async (tx) => {
   const id = `export_${randomUUID()}`;
-  const [row] = await db.insert(careerDataExportsTable).values({
+  const [row] = await tx.insert(careerDataExportsTable).values({
     id,
     ownerUserId: input.ownerUserId,
     createdBy: input.ownerUserId,
@@ -830,13 +861,10 @@ export async function createExportRequest(input: {
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
   }).returning();
   return row!;
+  });
 }
 
-type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
-
-async function setActor(tx: Transaction, userId: number) {
-  await tx.execute(sql`select set_config('app.user_id', ${String(userId)}, true)`);
-}
+type Transaction = ActorTransaction;
 
 async function requireOwnedProfile(tx: Transaction, ownerUserId: number, profileId: string) {
   const [row] = await tx.select({ id: careerDataProfilesTable.id }).from(careerDataProfilesTable).where(and(
@@ -865,8 +893,8 @@ async function requireOwnedAssessment(tx: Transaction, ownerUserId: number, asse
   if (!row) throw repositoryError("resource_not_found");
 }
 
-async function distinguishConflict(ownerUserId: number, profileId: string, expectedVersion: number) {
-  const [row] = await db.select({ recordVersion: careerDataProfilesTable.recordVersion })
+async function distinguishConflict(tx: Transaction, ownerUserId: number, profileId: string, expectedVersion: number) {
+  const [row] = await tx.select({ recordVersion: careerDataProfilesTable.recordVersion })
     .from(careerDataProfilesTable).where(and(
       eq(careerDataProfilesTable.id, profileId),
       eq(careerDataProfilesTable.ownerUserId, ownerUserId),
