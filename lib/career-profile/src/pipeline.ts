@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { createRequire } from "node:module";
 import mammoth from "mammoth";
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import type { CareerIntelligenceEngine } from "@workspace/career-intelligence";
 import type {
   AchievementEvidence,
@@ -19,10 +19,6 @@ import type {
   RetentionMode,
   SourceReference,
 } from "./types";
-
-const pdfParse = createRequire(import.meta.url)(
-  "pdf-parse/lib/pdf-parse.js",
-) as (buffer: Buffer) => Promise<{ text: string; numpages: number }>;
 
 const maxFileSize = 8 * 1024 * 1024;
 const supported: Record<string, { type: FileType; mime: string[] }> = {
