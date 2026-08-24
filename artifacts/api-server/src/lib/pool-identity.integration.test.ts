@@ -1,10 +1,12 @@
 import { Pool, type PoolClient } from "pg";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { createPostgresPoolConfig } from "@workspace/db/connection";
+import { assertRestrictedHostedRole } from "./hosted-test-readiness";
 
 const run = process.env.POOL_IDENTITY_INTEGRATION === "1" ? describe : describe.skip;
 const connectionString = process.env.DATABASE_URL;
-const single = new Pool({ connectionString, max: 1 });
-const concurrent = new Pool({ connectionString, max: 2 });
+const single = new Pool({ ...createPostgresPoolConfig(connectionString!), max: 1 });
+const concurrent = new Pool({ ...createPostgresPoolConfig(connectionString!), max: 2 });
 
 async function visibleOwners(client: PoolClient, userId?: number, rollback = false) {
   await client.query("begin");
@@ -23,6 +25,8 @@ async function visibleOwners(client: PoolClient, userId?: number, rollback = fal
 }
 
 run("pooled transaction-local identity isolation", () => {
+  beforeAll(async () => assertRestrictedHostedRole(single));
+
   afterAll(async () => {
     await Promise.all([single.end(), concurrent.end()]);
   });
@@ -48,6 +52,16 @@ run("pooled transaction-local identity isolation", () => {
     try {
       expect(await visibleOwners(client, 91001)).toEqual([91001]);
       expect(await visibleOwners(client, 91007)).toEqual([91007]);
+    } finally {
+      client.release();
+    }
+  });
+
+  it("does not leak client B identity into client A on the same connection", async () => {
+    const client = await single.connect();
+    try {
+      expect(await visibleOwners(client, 91007)).toEqual([91007]);
+      expect(await visibleOwners(client, 91001)).toEqual([91001]);
     } finally {
       client.release();
     }

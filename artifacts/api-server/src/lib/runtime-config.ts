@@ -46,8 +46,8 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
       throw configError(`Hosted ${name} must explicitly require TLS.`);
   }
   const migrationUrl = clean(env.MIGRATION_DATABASE_URL);
-  if (hosted && migrationUrl && migrationUrl === databaseUrl) {
-    throw configError("MIGRATION_DATABASE_URL must be distinct from DATABASE_URL.");
+  if (hosted && migrationUrl) {
+    throw configError("MIGRATION_DATABASE_URL is forbidden in hosted request runtime.");
   }
   const exportExpirySeconds = positiveInt(env.EXPORT_EXPIRY_SECONDS, 900);
   if (exportExpirySeconds > 3600) throw configError("EXPORT_EXPIRY_SECONDS must not exceed one hour.");

@@ -32,11 +32,15 @@ describe("hosted runtime configuration", () => {
       WORKER_DATABASE_URL: `postgresql://worker:secret@db.invalid/app?sslmode=${sslMode}`,
     })).toThrow("explicitly require TLS");
   });
-  it("rejects a shared migration and runtime connection", () => {
+  it("rejects migration credentials in hosted request runtime", () => {
     expect(() => loadRuntimeConfig({
       ...valid,
       MIGRATION_DATABASE_URL: valid.DATABASE_URL,
-    })).toThrow("must be distinct");
+    })).toThrow("forbidden in hosted request runtime");
+    expect(() => loadRuntimeConfig({
+      ...valid,
+      MIGRATION_DATABASE_URL: "postgresql://migrator:secret@db.invalid/app?sslmode=require",
+    })).toThrow("forbidden in hosted request runtime");
   });
   it("does not include database credentials in validation errors", () => {
     const credential = "runtime-password-fixture";

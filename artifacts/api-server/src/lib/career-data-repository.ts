@@ -311,23 +311,21 @@ export async function getProfileRecord(ownerUserId: number, profileId: string) {
     isNull(careerDataProfilesTable.deletedAt),
   ));
   if (!profile) throw repositoryError("resource_not_found");
-  const [personalData, entities, corrections] = await Promise.all([
-    tx.select().from(careerDataPersonalDataTable).where(and(
-      eq(careerDataPersonalDataTable.profileId, profileId),
-      eq(careerDataPersonalDataTable.ownerUserId, ownerUserId),
-      isNull(careerDataPersonalDataTable.deletedAt),
-    )),
-    tx.select().from(careerDataProfileEntitiesTable).where(and(
-      eq(careerDataProfileEntitiesTable.profileId, profileId),
-      eq(careerDataProfileEntitiesTable.ownerUserId, ownerUserId),
-      isNull(careerDataProfileEntitiesTable.deletedAt),
-    )).orderBy(asc(careerDataProfileEntitiesTable.ordinal)),
-    tx.select().from(careerDataCorrectionsTable).where(and(
-      eq(careerDataCorrectionsTable.profileId, profileId),
-      eq(careerDataCorrectionsTable.ownerUserId, ownerUserId),
-      isNull(careerDataCorrectionsTable.deletedAt),
-    )),
-  ]);
+  const personalData = await tx.select().from(careerDataPersonalDataTable).where(and(
+    eq(careerDataPersonalDataTable.profileId, profileId),
+    eq(careerDataPersonalDataTable.ownerUserId, ownerUserId),
+    isNull(careerDataPersonalDataTable.deletedAt),
+  ));
+  const entities = await tx.select().from(careerDataProfileEntitiesTable).where(and(
+    eq(careerDataProfileEntitiesTable.profileId, profileId),
+    eq(careerDataProfileEntitiesTable.ownerUserId, ownerUserId),
+    isNull(careerDataProfileEntitiesTable.deletedAt),
+  )).orderBy(asc(careerDataProfileEntitiesTable.ordinal));
+  const corrections = await tx.select().from(careerDataCorrectionsTable).where(and(
+    eq(careerDataCorrectionsTable.profileId, profileId),
+    eq(careerDataCorrectionsTable.ownerUserId, ownerUserId),
+    isNull(careerDataCorrectionsTable.deletedAt),
+  ));
   return { profile, personalData: personalData[0] ?? null, entities, corrections };
   });
 }
@@ -643,18 +641,16 @@ export async function getPlanRecord(ownerUserId: number, planId: string) {
     isNull(careerDataPlansTable.deletedAt),
   ));
   if (!plan) throw repositoryError("resource_not_found");
-  const [items, dependencies] = await Promise.all([
-    tx.select().from(careerDataPlanItemsTable).where(and(
-      eq(careerDataPlanItemsTable.planId, planId),
-      eq(careerDataPlanItemsTable.ownerUserId, ownerUserId),
-      isNull(careerDataPlanItemsTable.deletedAt),
-    )).orderBy(asc(careerDataPlanItemsTable.ordinal)),
-    tx.select().from(careerDataPlanDependenciesTable).where(and(
-      eq(careerDataPlanDependenciesTable.planId, planId),
-      eq(careerDataPlanDependenciesTable.ownerUserId, ownerUserId),
-      isNull(careerDataPlanDependenciesTable.deletedAt),
-    )),
-  ]);
+  const items = await tx.select().from(careerDataPlanItemsTable).where(and(
+    eq(careerDataPlanItemsTable.planId, planId),
+    eq(careerDataPlanItemsTable.ownerUserId, ownerUserId),
+    isNull(careerDataPlanItemsTable.deletedAt),
+  )).orderBy(asc(careerDataPlanItemsTable.ordinal));
+  const dependencies = await tx.select().from(careerDataPlanDependenciesTable).where(and(
+    eq(careerDataPlanDependenciesTable.planId, planId),
+    eq(careerDataPlanDependenciesTable.ownerUserId, ownerUserId),
+    isNull(careerDataPlanDependenciesTable.deletedAt),
+  ));
   return { plan, items, dependencies };
   });
 }

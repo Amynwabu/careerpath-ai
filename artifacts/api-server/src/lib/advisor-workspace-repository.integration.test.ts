@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { pool } from "@workspace/db";
 import {
@@ -43,11 +43,14 @@ import {
   verifyAction,
 } from "./advisor-workspace-repository";
 import { actorQuery } from "./database-actor-context";
+import { assertRestrictedHostedRole } from "./hosted-test-readiness";
 
 const run = process.env.ADVISOR_DB_INTEGRATION === "1" ? describe : describe.skip;
 const hostedRunId = randomUUID();
 
 run("persistent advisor workspace repository", () => {
+  beforeAll(async () => assertRestrictedHostedRole(pool));
+
   afterAll(async () => {
     await pool.end();
   });

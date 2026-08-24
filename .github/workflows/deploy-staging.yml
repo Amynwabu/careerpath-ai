@@ -12,6 +12,7 @@ jobs:
     concurrency: careerpathx-staging
     env:
       APP_ENV: staging
+      STAGING_SUPABASE_PROJECT_REF: sfpbhwzvspuouondwpdy
       STAGING_ACCESS_CONTROL_CONFIRMED: ${{ vars.STAGING_ACCESS_CONTROL_CONFIRMED }}
     steps:
       - uses: actions/checkout@v4
@@ -60,23 +61,23 @@ jobs:
         run: pnpm --filter @workspace/scripts run staging:seed-verification
       - name: Verify advisor repository against seeded staging
         env:
-          DATABASE_URL: ${{ secrets.STAGING_VERIFICATION_DATABASE_URL }}
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_VERIFICATION_DATABASE_URL }}
           ADVISOR_DB_INTEGRATION: "1"
         run: pnpm --filter @workspace/api-server exec vitest run --config vitest.config.ts src/lib/advisor-workspace-repository.integration.test.ts
       - name: Verify workflow repository against seeded staging
         env:
-          DATABASE_URL: ${{ secrets.STAGING_VERIFICATION_DATABASE_URL }}
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_VERIFICATION_DATABASE_URL }}
           WORKFLOW_DB_INTEGRATION: "1"
         run: pnpm --filter @workspace/api-server exec vitest run --config vitest.config.ts src/lib/workflow-persistence-repository.integration.test.ts
       - name: Verify pooled identity isolation
         env:
-          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
           POOL_IDENTITY_INTEGRATION: "1"
         run: pnpm --filter @workspace/api-server exec vitest run --config vitest.config.ts src/lib/pool-identity.integration.test.ts
       - name: Verify durable quotas and jobs
         env:
-          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
-          WORKER_DATABASE_URL: ${{ secrets.STAGING_WORKER_DATABASE_URL }}
+          STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          STAGING_WORKER_DATABASE_URL: ${{ secrets.STAGING_WORKER_DATABASE_URL }}
           PLATFORM_DB_INTEGRATION: "1"
         run: pnpm --filter @workspace/api-server exec vitest run --config vitest.config.ts src/lib/platform-operations.integration.test.ts
       - name: Deploy non-production staging alias

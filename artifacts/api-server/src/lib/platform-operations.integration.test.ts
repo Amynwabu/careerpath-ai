@@ -1,19 +1,23 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { Pool } from "pg";
 import { pool } from "@workspace/db";
+import { createPostgresPoolConfig } from "@workspace/db/connection";
 import {
   cancelJob, claimJob, closePlatformWorkerPool, completeJob, consumeQuota,
   enqueueJob, failJob,
 } from "./platform-operations";
+import { assertRestrictedHostedRole } from "./hosted-test-readiness";
 
 const run = process.env.PLATFORM_DB_INTEGRATION === "1" ? describe : describe.skip;
 const ownerUserId = 92001;
-const testWorkerPool = new Pool({
-  connectionString: process.env.WORKER_DATABASE_URL ?? process.env.DATABASE_URL,
-});
+const testWorkerPool = new Pool(createPostgresPoolConfig(
+  (process.env.WORKER_DATABASE_URL ?? process.env.DATABASE_URL)!,
+));
 
 run("durable platform operations", () => {
   beforeAll(async () => {
+    await assertRestrictedHostedRole(pool);
+    await assertRestrictedHostedRole(testWorkerPool);
     await pool.query(
       `insert into users (id,name,email,email_verified,password_hash)
        values ($1,'Platform fixture','platform-fixture@example.invalid',true,'fixture-not-a-real-hash')

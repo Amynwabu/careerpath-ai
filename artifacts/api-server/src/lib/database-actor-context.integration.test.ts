@@ -1,10 +1,13 @@
 import { pool } from "@workspace/db";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { withActorClient } from "./database-actor-context";
+import { assertRestrictedHostedRole } from "./hosted-test-readiness";
 
 const run = process.env.POOL_IDENTITY_INTEGRATION === "1" ? describe : describe.skip;
 
 run("shared transaction-local database actor context", () => {
+  beforeAll(async () => assertRestrictedHostedRole(pool));
+
   it.each([0, -1, 1.5, Number.NaN, Number.MAX_SAFE_INTEGER + 1])(
     "rejects invalid actor identity %s",
     async (actorUserId) => {
@@ -39,5 +42,16 @@ run("shared transaction-local database actor context", () => {
       "select advisor_user_id from career_data_advisor_profiles order by advisor_user_id",
     ));
     expect(client.rows).toEqual([]);
+  });
+
+  it("does not leak client context into a following advisor operation", async () => {
+    const client = await withActorClient(91001, (connection) => connection.query(
+      "select advisor_user_id from career_data_advisor_profiles order by advisor_user_id",
+    ));
+    expect(client.rows).toEqual([]);
+    const advisor = await withActorClient(91003, (connection) => connection.query(
+      "select advisor_user_id from career_data_advisor_profiles order by advisor_user_id",
+    ));
+    expect(advisor.rows.map((row) => row.advisor_user_id)).toEqual([91003]);
   });
 });

@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { pool } from "@workspace/db";
 import {
@@ -8,11 +8,14 @@ import {
   rememberIdempotency, replayIdempotency, saveOpportunity, saveWorkflowSession,
 } from "./workflow-persistence-repository";
 import { actorQuery } from "./database-actor-context";
+import { assertRestrictedHostedRole } from "./hosted-test-readiness";
 
 const run = process.env.WORKFLOW_DB_INTEGRATION === "1" ? describe : describe.skip;
 type Fixture = { sessionId: string; ownerUserId: string; status: string; recordVersion: number };
 
 run("durable cross-domain workflow repository", () => {
+  beforeAll(async () => assertRestrictedHostedRole(pool));
+
   afterAll(async () => pool.end());
 
   it("persists owner-isolated immutable vacancy snapshots", async () => {
