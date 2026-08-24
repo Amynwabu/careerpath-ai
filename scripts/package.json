@@ -37,12 +37,14 @@
     "verify:career-taxonomy": "tsx ./src/verify-career-taxonomy.ts",
     "career-data:retention": "tsx ./src/career-data/retention-worker.ts",
     "staging:seed-verification": "tsx ./src/staging/seed-verification.ts",
+    "staging:update-login-fixtures": "tsx ./src/staging/update-login-fixtures.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@workspace/career-data": "workspace:*",
     "@workspace/db": "workspace:*",
+    "bcryptjs": "3.0.3",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {

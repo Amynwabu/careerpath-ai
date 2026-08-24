@@ -12,7 +12,6 @@ const fixtureUsers = [
 
 export async function seedStagingVerificationFixtures() {
   assertStagingTarget();
-  const passwordHash = process.env.STAGING_FIXTURE_PASSWORD_HASH ?? "synthetic-fixture-no-login";
   const client = await pool.connect();
   try {
     await client.query("begin");
@@ -22,9 +21,9 @@ export async function seedStagingVerificationFixtures() {
          values ($1,$2,$3,true,$4,$5)
          on conflict (id) do update set
            name=excluded.name,email=excluded.email,email_verified=true,
-           password_hash=excluded.password_hash,role=excluded.role,updated_at=now()
+           role=excluded.role,updated_at=now()
          where users.email like '%@staging.invalid'`,
-        [id, name, email, passwordHash, role],
+        [id, name, email, "synthetic-fixture-no-login", role],
       );
     }
     await client.query(
@@ -145,9 +144,6 @@ function assertStagingTarget() {
     throw new Error("staging_fixture_environment_required");
   if (process.env.STAGING_FIXTURE_CONFIRMATION !== "SYNTHETIC_ONLY")
     throw new Error("staging_fixture_confirmation_required");
-  if (process.env.APP_ENV === "staging" &&
-      !process.env.STAGING_FIXTURE_PASSWORD_HASH?.startsWith("$2"))
-    throw new Error("staging_fixture_password_hash_required");
   const url = new URL(process.env.DATABASE_URL ?? "");
   const allowedHosts = (process.env.STAGING_DATABASE_HOST_ALLOWLIST ?? "")
     .split(",").map((host) => host.trim()).filter(Boolean);
