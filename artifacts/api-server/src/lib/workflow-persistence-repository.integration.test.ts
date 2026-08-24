@@ -11,12 +11,27 @@ import { actorQuery } from "./database-actor-context";
 import { assertRestrictedHostedRole } from "./hosted-test-readiness";
 
 const run = process.env.WORKFLOW_DB_INTEGRATION === "1" ? describe : describe.skip;
+const hostedRunId = randomUUID();
+const idempotencyResourceId = `workflow_interview_fixture_${hostedRunId}`;
+const expiredIdempotencyResourceId = `workflow_expired_fixture_${hostedRunId}`;
 type Fixture = { sessionId: string; ownerUserId: string; status: string; recordVersion: number };
 
 run("durable cross-domain workflow repository", () => {
-  beforeAll(async () => assertRestrictedHostedRole(pool));
+  beforeAll(async () => {
+    await assertRestrictedHostedRole(pool);
+    await actorQuery(91001,
+      "delete from career_data_workflow_idempotency where resource_id=any($1::text[])",
+      [[idempotencyResourceId, expiredIdempotencyResourceId]],
+    );
+  });
 
-  afterAll(async () => pool.end());
+  afterAll(async () => {
+    await actorQuery(91001,
+      "delete from career_data_workflow_idempotency where resource_id=any($1::text[])",
+      [[idempotencyResourceId, expiredIdempotencyResourceId]],
+    );
+    await pool.end();
+  });
 
   it("persists owner-isolated immutable vacancy snapshots", async () => {
     const vacancy = {
@@ -49,15 +64,34 @@ run("durable cross-domain workflow repository", () => {
   });
 
   it("replays hashed idempotency without retaining request payloads", async () => {
+    const idempotencyKey = `sensitive-fixture-key-${hostedRunId}`;
     await rememberIdempotency({ ownerUserId: 91001, domain: "interview",
-      operation: "session", key: "sensitive-fixture-key", resourceId: "workflow_interview_fixture" });
+      operation: "session", key: idempotencyKey, resourceId: idempotencyResourceId });
     expect(await replayIdempotency({ ownerUserId: 91001, domain: "interview",
-      operation: "session", key: "sensitive-fixture-key" })).toBe("workflow_interview_fixture");
+      operation: "session", key: idempotencyKey })).toBe(idempotencyResourceId);
     const raw = await actorQuery<{ key_hash: string }>(91001,
       "select key_hash from career_data_workflow_idempotency where resource_id=$1",
-      ["workflow_interview_fixture"],
+      [idempotencyResourceId],
     );
     expect(raw.rows[0]?.key_hash).not.toContain("sensitive");
+  });
+
+  it("refreshes an expired idempotency claim without overwriting an active claim", async () => {
+    const key = `expired-fixture-key-${hostedRunId}`;
+    await rememberIdempotency({ ownerUserId: 91001, domain: "interview",
+      operation: "session", key, resourceId: idempotencyResourceId });
+    await rememberIdempotency({ ownerUserId: 91001, domain: "interview",
+      operation: "session", key, resourceId: expiredIdempotencyResourceId });
+    expect(await replayIdempotency({ ownerUserId: 91001, domain: "interview",
+      operation: "session", key })).toBe(idempotencyResourceId);
+    await actorQuery(91001,
+      "update career_data_workflow_idempotency set expires_at=now()-interval '1 second' where resource_id=$1",
+      [idempotencyResourceId],
+    );
+    await rememberIdempotency({ ownerUserId: 91001, domain: "interview",
+      operation: "session", key, resourceId: expiredIdempotencyResourceId });
+    expect(await replayIdempotency({ ownerUserId: 91001, domain: "interview",
+      operation: "session", key })).toBe(expiredIdempotencyResourceId);
   });
 
   it("keeps deterministic resources immutable and owner-bound exports short-lived", async () => {

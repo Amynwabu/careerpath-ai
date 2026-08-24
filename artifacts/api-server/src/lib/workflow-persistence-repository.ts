@@ -36,7 +36,9 @@ export async function rememberIdempotency(input: {
     `INSERT INTO career_data_workflow_idempotency
       (owner_user_id,domain,operation,key_hash,resource_id,expires_at)
      VALUES ($1,$2,$3,$4,$5,now()+interval '24 hours')
-     ON CONFLICT (owner_user_id,domain,operation,key_hash) DO NOTHING`,
+     ON CONFLICT (owner_user_id,domain,operation,key_hash) DO UPDATE
+       SET resource_id=excluded.resource_id,expires_at=excluded.expires_at
+       WHERE career_data_workflow_idempotency.expires_at<=now()`,
     [input.ownerUserId, input.domain, input.operation, contentHash(input.key), input.resourceId],
   );
 }
